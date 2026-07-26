@@ -434,7 +434,7 @@ body {
 .battle-expbar { width: 140px; height: 6px; }
 .battle-exp-caption { font-size: 0.6rem; color: var(--ink-soft); margin-top: 1px; }
 
-.battle-sprite { width: 40vw; height: 40vw; max-width: 190px; max-height: 190px; }
+.battle-sprite { width: 40vw; height: 40vw; max-width: 190px; max-height: 190px; position: relative; }
 .enemy-sprite { align-self: flex-end; }
 .player-sprite { align-self: flex-start; }
 .battle-sprite.shake { animation: battle-shake 0.4s ease; }
@@ -444,6 +444,24 @@ body {
   75% { transform: translateX(8px); }
 }
 .battle-sprite.faint { opacity: 0.15; transform: translateY(20px); transition: all 0.4s ease; }
+
+.battle-elem-effect {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 65%;
+  height: 65%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 5;
+  animation: elem-pop 0.65s ease-out forwards;
+}
+@keyframes elem-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
 
 .battle-lower {
   position: fixed;

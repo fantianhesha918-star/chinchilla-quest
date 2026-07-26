@@ -360,12 +360,22 @@
   dialogueOverlay.addEventListener("click", advanceDialogue);
 
   // ---------------- Battle ----------------
-  function calcDamage(atk, power, def) {
+  function calcDamage(atk, power, def, atkElem, defElem) {
     var raw = Math.max(1, atk * power / 20 - def * 0.4);
     var rand = 0.9 + Math.random() * 0.2;
     var crit = Math.random() < G.CRIT_CHANCE;
-    var dmg = Math.max(1, Math.round(raw * rand * (crit ? G.CRIT_MULT : 1)));
-    return { dmg: dmg, crit: crit };
+    var matchup = G.getElementMatchup(atkElem, defElem);
+    var dmg = Math.max(1, Math.round(raw * rand * (crit ? G.CRIT_MULT : 1) * matchup.mult));
+    return { dmg: dmg, crit: crit, elemTier: matchup.tier };
+  }
+
+  function showElementEffect(element, containerEl) {
+    if (!element || !G.ELEMENT_EFFECTS[element] || !containerEl) return;
+    var img = document.createElement("img");
+    img.src = G.ELEMENT_EFFECTS[element];
+    img.className = "battle-elem-effect";
+    containerEl.appendChild(img);
+    setTimeout(function () { img.remove(); }, 650);
   }
 
   function setBattleMessage(msg) { battleMessageEl.textContent = msg; }
@@ -441,6 +451,7 @@
     var stats = getMaxStats(state);
     var def = G.MONSTERS[battle.monsterId];
     var lines = [];
+    var skillElement = null;
 
     if (action.type === "item") {
       var item = G.ITEMS[action.itemId];
@@ -451,17 +462,21 @@
     } else {
       var sk = G.SKILLS[action.skillId];
       state.mp = Math.max(0, state.mp - sk.mp);
-      var result = calcDamage(stats.atk, sk.power, def.def);
+      var result = calcDamage(stats.atk, sk.power, def.def, sk.element, def.element);
       battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
       battleEnemySprite.classList.add("shake");
       setTimeout(function () { battleEnemySprite.classList.remove("shake"); }, 400);
+      skillElement = sk.element;
       lines.push(state.name + " の " + sk.name + "!");
       if (result.crit) lines.push("会心の一撃!");
       lines.push(def.name + " に " + result.dmg + " の ダメージ!");
+      if (result.elemTier === "strong") lines.push("こうかは ばつぐんだ!");
+      else if (result.elemTier === "weak") lines.push("こうかは いまひとつ のようだ…");
     }
 
     save(state);
     renderBattle();
+    showElementEffect(skillElement, battleEnemySprite);
     playSequence(lines, function () {
       if (battle.monsterHp <= 0) { winBattle(); return; }
       enemyTurn();
@@ -473,12 +488,13 @@
     var stats = getMaxStats(state);
     var skillId = def.skillIds[Math.floor(Math.random() * def.skillIds.length)];
     var sk = G.SKILLS[skillId];
-    var result = calcDamage(def.atk, sk.power, stats.def);
+    var result = calcDamage(def.atk, sk.power, stats.def, sk.element, null);
     state.hp = Math.max(0, state.hp - result.dmg);
     save(state);
     renderBattle();
     battlePlayerSprite.classList.add("shake");
     setTimeout(function () { battlePlayerSprite.classList.remove("shake"); }, 400);
+    showElementEffect(sk.element, battlePlayerSprite);
 
     var lines = [def.name + " の " + sk.name + "!"];
     if (result.crit) lines.push("会心の一撃!");
