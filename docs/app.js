@@ -145,8 +145,10 @@
   }
 
   var playerEl = null;
+  var heroWalkFrame = 0;
 
   function renderMap() {
+    heroWalkFrame = 0;
     var map = currentMap();
     var rows = map.tiles.length, cols = map.tiles[0].length;
     mapViewport.className = "map-viewport map-" + map.id;
@@ -203,7 +205,8 @@
       } else {
         inner.classList.remove("facing-left");
         var img = inner.querySelector("img");
-        if (img) img.src = G.HERO_FIELD_SPRITES[state.facing || "down"];
+        var frames = G.HERO_WALK_FRAMES[state.facing || "down"];
+        if (img) img.src = frames[heroWalkFrame % frames.length];
       }
     }
     if (animateStep !== false) {
@@ -255,6 +258,7 @@
     if (blockingNpc) { showToast(blockingNpc.name + " が いる。「はなす」で話しかけよう"); return; }
 
     state.x = nx; state.y = ny;
+    heroWalkFrame += 1;
     save(state);
     positionPlayerSprite();
     updateHud();

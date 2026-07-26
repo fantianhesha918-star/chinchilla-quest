@@ -2,11 +2,18 @@
   "use strict";
 
   var HERO_IMAGE = "assets/hero/hero.webp";
+  var HERO_DIR = "assets/hero/";
+  var HERO_WALK_FRAMES = {
+    down: [HERO_DIR + "walk_down.webp", HERO_DIR + "walk_down_2.webp", HERO_DIR + "walk_down_3.webp", HERO_DIR + "walk_down_4.webp"],
+    left: [HERO_DIR + "walk_left.webp", HERO_DIR + "walk_left_2.webp", HERO_DIR + "walk_left_3.webp", HERO_DIR + "walk_left_4.webp"],
+    right: [HERO_DIR + "walk_right.webp", HERO_DIR + "walk_right_2.webp", HERO_DIR + "walk_right_3.webp", HERO_DIR + "walk_right_4.webp"],
+    up: [HERO_DIR + "walk_up.webp", HERO_DIR + "walk_up_2.webp", HERO_DIR + "walk_up_3.webp", HERO_DIR + "walk_up_4.webp"]
+  };
   var HERO_FIELD_SPRITES = {
-    down: "assets/hero/walk_down.webp",
-    left: "assets/hero/walk_left.webp",
-    right: "assets/hero/walk_right.webp",
-    up: "assets/hero/walk_up.webp"
+    down: HERO_WALK_FRAMES.down[0],
+    left: HERO_WALK_FRAMES.left[0],
+    right: HERO_WALK_FRAMES.right[0],
+    up: HERO_WALK_FRAMES.up[0]
   };
 
   // ---------------- Evolution routes ----------------
@@ -196,6 +203,7 @@
   window.GAME_DATA = {
     HERO_IMAGE: HERO_IMAGE,
     HERO_FIELD_SPRITES: HERO_FIELD_SPRITES,
+    HERO_WALK_FRAMES: HERO_WALK_FRAMES,
     EVOLUTION_ROUTES: EVOLUTION_ROUTES,
     FIRST_EVOLUTION_LEVEL: FIRST_EVOLUTION_LEVEL,
     calcMaxStats: calcMaxStats,
