@@ -33,6 +33,7 @@
       money: 0,
       companions: {},
       activeParty: [],
+      companionLevels: {},
       mapId: G.START_MAP,
       x: G.START_X,
       y: G.START_Y,
@@ -42,6 +43,13 @@
   }
 
   function getMaxStats(s) { return G.calcMaxStats(s.level, s.stageIndex); }
+
+  function getCompanionLevelData(id) {
+    if (!state.companionLevels[id]) {
+      state.companionLevels[id] = { level: G.MONSTERS[id].level, exp: 0 };
+    }
+    return state.companionLevels[id];
+  }
 
   function renderPlayerSprite() {
     if (state.stageIndex > 0) {
@@ -114,6 +122,7 @@
   if (state && !state.flags.openedChests) state.flags.openedChests = [];
   if (state && !state.companions) state.companions = {};
   if (state && !state.activeParty) state.activeParty = [];
+  if (state && !state.companionLevels) state.companionLevels = {};
   var selectedStarter = false;
   var battle = null;
   var battleActive = false;
@@ -431,7 +440,7 @@
       div.className = "battle-party-item" + (comp.fainted ? " fainted" : "");
       div.innerHTML =
         '<img class="battle-party-img" src="' + mon.image + '" alt="' + mon.name + '">' +
-        '<div class="battle-party-name">' + mon.name + "</div>" +
+        '<div class="battle-party-name">' + mon.name + " Lv" + comp.level + "</div>" +
         '<div class="hud-bar-track battle-party-hpbar"><div class="hud-bar-fill" style="width:' + Math.max(0, comp.hp / comp.maxHp * 100) + '%"></div></div>';
       battlePartyRowEl.appendChild(div);
     });
@@ -441,7 +450,9 @@
     var def = G.MONSTERS[monsterId];
     var party = state.activeParty.map(function (id) {
       var mon = G.MONSTERS[id];
-      return { id: id, hp: mon.hp, maxHp: mon.hp, fainted: false };
+      var ld = getCompanionLevelData(id);
+      var cstats = G.getCompanionStats(mon, ld.level);
+      return { id: id, level: ld.level, hp: cstats.maxHp, maxHp: cstats.maxHp, atk: cstats.atk, def: cstats.def, spd: cstats.spd, fainted: false };
     });
     battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party };
     battleActive = true;
@@ -510,7 +521,7 @@
       var mon = G.MONSTERS[comp.id];
       var skillId = mon.skillIds[Math.floor(Math.random() * mon.skillIds.length)];
       var sk = G.SKILLS[skillId];
-      var result = calcDamage(mon.atk, sk.power, def.def, mon.element, def.element);
+      var result = calcDamage(comp.atk, sk.power, def.def, mon.element, def.element);
       battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
       var tag = result.crit ? "(会心)" : result.elemTier === "strong" ? "(ばつぐん)" : result.elemTier === "weak" ? "(いまひとつ)" : "";
       lines.push(mon.name + " の こうげき! " + def.name + " に " + result.dmg + " の ダメージ!" + tag);
@@ -551,7 +562,7 @@
     } else {
       var comp = battle.party[target.idx];
       var mon = G.MONSTERS[comp.id];
-      var result2 = calcDamage(def.atk, sk.power, mon.def, sk.element, mon.element);
+      var result2 = calcDamage(def.atk, sk.power, comp.def, sk.element, mon.element);
       comp.hp = Math.max(0, comp.hp - result2.dmg);
       renderBattle();
       lines.push(def.name + " の " + sk.name + "!");
@@ -698,6 +709,24 @@
     });
   }
 
+  function gainCompanionExp(expGain) {
+    var levelUps = [];
+    state.activeParty.forEach(function (id) {
+      var ld = getCompanionLevelData(id);
+      ld.exp += expGain;
+      var leveled = false;
+      while (true) {
+        var need = G.expToNext(ld.level);
+        if (ld.exp < need) break;
+        ld.exp -= need;
+        ld.level += 1;
+        leveled = true;
+      }
+      if (leveled) levelUps.push(G.MONSTERS[id].name + " は Lv" + ld.level + " に あがった!");
+    });
+    return levelUps;
+  }
+
   function winBattle() {
     var def = G.MONSTERS[battle.monsterId];
     state.money += def.money;
@@ -707,10 +736,14 @@
       lines.push("つよい モンスターを たおした! これからも ぼうけんは つづく…");
     }
     var events = gainExp(def.exp);
+    var companionLevelUpLines = gainCompanionExp(def.exp);
     save(state);
     renderBattle();
     playSequence(lines, function () {
-      handleLevelUpMessages(events, endBattleToField);
+      handleLevelUpMessages(events, function () {
+        if (companionLevelUpLines.length === 0) { endBattleToField(); return; }
+        playSequence(companionLevelUpLines, endBattleToField);
+      });
     });
   }
 
@@ -845,12 +878,13 @@
       var mon = G.MONSTERS[id];
       if (!mon) return;
       var count = state.companions[id];
+      var ld = getCompanionLevelData(id);
       var inParty = state.activeParty.indexOf(id) !== -1;
       var div = document.createElement("div");
       div.className = "companion-item" + (inParty ? " in-party" : "");
       div.innerHTML =
         '<img class="companion-img" src="' + mon.image + '" alt="' + mon.name + '">' +
-        '<div class="companion-name">' + mon.name + " ×" + count + "</div>" +
+        '<div class="companion-name">' + mon.name + " ×" + count + " Lv" + ld.level + "</div>" +
         "<button class=\"companion-party-btn\">" + (inParty ? "はずす" : "くわえる") + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         if (inParty) {

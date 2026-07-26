@@ -56,9 +56,22 @@
   }
 
   function expToNext(level) {
-    var base = Math.round(18 * Math.pow(level, 1.5)) + 10;
-    var earlyDiscount = Math.max(0, 20 - level * 3);
-    return Math.max(10, base - earlyDiscount);
+    var base = Math.round(14 * Math.pow(level, 1.5)) + 8;
+    var earlyDiscount = Math.max(0, 24 - level * 2.5);
+    return Math.max(8, Math.round(base - earlyDiscount));
+  }
+
+  // なかまはMONSTERSの基準レベルからの差分に応じてステータスが伸びる簡易成長式
+  function getCompanionStats(mon, level) {
+    var lvl = level || mon.level;
+    var growth = Math.max(0, lvl - mon.level);
+    return {
+      level: lvl,
+      maxHp: Math.round(mon.hp + growth * mon.hp * 0.16),
+      atk: Math.round(mon.atk + growth * mon.atk * 0.14),
+      def: Math.round(mon.def + growth * mon.def * 0.14),
+      spd: Math.round(mon.spd + growth * mon.spd * 0.12)
+    };
   }
 
   // ---------------- Skills ----------------
@@ -239,6 +252,7 @@
     FIRST_EVOLUTION_LEVEL: FIRST_EVOLUTION_LEVEL,
     calcMaxStats: calcMaxStats,
     expToNext: expToNext,
+    getCompanionStats: getCompanionStats,
     SKILLS: SKILLS,
     SKILL_LEARN_ORDER: SKILL_LEARN_ORDER,
     ITEMS: ITEMS,
