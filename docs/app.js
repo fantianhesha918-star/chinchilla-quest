@@ -134,6 +134,7 @@
   function npcAtCoord(map, x, y) { return map.npcs.filter(function (n) { return n.x === x && n.y === y; })[0] || null; }
   function warpAtCoord(map, x, y) { return map.warps.filter(function (w) { return w.x === x && w.y === y; })[0] || null; }
   function chestAtCoord(map, x, y) { return (map.chests || []).filter(function (c) { return c.x === x && c.y === y; })[0] || null; }
+  function decoAtCoord(map, x, y) { return (map.decorations || []).filter(function (d) { return d.x === x && d.y === y; })[0] || null; }
   function isChestOpened(chest) { return state.flags.openedChests.indexOf(chest.id) !== -1; }
 
   function tileClass(ch) {
@@ -178,6 +179,10 @@
         }
         else if (ch === "H") inner = '<span class="tile-heal-mark">✨</span>';
         else if (chest && !chestOpened) inner = '<img class="tile-chest-img" src="assets/tiles/treasure_chest.webp" alt="たからばこ">';
+        else {
+          var deco = decoAtCoord(map, x, y);
+          if (deco) inner = '<img class="tile-deco-img" src="' + deco.image + '" alt="">';
+        }
         html += '<div class="' + cls + '">' + inner + "</div>";
       }
     }

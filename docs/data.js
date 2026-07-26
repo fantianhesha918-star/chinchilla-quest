@@ -123,9 +123,11 @@
       npcs: [
         { x: 2, y: 2, name: "村びと", image: "assets/npc/npc_boy.webp", dialogue: ["ようこそ、はじまりの村へ!", "した の ▼ボタンで うごけるよ。", "NPCの そばで「A」ボタンを おすと 会話できるよ。", "村の南に出ると 草むらが あるから 気をつけてね。"] },
         { x: 8, y: 2, name: "おみせのひと", shop: true, image: "assets/npc/shop_building.webp", dialogue: ["いらっしゃい! きずぐすりや マナのしずくを うってるよ。"] },
-        { x: 3, y: 7, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] }
+        { x: 3, y: 7, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] },
+        { x: 7, y: 7, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
       ],
       warps: [{ x: 5, y: 8, toMap: "field", toX: 4, toY: 1 }],
+      decorations: [{ x: 5, y: 1, image: "assets/tiles/deco_well.webp" }],
       encounter: null
     },
     field: {
@@ -151,6 +153,12 @@
       ],
       chests: [
         { id: "field_chest_1", x: 2, y: 5, reward: { type: "money", amount: 30 } }
+      ],
+      decorations: [
+        { x: 1, y: 2, image: "assets/tiles/deco_flowerbush.webp" },
+        { x: 6, y: 3, image: "assets/tiles/deco_flowerbush.webp" },
+        { x: 2, y: 8, image: "assets/tiles/deco_flowerbush.webp" },
+        { x: 6, y: 7, image: "assets/tiles/deco_flowerbush.webp" }
       ],
       encounter: {
         rate: 0.14,

@@ -42,6 +42,10 @@
 - `docs/assets/hero/walk_*.webp` : 主人公(無進化時)のフィールド移動用ドット絵。下/左/右/上の4方向 ×
   各4コマの歩行アニメーションで、歩くたびにコマが切り替わる。進化後はこれまで通り進化イラストを
   使用(左向きは反転表示、アニメーションなし)
+- `docs/assets/items/*.webp` : どうぐ・お金のアイコン(HUD/メニュー/ショップ/戦闘で使用)
+- `docs/assets/npc/npc_herbalist.webp` : 村の追加NPC「くすし」
+- `docs/assets/tiles/deco_well.webp` : 村の井戸(装飾、当たり判定なし)
+- `docs/assets/tiles/deco_flowerbush.webp` : フィールドの花壇(装飾、当たり判定なし)
 
 ## セーブデータ
 

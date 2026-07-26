@@ -264,6 +264,17 @@ body {
   pointer-events: none;
 }
 
+.tile-deco-img {
+  position: absolute;
+  inset: -20% 0 0 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2px rgba(93, 61, 30, 0.3));
+}
+
 .tile-chest-img {
   position: absolute;
   inset: 8% 8% 8% 8%;
