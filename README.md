@@ -58,6 +58,8 @@
 - `docs/assets/tiles/deco_well.webp` : 村の井戸(装飾、当たり判定なし)
 - `docs/assets/tiles/deco_flowerbush.webp` : フィールドの花壇(装飾、当たり判定なし)
 - `docs/assets/effects/effect_*.webp` : 属性攻撃時の演出(ほのお/こおり/でんき/つち)
+- `docs/assets/tiles/tile_ground.webp` : フィールドの草むら床
+- `docs/assets/tiles/tile_path.webp` : 村の通常床(石畳)
 
 ## セーブデータ
 
