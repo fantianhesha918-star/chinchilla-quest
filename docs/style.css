@@ -262,6 +262,21 @@ body {
   pointer-events: none;
 }
 
+.tile-chest-img {
+  position: absolute;
+  inset: 8% 8% 8% 8%;
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2px rgba(93, 61, 30, 0.3));
+  animation: chest-glow 1.8s ease-in-out infinite;
+}
+@keyframes chest-glow {
+  0%, 100% { filter: drop-shadow(0 3px 2px rgba(93, 61, 30, 0.3)); }
+  50% { filter: drop-shadow(0 0 6px rgba(255, 210, 90, 0.85)); }
+}
+
 .tile-player {
   position: absolute;
   inset: 4%;

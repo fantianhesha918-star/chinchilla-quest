@@ -35,7 +35,7 @@
       x: G.START_X,
       y: G.START_Y,
       facing: "down",
-      flags: { bossDefeated: false }
+      flags: { bossDefeated: false, openedChests: [] }
     };
   }
 
@@ -98,6 +98,7 @@
   var toastTimer = null;
 
   var state = load();
+  if (state && !state.flags.openedChests) state.flags.openedChests = [];
   var selectedStarter = false;
   var battle = null;
   var battleActive = false;
@@ -123,6 +124,8 @@
   function inBounds(map, x, y) { return y >= 0 && y < map.tiles.length && x >= 0 && x < map.tiles[0].length; }
   function npcAtCoord(map, x, y) { return map.npcs.filter(function (n) { return n.x === x && n.y === y; })[0] || null; }
   function warpAtCoord(map, x, y) { return map.warps.filter(function (w) { return w.x === x && w.y === y; })[0] || null; }
+  function chestAtCoord(map, x, y) { return (map.chests || []).filter(function (c) { return c.x === x && c.y === y; })[0] || null; }
+  function isChestOpened(chest) { return state.flags.openedChests.indexOf(chest.id) !== -1; }
 
   function tileClass(ch) {
     if (ch === "#") return "tile-wall";
@@ -152,6 +155,8 @@
         if (warp) cls += " tile-warp";
         if (isBoss) cls += " tile-boss";
         var npc = npcAtCoord(map, x, y);
+        var chest = chestAtCoord(map, x, y);
+        var chestOpened = chest && isChestOpened(chest);
         var inner = "";
         if (npc && npc.image) inner = '<img class="tile-npc-mark tile-npc-img" src="' + npc.image + '" alt="' + npc.name + '">';
         else if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
@@ -161,6 +166,7 @@
           inner = '<img class="tile-warp-img" src="' + gateImg + '" alt="warp">';
         }
         else if (ch === "H") inner = '<span class="tile-heal-mark">✨</span>';
+        else if (chest && !chestOpened) inner = '<img class="tile-chest-img" src="assets/tiles/treasure_chest.webp" alt="たからばこ">';
         html += '<div class="' + cls + '">' + inner + "</div>";
       }
     }
@@ -208,6 +214,17 @@
     return table[0].id;
   }
 
+  function applyChestReward(reward) {
+    if (reward.type === "money") {
+      state.money += reward.amount;
+      showToast("たからばこから 💰" + reward.amount + " てにいれた!");
+    } else if (reward.type === "item") {
+      var item = G.ITEMS[reward.itemId];
+      state.inventory[reward.itemId] = (state.inventory[reward.itemId] || 0) + reward.amount;
+      showToast("たからばこから " + item.name + " ×" + reward.amount + " てにいれた!");
+    }
+  }
+
   function tryMove(dir) {
     if (battleActive || dialogueActive) return;
     state.facing = dir;
@@ -236,6 +253,15 @@
       } else {
         showToast("もう げんきいっぱいだ!");
       }
+    }
+
+    var chest = chestAtCoord(map, nx, ny);
+    if (chest && !isChestOpened(chest)) {
+      state.flags.openedChests.push(chest.id);
+      applyChestReward(chest.reward);
+      save(state);
+      updateHud();
+      renderMap();
     }
 
     var warp = warpAtCoord(map, nx, ny);

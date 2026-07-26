@@ -135,6 +135,9 @@
         { x: 4, y: 0, toMap: "village", toX: 5, toY: 7 },
         { x: 4, y: 10, toMap: "dungeon", toX: 4, toY: 1 }
       ],
+      chests: [
+        { id: "field_chest_1", x: 2, y: 5, reward: { type: "money", amount: 30 } }
+      ],
       encounter: {
         rate: 0.14,
         table: [
@@ -164,6 +167,10 @@
       ],
       npcs: [],
       warps: [{ x: 4, y: 0, toMap: "field", toX: 4, toY: 9 }],
+      chests: [
+        { id: "dungeon_chest_1", x: 6, y: 6, reward: { type: "item", itemId: "kizugusuri", amount: 2 } },
+        { id: "dungeon_chest_2", x: 1, y: 9, reward: { type: "item", itemId: "manashizuku", amount: 2 } }
+      ],
       bossTrigger: { x: 4, y: 11, monsterId: "yougan_golem" },
       encounter: {
         rate: 0.16,
