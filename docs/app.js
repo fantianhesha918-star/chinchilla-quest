@@ -127,6 +127,8 @@
     return "tile-ground";
   }
 
+  var playerEl = null;
+
   function renderMap() {
     var map = currentMap();
     var rows = map.tiles.length, cols = map.tiles[0].length;
@@ -139,22 +141,42 @@
       for (var x = 0; x < cols; x++) {
         var ch = map.tiles[y][x];
         var cls = "tile " + tileClass(ch);
-        if (warpAtCoord(map, x, y)) cls += " tile-warp";
-        if (map.bossTrigger && map.bossTrigger.x === x && map.bossTrigger.y === y && !state.flags.bossDefeated) cls += " tile-boss";
-        var inner = npcAtCoord(map, x, y) ? '<span class="tile-npc-mark">🧑</span>' : "";
+        var isWarp = !!warpAtCoord(map, x, y);
+        var isBoss = !!(map.bossTrigger && map.bossTrigger.x === x && map.bossTrigger.y === y && !state.flags.bossDefeated);
+        if (isWarp) cls += " tile-warp";
+        if (isBoss) cls += " tile-boss";
+        var npc = npcAtCoord(map, x, y);
+        var inner = "";
+        if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
+        else if (isBoss) inner = '<span class="tile-boss-mark">💀</span>';
+        else if (isWarp) inner = '<span class="tile-warp-mark">⤵</span>';
         html += '<div class="' + cls + '">' + inner + "</div>";
       }
     }
     mapViewport.innerHTML = html;
 
-    var playerEl = document.createElement("div");
+    playerEl = document.createElement("div");
     playerEl.className = "tile-player";
+    playerEl.innerHTML = '<div class="tile-player-inner">' + renderPlayerSprite() + "</div>";
+    mapViewport.appendChild(playerEl);
+    positionPlayerSprite(false);
+  }
+
+  function positionPlayerSprite(animateStep) {
+    if (!playerEl) return;
+    var map = currentMap();
+    var rows = map.tiles.length, cols = map.tiles[0].length;
     playerEl.style.left = (state.x / cols * 100) + "%";
     playerEl.style.top = (state.y / rows * 100) + "%";
     playerEl.style.width = (100 / cols) + "%";
     playerEl.style.height = (100 / rows) + "%";
-    playerEl.innerHTML = renderPlayerSprite();
-    mapViewport.appendChild(playerEl);
+    var inner = playerEl.querySelector(".tile-player-inner");
+    if (inner) inner.classList.toggle("facing-left", state.facing === "left");
+    if (animateStep !== false) {
+      playerEl.classList.remove("step-bounce");
+      void playerEl.offsetWidth;
+      playerEl.classList.add("step-bounce");
+    }
   }
 
   function updateHud() {
@@ -189,7 +211,7 @@
 
     state.x = nx; state.y = ny;
     save(state);
-    renderMap();
+    positionPlayerSprite();
     updateHud();
 
     var warp = warpAtCoord(map, nx, ny);

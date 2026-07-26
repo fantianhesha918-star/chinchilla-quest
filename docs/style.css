@@ -153,15 +153,23 @@ body {
 .tile {
   position: relative;
   background: #eadfca;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), inset 0 0 0 1px rgba(93, 71, 51, 0.06);
 }
-.tile-wall { background: #b9a689; }
+.tile-wall {
+  background: linear-gradient(180deg, #cbb493 0%, #b9a689 55%, #a5906c 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -3px 0 rgba(93, 61, 30, 0.25);
+}
 .tile-ground { background: #f3e6cf; }
 .tile-grass { background: repeating-linear-gradient(135deg, #a8d5ba, #a8d5ba 6px, #9bcaad 6px, #9bcaad 12px); }
 .tile-water { background: repeating-linear-gradient(135deg, #a9cce3, #a9cce3 6px, #97bfda 6px, #97bfda 12px); }
-.tile-warp { background: #f3e6cf; box-shadow: inset 0 0 0 2px var(--pink-deep); }
-.tile-boss { background: #f3d0cb; box-shadow: inset 0 0 0 2px var(--danger); }
+.tile-warp { background: #f6e0ea; box-shadow: inset 0 0 0 2px var(--pink-deep); }
+.tile-boss { background: #f3d0cb; box-shadow: inset 0 0 0 2px var(--danger); animation: boss-pulse 1.6s ease-in-out infinite; }
+@keyframes boss-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px var(--danger); }
+  50% { box-shadow: inset 0 0 0 4px var(--danger); }
+}
 
-.tile-npc-mark {
+.tile-npc-mark, .tile-boss-mark, .tile-warp-mark {
   position: absolute;
   inset: 8% 8% 20% 8%;
   border-radius: 50%;
@@ -170,14 +178,27 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 0.9em;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
 }
+.tile-npc-shop { background: var(--pink-deep); }
+.tile-boss-mark { background: var(--danger); font-size: 1em; }
+.tile-warp-mark { background: transparent; box-shadow: none; color: var(--pink-deep); font-size: 1.1em; font-weight: 700; }
 
 .tile-player {
   position: absolute;
   inset: 4%;
-  transition: left 0.15s linear, top 0.15s linear;
+  transition: left 0.15s ease-out, top 0.15s ease-out;
+  filter: drop-shadow(0 3px 2px rgba(93, 61, 30, 0.25));
 }
-.tile-player svg { width: 100%; height: 100%; }
+.tile-player-inner { width: 100%; height: 100%; }
+.tile-player-inner.facing-left { transform: scaleX(-1); }
+.tile-player svg, .tile-player img { width: 100%; height: 100%; }
+.tile-player.step-bounce { animation: step-bounce 0.15s ease-out; }
+@keyframes step-bounce {
+  0% { transform: translateY(0) scale(1, 1); }
+  40% { transform: translateY(-8%) scale(0.94, 1.06); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
 
 .field-controls {
   display: flex;
