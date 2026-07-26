@@ -703,7 +703,8 @@
     state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
 
     var hpRatio = battle.monsterHp / battle.monsterMaxHp;
-    var chance = Math.min(0.9, 0.15 + (1 - hpRatio) * 0.6);
+    var baseChance = Math.min(0.9, 0.15 + (1 - hpRatio) * 0.6);
+    var chance = Math.min(1, baseChance * (item.catchMult || 1));
     var lines = [state.name + " は " + item.name + " を なげた!"];
 
     save(state);

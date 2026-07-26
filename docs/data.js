@@ -117,10 +117,13 @@
   var ITEMS = {
     kizugusuri: { id: "kizugusuri", name: "きずぐすり", desc: "HPを 30 かいふくする", kind: "hp", amount: 30, price: 20, icon: "assets/items/icon_kizugusuri.webp" },
     manashizuku: { id: "manashizuku", name: "マナのしずく", desc: "MPを 15 かいふくする", kind: "mp", amount: 15, price: 25, icon: "assets/items/icon_manashizuku.webp" },
-    nakama_ball: { id: "nakama_ball", name: "なかまボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない)", kind: "ball", price: 40, icon: "assets/items/icon_nakamaball.webp" }
+    nakama_ball: { id: "nakama_ball", name: "チモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.0", kind: "ball", catchMult: 1.0, price: 40, icon: "assets/items/icon_ball_timothy.webp" },
+    super_ball: { id: "super_ball", name: "スーパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.5", kind: "ball", catchMult: 1.5, price: 100, icon: "assets/items/icon_ball_super.webp" },
+    hyper_ball: { id: "hyper_ball", name: "ハイパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×2.0", kind: "ball", catchMult: 2.0, price: 220, icon: "assets/items/icon_ball_hyper.webp" },
+    master_ball: { id: "master_ball", name: "マスターチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) かならず なかまに なる", kind: "ball", catchMult: Infinity, price: 800, icon: "assets/items/icon_ball_master.webp" }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
-  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "nakama_ball"];
+  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "nakama_ball", "super_ball", "hyper_ball", "master_ball"];
   var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1, nakama_ball: 1 };
   var CRIT_CHANCE = 0.08;
   var CRIT_MULT = 1.8;
