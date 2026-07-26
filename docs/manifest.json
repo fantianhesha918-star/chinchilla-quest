@@ -1,0 +1,11 @@
+{
+  "name": "ちんちらクエスト",
+  "short_name": "ちんちらクエスト",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6e9dd",
+  "theme_color": "#f6e9dd",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ちんちらクエスト</title>
+<meta name="theme-color" content="#f6e9dd">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== タイトル画面 ===== -->
+  <div id="title-screen" class="screen">
+    <h1 class="title-logo">ちんちら<br>クエスト</h1>
+    <p class="title-sub">グレーちんちらと ぼうけんに でよう</p>
+    <button id="title-start-btn" class="btn btn-primary">はじめる</button>
+  </div>
+
+  <!-- ===== スターター選択画面 ===== -->
+  <div id="starter-screen" class="screen hidden">
+    <h2 class="screen-heading">どのコと ぼうけんする?</h2>
+    <div class="starter-cards">
+      <div id="starter-gray" class="starter-card selectable">
+        <div class="starter-avatar"></div>
+        <div class="starter-name">グレーちんちら</div>
+      </div>
+      <div class="starter-card locked">
+        <div class="starter-avatar starter-avatar-locked">🔒</div>
+        <div class="starter-name">しろちんちら</div>
+        <div class="starter-soon">近日公開</div>
+      </div>
+    </div>
+    <input id="starter-name-input" class="name-input" type="text" maxlength="6" placeholder="なまえ(6文字まで)">
+    <button id="starter-start-btn" class="btn btn-primary" disabled>ぼうけんに でる</button>
+  </div>
+
+  <!-- ===== フィールド画面 ===== -->
+  <div id="field-screen" class="screen hidden">
+    <header class="field-hud">
+      <div class="hud-left">
+        <span id="hud-name">-</span>
+        <span id="hud-level" class="hud-badge">Lv1</span>
+      </div>
+      <div class="hud-bar-wrap">
+        <div class="hud-bar-track"><div id="hud-hp-bar" class="hud-bar-fill"></div></div>
+      </div>
+      <div class="hud-money">💰 <span id="hud-money">0</span></div>
+    </header>
+
+    <div id="map-viewport" class="map-viewport"></div>
+
+    <div class="field-controls">
+      <div class="dpad">
+        <button class="dpad-btn dpad-up" data-dir="up">▲</button>
+        <button class="dpad-btn dpad-left" data-dir="left">◀</button>
+        <button class="dpad-btn dpad-center" id="talk-btn">はなす</button>
+        <button class="dpad-btn dpad-right" data-dir="right">▶</button>
+        <button class="dpad-btn dpad-down" data-dir="down">▼</button>
+      </div>
+      <button id="menu-btn" class="btn btn-secondary btn-small menu-open-btn">メニュー</button>
+    </div>
+  </div>
+
+  <!-- ===== 会話ウィンドウ ===== -->
+  <div id="dialogue-overlay" class="dialogue-overlay hidden">
+    <div class="dialogue-box">
+      <div id="dialogue-name" class="dialogue-name"></div>
+      <div id="dialogue-text" class="dialogue-text"></div>
+      <div class="dialogue-next">▼ タップで つづける</div>
+    </div>
+  </div>
+
+  <!-- ===== バトル画面 ===== -->
+  <div id="battle-screen" class="screen hidden">
+    <div class="battle-field">
+      <div class="battle-enemy-area">
+        <div class="battle-name-tag"><span id="battle-enemy-name">-</span> <span id="battle-enemy-lv" class="hud-badge">Lv1</span></div>
+        <div class="hud-bar-track battle-hpbar"><div id="battle-enemy-hp-bar" class="hud-bar-fill"></div></div>
+        <div id="battle-enemy-sprite" class="battle-sprite enemy-sprite"></div>
+      </div>
+      <div class="battle-player-area">
+        <div id="battle-player-sprite" class="battle-sprite player-sprite"></div>
+        <div class="battle-name-tag"><span id="battle-player-name">-</span> <span id="battle-player-lv" class="hud-badge">Lv1</span></div>
+        <div class="hud-bar-track battle-hpbar"><div id="battle-player-hp-bar" class="hud-bar-fill"></div></div>
+        <div class="hud-bar-track battle-mpbar"><div id="battle-player-mp-bar" class="hud-bar-fill mp"></div></div>
+      </div>
+    </div>
+
+    <div class="battle-lower">
+      <div id="battle-message" class="battle-message">-</div>
+      <div id="battle-command-menu" class="battle-command-menu">
+        <button class="battle-cmd-btn" data-cmd="attack">たたかう</button>
+        <button class="battle-cmd-btn" data-cmd="skill">わざ</button>
+        <button class="battle-cmd-btn" data-cmd="item">どうぐ</button>
+        <button class="battle-cmd-btn" data-cmd="run">にげる</button>
+      </div>
+      <div id="battle-sub-menu" class="battle-sub-menu hidden">
+        <div id="battle-sub-list" class="battle-sub-list"></div>
+        <button id="battle-sub-back" class="btn btn-secondary btn-small">もどる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== メニューモーダル ===== -->
+  <div id="menu-modal" class="modal hidden">
+    <div class="modal-card">
+      <h2>📖 メニュー</h2>
+      <div id="menu-status" class="menu-status"></div>
+      <p class="modal-sub">わざ</p>
+      <div id="menu-skills" class="menu-skills"></div>
+      <p class="modal-sub">どうぐ</p>
+      <div id="menu-items" class="food-list"></div>
+      <button class="btn btn-secondary modal-close">とじる</button>
+    </div>
+  </div>
+
+  <!-- ===== ショップモーダル ===== -->
+  <div id="shop-modal" class="modal hidden">
+    <div class="modal-card">
+      <h2>🛍️ おみせ</h2>
+      <p class="modal-sub">せんとうで やくだつ どうぐを うってるよ</p>
+      <div id="shop-list" class="food-list"></div>
+      <button class="btn btn-secondary modal-close">とじる</button>
+    </div>
+  </div>
+
+  <!-- ===== 進化ルート選択モーダル ===== -->
+  <div id="route-modal" class="modal hidden">
+    <div class="modal-card">
+      <h2>✨ しんかする!</h2>
+      <p class="modal-sub">すすむ みちを えらんでね(あとから 変更できないよ)</p>
+      <div id="route-choices" class="route-choices"></div>
+    </div>
+  </div>
+
+  <!-- ===== トースト ===== -->
+  <div id="toast" class="toast hidden"></div>
+
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
