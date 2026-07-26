@@ -184,7 +184,8 @@
     if (!inBounds(map, nx, ny)) return;
     var ch = map.tiles[ny][nx];
     if (ch === "#" || ch === "~") return;
-    if (npcAtCoord(map, nx, ny)) return;
+    var blockingNpc = npcAtCoord(map, nx, ny);
+    if (blockingNpc) { showToast(blockingNpc.name + " が いる。「はなす」で話しかけよう"); return; }
 
     state.x = nx; state.y = ny;
     save(state);
