@@ -1160,6 +1160,10 @@
 
   function startNewGameInSlot(slot) {
     currentSlot = slot;
+    starterGrayCard.classList.remove("selected");
+    selectedStarter = false;
+    starterNameInput.value = "";
+    updateStarterStartBtn();
     slotSelectScreen.classList.add("hidden");
     starterScreen.classList.remove("hidden");
   }
