@@ -552,7 +552,7 @@
   function winBattle() {
     var def = G.MONSTERS[battle.monsterId];
     state.money += def.money;
-    var lines = [def.name + " を たおした!", def.exp + " の けいけんちを 手に入れた!", def.money + "ぴき の コインを 手に入れた!"];
+    var lines = [def.name + " を たおした!", def.exp + " の けいけんちを 手に入れた!", def.money + "まい の コインを 手に入れた!"];
     if (battle.isBoss) {
       state.flags.bossDefeated = true;
       lines.push("つよい モンスターを たおした! これからも ぼうけんは つづく…");
