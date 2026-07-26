@@ -52,15 +52,20 @@
 
     <div id="map-viewport" class="map-viewport"></div>
 
-    <div class="field-controls">
+    <!-- ===== ゲームボーイ風コントローラー(常に画面下部に固定) ===== -->
+    <div class="gb-controls">
       <div class="dpad">
         <button class="dpad-btn dpad-up" data-dir="up">▲</button>
         <button class="dpad-btn dpad-left" data-dir="left">◀</button>
-        <button class="dpad-btn dpad-center" id="talk-btn">はなす</button>
+        <div class="dpad-center-spacer"></div>
         <button class="dpad-btn dpad-right" data-dir="right">▶</button>
         <button class="dpad-btn dpad-down" data-dir="down">▼</button>
       </div>
-      <button id="menu-btn" class="btn btn-secondary btn-small menu-open-btn">メニュー</button>
+      <button id="select-btn" class="gb-select-btn">SELECT</button>
+      <div class="gb-ab">
+        <button id="b-btn" class="gb-btn gb-btn-b">B</button>
+        <button id="a-btn" class="gb-btn gb-btn-a">A</button>
+      </div>
     </div>
   </div>
 

@@ -262,6 +262,17 @@
     openDialogue(npc);
   }
 
+  function handleAButton() {
+    if (dialogueActive) { advanceDialogue(); return; }
+    handleTalk();
+  }
+
+  function handleBButton() {
+    if (dialogueActive) { closeDialogue(); return; }
+    var openModalEl = document.querySelector(".modal:not(.hidden)");
+    if (openModalEl && openModalEl.id !== "route-modal") { openModalEl.classList.add("hidden"); }
+  }
+
   // ---------------- Dialogue ----------------
   function openDialogue(npc) {
     dialogueActive = true;
@@ -633,7 +644,7 @@
     renderInventoryList(menuItemsEl);
     openModal("menu-modal");
   }
-  document.getElementById("menu-btn").addEventListener("click", openMenuModal);
+  document.getElementById("select-btn").addEventListener("click", openMenuModal);
 
   function openShopModal() {
     shopListEl.innerHTML = "";
@@ -663,7 +674,8 @@
   document.querySelectorAll(".dpad-btn[data-dir]").forEach(function (btn) {
     btn.addEventListener("click", function () { tryMove(btn.dataset.dir); });
   });
-  document.getElementById("talk-btn").addEventListener("click", handleTalk);
+  document.getElementById("a-btn").addEventListener("click", handleAButton);
+  document.getElementById("b-btn").addEventListener("click", handleBButton);
 
   // ---------------- Title / Starter ----------------
   starterGrayCard.querySelector(".starter-avatar").innerHTML = '<img src="' + G.HERO_IMAGE + '" alt="チンチラ" style="width:100%;height:100%;object-fit:contain;">';
