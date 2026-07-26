@@ -2,20 +2,49 @@
   "use strict";
 
   var G = window.GAME_DATA;
-  var SAVE_KEY = "chinchilla-quest-save-v1";
+  var SAVE_KEY_PREFIX = "chinchilla-quest-save-v1-slot";
+  var LEGACY_SAVE_KEY = "chinchilla-quest-save-v1";
+  var SLOT_COUNT = 3;
   var DIR_VECT = { up: { dx: 0, dy: -1 }, down: { dx: 0, dy: 1 }, left: { dx: -1, dy: 0 }, right: { dx: 1, dy: 0 } };
 
-  // ---------------- Save/load ----------------
-  function load() {
+  // ---------------- Save/load (3 slots) ----------------
+  (function migrateLegacySave() {
+    var legacy = null;
+    try { legacy = localStorage.getItem(LEGACY_SAVE_KEY); } catch (e) { legacy = null; }
+    if (!legacy) return;
+    var slot1 = null;
+    try { slot1 = localStorage.getItem(SAVE_KEY_PREFIX + "1"); } catch (e) { slot1 = null; }
+    if (!slot1) localStorage.setItem(SAVE_KEY_PREFIX + "1", legacy);
+    localStorage.removeItem(LEGACY_SAVE_KEY);
+  })();
+
+  function loadSlot(slot) {
     try {
-      var raw = localStorage.getItem(SAVE_KEY);
+      var raw = localStorage.getItem(SAVE_KEY_PREFIX + slot);
       if (!raw) return null;
       return JSON.parse(raw);
     } catch (e) {
       return null;
     }
   }
-  function save(s) { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }
+  function save(s) {
+    s.updatedAt = Date.now();
+    localStorage.setItem(SAVE_KEY_PREFIX + currentSlot, JSON.stringify(s));
+  }
+  function normalizeState(s) {
+    if (!s.flags.openedChests) s.flags.openedChests = [];
+    if (!s.companions) s.companions = {};
+    if (!s.activeParty) s.activeParty = [];
+    if (!s.companionLevels) s.companionLevels = {};
+    if (!s.dex) s.dex = {};
+    return s;
+  }
+  function formatSlotDate(ts) {
+    if (!ts) return "";
+    var d = new Date(ts);
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
 
   function createInitialState(name) {
     var stats = G.calcMaxStats(1, 0);
@@ -85,6 +114,9 @@
 
   // ---------------- DOM refs ----------------
   var titleScreen = document.getElementById("title-screen");
+  var slotSelectScreen = document.getElementById("slot-select-screen");
+  var slotSelectHeading = document.getElementById("slot-select-heading");
+  var slotListEl = document.getElementById("slot-list");
   var starterScreen = document.getElementById("starter-screen");
   var fieldScreen = document.getElementById("field-screen");
   var battleScreen = document.getElementById("battle-screen");
@@ -137,12 +169,8 @@
   var toastEl = document.getElementById("toast");
   var toastTimer = null;
 
-  var state = load();
-  if (state && !state.flags.openedChests) state.flags.openedChests = [];
-  if (state && !state.companions) state.companions = {};
-  if (state && !state.activeParty) state.activeParty = [];
-  if (state && !state.companionLevels) state.companionLevels = {};
-  if (state && !state.dex) state.dex = {};
+  var currentSlot = null;
+  var state = null;
   var selectedStarter = false;
   var battle = null;
   var battleActive = false;
@@ -1090,12 +1118,95 @@
   document.getElementById("a-btn").addEventListener("click", handleAButton);
   document.getElementById("b-btn").addEventListener("click", handleBButton);
 
-  // ---------------- Title / Starter ----------------
+  // ---------------- Title / Slot select / Starter ----------------
   starterGrayCard.querySelector(".starter-avatar").innerHTML = '<img src="' + G.HERO_IMAGE + '" alt="チンチラ" style="width:100%;height:100%;object-fit:contain;">';
 
-  document.getElementById("title-start-btn").addEventListener("click", function () {
+  var slotSelectMode = null; // "continue" | "new"
+  var pendingNewSlot = null;
+
+  function slotSummary(slot) {
+    var s = loadSlot(slot);
+    if (!s) return null;
+    return { name: s.name, level: s.level, updatedAt: s.updatedAt || 0 };
+  }
+
+  function renderSlotSelect(mode) {
+    slotSelectMode = mode;
+    slotSelectHeading.textContent = mode === "continue" ? "つづきから えらんでね" : "さいしょから えらんでね";
+    slotListEl.innerHTML = "";
+    for (var i = 1; i <= SLOT_COUNT; i++) {
+      (function (slot) {
+        var summary = slotSummary(slot);
+        var card = document.createElement("div");
+        card.className = "slot-card" + (summary ? "" : " empty");
+        card.innerHTML = summary
+          ? '<div class="slot-card-title">スロット' + slot + " : " + summary.name + " (Lv" + summary.level + ')</div>' +
+            '<div class="slot-card-sub">さいごに あそんだ日時 ' + formatSlotDate(summary.updatedAt) + "</div>"
+          : '<div class="slot-card-title">スロット' + slot + '</div><div class="slot-card-sub">からっぽ</div>';
+        card.addEventListener("click", function () { onSlotCardClick(slot, summary); });
+        slotListEl.appendChild(card);
+      })(i);
+    }
+  }
+
+  function enterFieldFromLoadedState() {
     titleScreen.classList.add("hidden");
+    slotSelectScreen.classList.add("hidden");
+    starterScreen.classList.add("hidden");
+    fieldScreen.classList.remove("hidden");
+    renderMap();
+    updateHud();
+  }
+
+  function startNewGameInSlot(slot) {
+    currentSlot = slot;
+    slotSelectScreen.classList.add("hidden");
     starterScreen.classList.remove("hidden");
+  }
+
+  function onSlotCardClick(slot, summary) {
+    if (slotSelectMode === "continue") {
+      if (!summary) { showToast("このスロットには データが ないよ"); return; }
+      currentSlot = slot;
+      state = normalizeState(loadSlot(slot));
+      enterFieldFromLoadedState();
+    } else if (summary) {
+      pendingNewSlot = slot;
+      document.getElementById("slot-overwrite-msg").textContent =
+        "スロット" + slot + "(" + summary.name + " Lv" + summary.level + ")の データに うわがきします。よろしいですか?";
+      openModal("slot-overwrite-modal");
+    } else {
+      startNewGameInSlot(slot);
+    }
+  }
+
+  document.getElementById("title-continue-btn").addEventListener("click", function () {
+    titleScreen.classList.add("hidden");
+    slotSelectScreen.classList.remove("hidden");
+    renderSlotSelect("continue");
+  });
+  document.getElementById("title-newgame-btn").addEventListener("click", function () {
+    titleScreen.classList.add("hidden");
+    slotSelectScreen.classList.remove("hidden");
+    renderSlotSelect("new");
+  });
+  document.getElementById("slot-back-btn").addEventListener("click", function () {
+    slotSelectScreen.classList.add("hidden");
+    titleScreen.classList.remove("hidden");
+  });
+  document.getElementById("slot-overwrite-confirm-btn").addEventListener("click", function () {
+    closeModal("slot-overwrite-modal");
+    startNewGameInSlot(pendingNewSlot);
+    pendingNewSlot = null;
+  });
+  document.getElementById("menu-title-btn").addEventListener("click", function () {
+    closeModal("menu-modal");
+    save(state);
+    state = null;
+    currentSlot = null;
+    fieldScreen.classList.add("hidden");
+    titleScreen.classList.remove("hidden");
+    document.getElementById("title-continue-btn").disabled = false;
   });
 
   starterGrayCard.addEventListener("click", function () {
@@ -1120,11 +1231,9 @@
   });
 
   // ---------------- Boot ----------------
-  if (state) {
-    titleScreen.classList.add("hidden");
-    starterScreen.classList.add("hidden");
-    fieldScreen.classList.remove("hidden");
-    renderMap();
-    updateHud();
-  }
+  (function initTitleButtons() {
+    var anyData = false;
+    for (var i = 1; i <= SLOT_COUNT; i++) { if (loadSlot(i)) { anyData = true; break; } }
+    document.getElementById("title-continue-btn").disabled = !anyData;
+  })();
 })();

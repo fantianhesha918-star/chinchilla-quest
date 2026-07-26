@@ -16,7 +16,15 @@
   <div id="title-screen" class="screen">
     <h1 class="title-logo">ちんちら<br>クエスト</h1>
     <p class="title-sub">グレーちんちらと ぼうけんに でよう</p>
-    <button id="title-start-btn" class="btn btn-primary">はじめる</button>
+    <button id="title-continue-btn" class="btn btn-primary">つづきから</button>
+    <button id="title-newgame-btn" class="btn btn-secondary">さいしょから</button>
+  </div>
+
+  <!-- ===== セーブスロット選択画面 ===== -->
+  <div id="slot-select-screen" class="screen hidden">
+    <h2 id="slot-select-heading" class="screen-heading">スロットを えらんでね</h2>
+    <div id="slot-list" class="slot-list"></div>
+    <button id="slot-back-btn" class="btn btn-secondary btn-small">タイトルへもどる</button>
   </div>
 
   <!-- ===== スターター選択画面 ===== -->
@@ -125,6 +133,8 @@
       <div id="menu-companions" class="companion-list"></div>
       <p class="modal-sub">ずかん</p>
       <button id="menu-zukan-btn" class="btn btn-secondary btn-small">ずかんを ひらく</button>
+      <p class="modal-sub">その他</p>
+      <button id="menu-title-btn" class="btn btn-secondary btn-small">タイトルへもどる</button>
       <button class="btn btn-secondary modal-close">とじる</button>
     </div>
   </div>
@@ -156,6 +166,16 @@
       <h2>✨ しんかする!</h2>
       <p class="modal-sub">すすむ みちを えらんでね(あとから 変更できないよ)</p>
       <div id="route-choices" class="route-choices"></div>
+    </div>
+  </div>
+
+  <!-- ===== スロット上書き確認モーダル ===== -->
+  <div id="slot-overwrite-modal" class="modal hidden">
+    <div class="modal-card">
+      <h2>⚠️ うわがき確認</h2>
+      <p id="slot-overwrite-msg" class="modal-sub"></p>
+      <button id="slot-overwrite-confirm-btn" class="btn btn-primary">うわがきして はじめる</button>
+      <button class="btn btn-secondary modal-close">やめる</button>
     </div>
   </div>
 
