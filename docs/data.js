@@ -68,6 +68,7 @@
     return {
       level: lvl,
       maxHp: Math.round(mon.hp + growth * mon.hp * 0.16),
+      maxMp: Math.round(8 + lvl * 1.3),
       atk: Math.round(mon.atk + growth * mon.atk * 0.14),
       def: Math.round(mon.def + growth * mon.def * 0.14),
       spd: Math.round(mon.spd + growth * mon.spd * 0.12)
@@ -93,9 +94,22 @@
     kaeru_tongue: { id: "kaeru_tongue", name: "べろべろアタック", power: 34, mp: 6, desc: "ながい したで まきとって こうげきする" },
     kara_tackle: { id: "kara_tackle", name: "からがらタックル", power: 44, mp: 8, desc: "からに はいって いきおいよく ぶつかる" },
     orca_wave: { id: "orca_wave", name: "オルカウェーブ", power: 54, mp: 10, desc: "つめたい なみで おしながす", element: "ice" },
-    sai_charge: { id: "sai_charge", name: "サイクラッシュ", power: 66, mp: 12, desc: "つのを むけて つっこむ" }
+    sai_charge: { id: "sai_charge", name: "サイクラッシュ", power: 66, mp: 12, desc: "つのを むけて つっこむ" },
+
+    // ---- なかま用 汎用属性わざ(ほのお/こおり、すなかけ・れんぞくアタックと対) ----
+    flame_burst: { id: "flame_burst", name: "ほのおのつぶて", power: 22, mp: 3, learnLevel: 5, desc: "ほのおの たまを なげつける", element: "fire" },
+    ice_shard: { id: "ice_shard", name: "こおりのつぶて", power: 22, mp: 3, learnLevel: 5, desc: "するどい こおりを ぶつける", element: "ice" }
   };
   var SKILL_LEARN_ORDER = ["tackle", "sandkick", "headbutt", "renzoku"];
+
+  // なかまが覚えるわざの順番(属性ごと、既存わざのlearnLevelを流用)
+  var COMPANION_SKILL_TRACKS = {
+    none: ["tackle", "headbutt"],
+    earth: ["tackle", "sandkick", "headbutt"],
+    thunder: ["tackle", "headbutt", "renzoku"],
+    fire: ["tackle", "flame_burst", "headbutt"],
+    ice: ["tackle", "ice_shard", "headbutt"]
+  };
 
   // ---------------- Elements ----------------
   var ELEMENT_LABELS = { fire: "ほのお", ice: "こおり", thunder: "でんき", earth: "つち" };
@@ -326,6 +340,7 @@
     getCompanionStats: getCompanionStats,
     SKILLS: SKILLS,
     SKILL_LEARN_ORDER: SKILL_LEARN_ORDER,
+    COMPANION_SKILL_TRACKS: COMPANION_SKILL_TRACKS,
     ITEMS: ITEMS,
     MONEY_ICON: MONEY_ICON,
     CRIT_CHANCE: CRIT_CHANCE,

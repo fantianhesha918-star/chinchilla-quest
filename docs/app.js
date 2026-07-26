@@ -36,6 +36,7 @@
     if (!s.companions) s.companions = {};
     if (!s.activeParty) s.activeParty = [];
     if (!s.companionLevels) s.companionLevels = {};
+    if (!s.companionSkills) s.companionSkills = {};
     if (!s.dex) s.dex = {};
     return s;
   }
@@ -63,6 +64,7 @@
       companions: {},
       activeParty: [],
       companionLevels: {},
+      companionSkills: {},
       dex: {},
       mapId: G.START_MAP,
       x: G.START_X,
@@ -93,6 +95,22 @@
       cur = G.MONSTERS[curId];
     }
     return curId;
+  }
+
+  function companionSkillTrack(baseId, level) {
+    var mon = G.MONSTERS[currentCompanionSpeciesId(baseId, level)];
+    return G.COMPANION_SKILL_TRACKS[mon.element || "none"];
+  }
+
+  function getCompanionSkills(baseId) {
+    if (!state.companionSkills[baseId]) {
+      var ld = getCompanionLevelData(baseId);
+      var track = companionSkillTrack(baseId, ld.level);
+      state.companionSkills[baseId] = track.filter(function (id) {
+        return G.SKILLS[id].learnLevel <= ld.level;
+      });
+    }
+    return state.companionSkills[baseId];
   }
 
   function renderPlayerSprite() {
@@ -463,6 +481,45 @@
   function showSubMenu() { battleCommandMenu.classList.add("hidden"); battleSubMenu.classList.remove("hidden"); }
   function closeSubMenu() { showCommandMenu(); }
 
+  // 単体アクティブバトラー制: idx 0 = 主人公、1..N = battle.party[idx-1]
+  function getBattler(idx) {
+    if (idx === 0) {
+      var stats = getMaxStats(state);
+      return {
+        idx: 0, kind: "hero", name: state.name, level: state.level,
+        hp: state.hp, maxHp: stats.maxHp, mp: state.mp, maxMp: stats.maxMp,
+        atk: stats.atk, def: stats.def, spd: stats.spd, element: null,
+        fainted: state.hp <= 0, skillIds: state.learnedSkills, image: null
+      };
+    }
+    var comp = battle.party[idx - 1];
+    var mon = G.MONSTERS[comp.speciesId];
+    return {
+      idx: idx, kind: "companion", name: mon.name, level: comp.level,
+      hp: comp.hp, maxHp: comp.maxHp, mp: comp.mp, maxMp: comp.maxMp,
+      atk: comp.atk, def: comp.def, spd: comp.spd, element: mon.element,
+      fainted: comp.fainted, skillIds: getCompanionSkills(comp.id), image: mon.image
+    };
+  }
+  function battlerCount() { return 1 + (battle ? battle.party.length : 0); }
+  function livingBattlerIndices(excludeActive) {
+    var out = [];
+    for (var i = 0; i < battlerCount(); i++) {
+      if (excludeActive && i === battle.activeIdx) continue;
+      if (!getBattler(i).fainted) out.push(i);
+    }
+    return out;
+  }
+  function isRosterWiped() { return livingBattlerIndices(false).length === 0; }
+  function setBattlerHp(idx, hp) {
+    if (idx === 0) state.hp = Math.max(0, hp);
+    else battle.party[idx - 1].hp = Math.max(0, hp);
+  }
+  function setBattlerMp(idx, mp) {
+    if (idx === 0) state.mp = Math.max(0, mp);
+    else battle.party[idx - 1].mp = Math.max(0, mp);
+  }
+
   function renderBattle() {
     var def = G.MONSTERS[battle.monsterId];
     battleEnemyName.textContent = def.name;
@@ -471,28 +528,31 @@
     battleEnemyHpText.textContent = battle.monsterHp + " / " + battle.monsterMaxHp;
     battleEnemySprite.innerHTML = '<img src="' + def.image + '" alt="' + def.name + '" style="width:100%;height:100%;object-fit:contain;">';
 
-    var stats = getMaxStats(state);
-    battlePlayerName.textContent = state.name;
-    battlePlayerLv.textContent = "Lv" + state.level;
-    battlePlayerHpBar.style.width = Math.max(0, state.hp / stats.maxHp * 100) + "%";
-    battlePlayerHpText.textContent = state.hp + " / " + stats.maxHp;
-    battlePlayerMpBar.style.width = Math.max(0, state.mp / stats.maxMp * 100) + "%";
-    battlePlayerMpText.textContent = state.mp + " / " + stats.maxMp;
-    var expNeed = G.expToNext(state.level);
-    battlePlayerExpBar.style.width = Math.max(0, Math.min(100, state.exp / expNeed * 100)) + "%";
-    battlePlayerSprite.innerHTML = renderPlayerSprite();
+    var active = getBattler(battle.activeIdx);
+    battlePlayerName.textContent = active.name;
+    battlePlayerLv.textContent = "Lv" + active.level;
+    battlePlayerHpBar.style.width = Math.max(0, active.hp / active.maxHp * 100) + "%";
+    battlePlayerHpText.textContent = active.hp + " / " + active.maxHp;
+    battlePlayerMpBar.style.width = Math.max(0, active.mp / active.maxMp * 100) + "%";
+    battlePlayerMpText.textContent = active.mp + " / " + active.maxMp;
+    var expNeed, expCur;
+    if (active.kind === "hero") { expNeed = G.expToNext(state.level); expCur = state.exp; }
+    else { var ld = getCompanionLevelData(battle.party[active.idx - 1].id); expNeed = G.expToNext(ld.level); expCur = ld.exp; }
+    battlePlayerExpBar.style.width = Math.max(0, Math.min(100, expCur / expNeed * 100)) + "%";
+    battlePlayerSprite.innerHTML = active.kind === "hero" ? renderPlayerSprite() : '<img src="' + active.image + '" alt="' + active.name + '" style="width:100%;height:100%;object-fit:contain;">';
 
     battlePartyRowEl.innerHTML = "";
-    battle.party.forEach(function (comp, idx) {
-      var mon = G.MONSTERS[comp.speciesId];
+    for (var i = 0; i < battlerCount(); i++) {
+      var b = getBattler(i);
+      var img = i === 0 ? (state.stageIndex > 0 ? G.EVOLUTION_ROUTES[state.route].stages[state.stageIndex - 1].file : G.HERO_IMAGE) : b.image;
       var div = document.createElement("div");
-      div.className = "battle-party-item" + (comp.fainted ? " fainted" : "") + (idx === battle.activeCompanionIdx ? " active" : "");
+      div.className = "battle-party-item" + (b.fainted ? " fainted" : "") + (i === battle.activeIdx ? " active" : "");
       div.innerHTML =
-        '<img class="battle-party-img" src="' + mon.image + '" alt="' + mon.name + '">' +
-        '<div class="battle-party-name">' + mon.name + " Lv" + comp.level + "</div>" +
-        '<div class="hud-bar-track battle-party-hpbar"><div class="hud-bar-fill" style="width:' + Math.max(0, comp.hp / comp.maxHp * 100) + '%"></div></div>';
+        '<img class="battle-party-img" src="' + img + '" alt="' + b.name + '">' +
+        '<div class="battle-party-name">' + b.name + " Lv" + b.level + "</div>" +
+        '<div class="hud-bar-track battle-party-hpbar"><div class="hud-bar-fill" style="width:' + Math.max(0, b.hp / b.maxHp * 100) + '%"></div></div>';
       battlePartyRowEl.appendChild(div);
-    });
+    }
   }
 
   function startBattle(monsterId, isBoss) {
@@ -503,9 +563,9 @@
       var speciesId = currentCompanionSpeciesId(id, ld.level);
       var mon = G.MONSTERS[speciesId];
       var cstats = G.getCompanionStats(mon, ld.level);
-      return { id: id, speciesId: speciesId, level: ld.level, hp: cstats.maxHp, maxHp: cstats.maxHp, atk: cstats.atk, def: cstats.def, spd: cstats.spd, fainted: false };
+      return { id: id, speciesId: speciesId, level: ld.level, hp: cstats.maxHp, maxHp: cstats.maxHp, mp: cstats.maxMp, maxMp: cstats.maxMp, atk: cstats.atk, def: cstats.def, spd: cstats.spd, fainted: false };
     });
-    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party, activeCompanionIdx: party.length > 0 ? 0 : -1 };
+    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party, activeIdx: 0 };
     battleActive = true;
     runBtn.disabled = !!isBoss;
     fieldScreen.classList.add("hidden");
@@ -524,12 +584,12 @@
     updateHud();
   }
 
-  function doPlayerAction(action) {
+  function doActiveBattlerAction(action) {
     if (!battle || battle.locked) return;
     battle.locked = true;
     setCommandButtonsEnabled(false);
     closeSubMenu();
-    var stats = getMaxStats(state);
+    var active = getBattler(battle.activeIdx);
     var def = G.MONSTERS[battle.monsterId];
     var lines = [];
     var skillElement = null;
@@ -537,18 +597,18 @@
     if (action.type === "item") {
       var item = G.ITEMS[action.itemId];
       state.inventory[action.itemId] = Math.max(0, (state.inventory[action.itemId] || 0) - 1);
-      if (item.kind === "hp") state.hp = Math.min(stats.maxHp, state.hp + item.amount);
-      else state.mp = Math.min(stats.maxMp, state.mp + item.amount);
-      lines.push(state.name + " は " + item.name + " を つかった!");
+      if (item.kind === "hp") setBattlerHp(active.idx, Math.min(active.maxHp, active.hp + item.amount));
+      else setBattlerMp(active.idx, Math.min(active.maxMp, active.mp + item.amount));
+      lines.push(active.name + " は " + item.name + " を つかった!");
     } else {
       var sk = G.SKILLS[action.skillId];
-      state.mp = Math.max(0, state.mp - sk.mp);
-      var result = calcDamage(stats.atk, sk.power, def.def, sk.element, def.element);
+      setBattlerMp(active.idx, active.mp - sk.mp);
+      var result = calcDamage(active.atk, sk.power, def.def, sk.element, def.element);
       battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
       battleEnemySprite.classList.add("shake");
       setTimeout(function () { battleEnemySprite.classList.remove("shake"); }, 400);
       skillElement = sk.element;
-      lines.push(state.name + " の " + sk.name + "!");
+      lines.push(active.name + " の " + sk.name + "!");
       if (result.crit) lines.push("会心の一撃!");
       lines.push(def.name + " に " + result.dmg + " の ダメージ!");
       if (result.elemTier === "strong") lines.push("こうかは ばつぐんだ!");
@@ -560,147 +620,72 @@
     showElementEffect(skillElement, battleEnemySprite);
     playSequence(lines, function () {
       if (battle.monsterHp <= 0) { winBattle(); return; }
-      promptCompanionTurn();
-    });
-  }
-
-  function activeCompanion() {
-    if (!battle || battle.activeCompanionIdx < 0) return null;
-    var comp = battle.party[battle.activeCompanionIdx];
-    return comp && !comp.fainted ? comp : null;
-  }
-
-  function livingBenchedCompanions() {
-    if (!battle) return [];
-    var out = [];
-    battle.party.forEach(function (comp, idx) {
-      if (idx !== battle.activeCompanionIdx && !comp.fainted) out.push(idx);
-    });
-    return out;
-  }
-
-  function promptCompanionTurn() {
-    var active = activeCompanion();
-    var bench = livingBenchedCompanions();
-    if (!active && bench.length === 0) { enemyTurn(); return; }
-
-    battleSubList.innerHTML = "";
-    if (active) {
-      var monA = G.MONSTERS[active.speciesId];
-      var attackRow = document.createElement("div");
-      attackRow.className = "battle-sub-item";
-      attackRow.innerHTML = '<div><div class="sub-item-name">' + monA.name + " Lv" + active.level + '</div><div class="sub-item-desc">なかまに たたかわせる</div></div><button>たたかう</button>';
-      attackRow.querySelector("button").addEventListener("click", companionAttackAction);
-      battleSubList.appendChild(attackRow);
-    }
-    if (bench.length > 0) {
-      var swapRow = document.createElement("div");
-      swapRow.className = "battle-sub-item";
-      swapRow.innerHTML = '<div><div class="sub-item-name">いれかえ</div><div class="sub-item-desc">せんとうに 出す なかまを かえる(このターンは こうげきしない)</div></div><button>えらぶ</button>';
-      swapRow.querySelector("button").addEventListener("click", openCompanionSwapMenu);
-      battleSubList.appendChild(swapRow);
-    }
-    battleSubBack.style.display = "none";
-    showSubMenu();
-  }
-
-  function companionAttackAction() {
-    var comp = activeCompanion();
-    if (!comp) return;
-    var def = G.MONSTERS[battle.monsterId];
-    var mon = G.MONSTERS[comp.speciesId];
-    var skillId = mon.skillIds[Math.floor(Math.random() * mon.skillIds.length)];
-    var sk = G.SKILLS[skillId];
-    var result = calcDamage(comp.atk, sk.power, def.def, mon.element, def.element);
-    battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
-    var tag = result.crit ? "(会心)" : result.elemTier === "strong" ? "(ばつぐん)" : result.elemTier === "weak" ? "(いまひとつ)" : "";
-    var lines = [mon.name + " の こうげき! " + def.name + " に " + result.dmg + " の ダメージ!" + tag];
-    battleSubBack.style.display = "";
-    save(state);
-    renderBattle();
-    showCommandMenu();
-    setCommandButtonsEnabled(false);
-    playSequence(lines, function () {
-      if (battle.monsterHp <= 0) { winBattle(); return; }
       enemyTurn();
     });
   }
 
-  function openCompanionSwapMenu() {
-    var bench = livingBenchedCompanions();
+  function openSwapSubMenu(forced) {
+    var indices = livingBattlerIndices(true);
+    if (indices.length === 0) { showToast("いれかえられる なかまが いないよ"); return; }
     battleSubList.innerHTML = "";
-    bench.forEach(function (idx) {
-      var comp = battle.party[idx];
-      var mon = G.MONSTERS[comp.speciesId];
+    indices.forEach(function (idx) {
+      var b = getBattler(idx);
       var row = document.createElement("div");
       row.className = "battle-sub-item";
-      row.innerHTML = '<div><div class="sub-item-name">' + mon.name + " Lv" + comp.level + '</div><div class="sub-item-desc">HP ' + comp.hp + " / " + comp.maxHp + '</div></div><button>いれかえる</button>';
-      row.querySelector("button").addEventListener("click", function () { swapActiveCompanion(idx); });
+      row.innerHTML = '<div><div class="sub-item-name">' + b.name + " Lv" + b.level + '</div><div class="sub-item-desc">HP ' + b.hp + " / " + b.maxHp + '</div></div><button>いれかえる</button>';
+      row.querySelector("button").addEventListener("click", function () { swapActiveBattler(idx); });
       battleSubList.appendChild(row);
     });
+    battleSubBack.style.display = forced ? "none" : "";
     showSubMenu();
   }
 
-  function swapActiveCompanion(idx) {
-    battle.activeCompanionIdx = idx;
-    var mon = G.MONSTERS[battle.party[idx].speciesId];
-    var lines = [mon.name + " を せんとうに 出した!"];
-    battleSubBack.style.display = "";
-    renderBattle();
-    showCommandMenu();
+  function swapActiveBattler(idx) {
+    battle.locked = true;
     setCommandButtonsEnabled(false);
-    playSequence(lines, function () {
-      enemyTurn();
+    battle.activeIdx = idx;
+    var b = getBattler(idx);
+    renderBattle();
+    playSequence([b.name + " を せんとうに 出した!"], function () {
+      battle.locked = false;
+      showCommandMenu();
+      setBattleMessage("つぎの コマンドを えらんでね");
     });
-  }
-
-  function pickLivingTarget() {
-    var targets = [{ type: "player" }];
-    if (activeCompanion()) targets.push({ type: "companion", idx: battle.activeCompanionIdx });
-    return targets[Math.floor(Math.random() * targets.length)];
   }
 
   function enemyTurn() {
     var def = G.MONSTERS[battle.monsterId];
     var skillId = def.skillIds[Math.floor(Math.random() * def.skillIds.length)];
     var sk = G.SKILLS[skillId];
-    var target = pickLivingTarget();
-    var lines = [];
-
-    if (target.type === "player") {
-      var stats = getMaxStats(state);
-      var result = calcDamage(def.atk, sk.power, stats.def, sk.element, null);
-      state.hp = Math.max(0, state.hp - result.dmg);
-      save(state);
-      renderBattle();
+    var active = getBattler(battle.activeIdx);
+    var result = calcDamage(def.atk, sk.power, active.def, sk.element, active.element);
+    var newHp = Math.max(0, active.hp - result.dmg);
+    setBattlerHp(active.idx, newHp);
+    renderBattle();
+    if (active.kind === "hero") {
       battlePlayerSprite.classList.add("shake");
       setTimeout(function () { battlePlayerSprite.classList.remove("shake"); }, 400);
-      showElementEffect(sk.element, battlePlayerSprite);
-      lines.push(def.name + " の " + sk.name + "!");
-      if (result.crit) lines.push("会心の一撃!");
-      lines.push(state.name + " に " + result.dmg + " の ダメージ!");
-      playSequence(lines, function () {
-        if (state.hp <= 0) { loseBattle(); return; }
-        battle.locked = false;
-        showCommandMenu();
-        setBattleMessage("つぎの コマンドを えらんでね");
-      });
-    } else {
-      var comp = battle.party[target.idx];
-      var mon = G.MONSTERS[comp.speciesId];
-      var result2 = calcDamage(def.atk, sk.power, comp.def, sk.element, mon.element);
-      comp.hp = Math.max(0, comp.hp - result2.dmg);
-      renderBattle();
-      lines.push(def.name + " の " + sk.name + "!");
-      if (result2.crit) lines.push("会心の一撃!");
-      lines.push(mon.name + " に " + result2.dmg + " の ダメージ!");
-      if (comp.hp <= 0) { comp.fainted = true; battle.activeCompanionIdx = -1; lines.push(mon.name + " は たおれてしまった…"); }
-      playSequence(lines, function () {
-        battle.locked = false;
-        showCommandMenu();
-        setBattleMessage("つぎの コマンドを えらんでね");
-      });
     }
+    showElementEffect(sk.element, battlePlayerSprite);
+    var lines = [def.name + " の " + sk.name + "!"];
+    if (result.crit) lines.push("会心の一撃!");
+    lines.push(active.name + " に " + result.dmg + " の ダメージ!");
+    var justFainted = newHp <= 0;
+    if (justFainted) {
+      if (active.kind === "companion") battle.party[active.idx - 1].fainted = true;
+      lines.push(active.name + " は たおれてしまった…");
+    }
+    playSequence(lines, function () {
+      if (justFainted) {
+        if (isRosterWiped()) { loseBattle(); return; }
+        setBattleMessage("つぎの なかまを えらんでね");
+        openSwapSubMenu(true);
+        return;
+      }
+      battle.locked = false;
+      showCommandMenu();
+      setBattleMessage("つぎの コマンドを えらんでね");
+    });
   }
 
   function tryRun() {
@@ -708,14 +693,14 @@
     if (battle.isBoss) { showToast("ボスからは にげられない!"); return; }
     battle.locked = true;
     setCommandButtonsEnabled(false);
-    var stats = getMaxStats(state);
+    var active = getBattler(battle.activeIdx);
     var def = G.MONSTERS[battle.monsterId];
-    var chance = Math.max(0.15, Math.min(0.9, 0.5 + (stats.spd - def.spd) * 0.02));
+    var chance = Math.max(0.15, Math.min(0.9, 0.5 + (active.spd - def.spd) * 0.02));
     if (Math.random() < chance) {
       setBattleMessage("うまく にげきれた!");
       setTimeout(endBattleToField, 900);
     } else {
-      setBattleMessage(state.name + " は にげようとしたが…つかまってしまった!");
+      setBattleMessage(active.name + " は にげようとしたが…つかまってしまった!");
       setTimeout(function () { battle.locked = false; enemyTurn(); }, 900);
     }
   }
@@ -849,6 +834,7 @@
     var levelUps = [];
     state.activeParty.forEach(function (id) {
       var ld = getCompanionLevelData(id);
+      var skills = getCompanionSkills(id);
       var beforeId = currentCompanionSpeciesId(id, ld.level);
       var beforeName = G.MONSTERS[beforeId].name;
       ld.exp += expGain;
@@ -867,6 +853,13 @@
           beforeId = afterId;
           beforeName = afterName;
         }
+        companionSkillTrack(id, ld.level).forEach(function (skillId) {
+          var sk = G.SKILLS[skillId];
+          if (sk.learnLevel === ld.level && skills.indexOf(skillId) === -1) {
+            skills.push(skillId);
+            levelUps.push(beforeName + " は " + sk.name + " を おぼえた!");
+          }
+        });
       }
       if (leveled) levelUps.push(beforeName + " は Lv" + ld.level + " に あがった!");
     });
@@ -904,19 +897,18 @@
   }
 
   // ---------------- Battle sub menus ----------------
-  function openSkillSubMenu() {
-    var skillIds = state.learnedSkills.filter(function (id) { return id !== "tackle"; });
-    if (skillIds.length === 0) { showToast("つかえる わざが まだ ないよ"); return; }
+  function openMoveSubMenu() {
+    var active = getBattler(battle.activeIdx);
     battleSubList.innerHTML = "";
-    skillIds.forEach(function (id) {
+    active.skillIds.forEach(function (id) {
       var sk = G.SKILLS[id];
-      var disabled = state.mp < sk.mp;
+      var disabled = active.mp < sk.mp;
       var row = document.createElement("div");
       row.className = "battle-sub-item";
       row.innerHTML =
         '<div><div class="sub-item-name">' + sk.name + '</div><div class="sub-item-desc">MP' + sk.mp + " ・ " + sk.desc + "</div></div>" +
         "<button" + (disabled ? " disabled" : "") + ">えらぶ</button>";
-      row.querySelector("button").addEventListener("click", function () { doPlayerAction({ type: "skill", skillId: id }); });
+      row.querySelector("button").addEventListener("click", function () { doActiveBattlerAction({ type: "skill", skillId: id }); });
       battleSubList.appendChild(row);
     });
     showSubMenu();
@@ -936,7 +928,7 @@
         '<div><div class="sub-item-name"><img class="item-icon" src="' + item.icon + '" alt="">' + item.name + " ×" + count + '</div><div class="sub-item-desc">' + item.desc + "</div></div>" +
         "<button>" + (item.kind === "ball" ? "なげる" : "つかう") + "</button>";
       row.querySelector("button").addEventListener("click", function () {
-        if (item.kind === "ball") tryCapture(id); else doPlayerAction({ type: "item", itemId: id });
+        if (item.kind === "ball") tryCapture(id); else doActiveBattlerAction({ type: "item", itemId: id });
       });
       battleSubList.appendChild(row);
     });
@@ -948,9 +940,9 @@
     btn.addEventListener("click", function () {
       if (!battle || battle.locked) return;
       var cmd = btn.dataset.cmd;
-      if (cmd === "attack") doPlayerAction({ type: "skill", skillId: "tackle" });
-      else if (cmd === "skill") openSkillSubMenu();
+      if (cmd === "skill") openMoveSubMenu();
       else if (cmd === "item") openItemSubMenu();
+      else if (cmd === "swap") openSwapSubMenu(false);
       else if (cmd === "run") tryRun();
     });
   });
