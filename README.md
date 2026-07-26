@@ -38,7 +38,9 @@
 - `docs/app.js` : ゲームロジック本体(状態管理・移動・バトル・セーブ/ロード)
 - `docs/assets/evolutions/*.webp` : 進化イラスト
 - `docs/assets/monsters/*.webp` : モンスターイラスト(未使用の上級8体を含む)
-- `docs/assets/hero/hero.webp` : 主人公(無進化時)イラスト
+- `docs/assets/hero/hero.webp` : 主人公(無進化時)のバトル用イラスト
+- `docs/assets/hero/walk_*.webp` : 主人公(無進化時)のフィールド移動用ドット絵(下/左/右/上の4方向)。
+  進化後はこれまで通り進化イラストを使用(左向きは反転表示)
 
 ## セーブデータ
 

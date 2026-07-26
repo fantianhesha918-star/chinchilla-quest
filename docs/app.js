@@ -49,6 +49,15 @@
     return '<img src="' + G.HERO_IMAGE + '" alt="' + state.name + '" style="width:100%;height:100%;object-fit:contain;">';
   }
 
+  function renderFieldPlayerSprite() {
+    if (state.stageIndex > 0) {
+      var stage = G.EVOLUTION_ROUTES[state.route].stages[state.stageIndex - 1];
+      return '<img src="' + stage.file + '" alt="' + stage.label + '" style="width:100%;height:100%;object-fit:contain;">';
+    }
+    var src = G.HERO_FIELD_SPRITES[state.facing || "down"];
+    return '<img src="' + src + '" alt="' + state.name + '" style="width:100%;height:100%;object-fit:contain;">';
+  }
+
   // ---------------- DOM refs ----------------
   var titleScreen = document.getElementById("title-screen");
   var starterScreen = document.getElementById("starter-screen");
@@ -174,7 +183,7 @@
 
     playerEl = document.createElement("div");
     playerEl.className = "tile-player";
-    playerEl.innerHTML = '<div class="tile-player-inner">' + renderPlayerSprite() + "</div>";
+    playerEl.innerHTML = '<div class="tile-player-inner">' + renderFieldPlayerSprite() + "</div>";
     mapViewport.appendChild(playerEl);
     positionPlayerSprite(false);
   }
@@ -188,7 +197,15 @@
     playerEl.style.width = (100 / cols) + "%";
     playerEl.style.height = (100 / rows) + "%";
     var inner = playerEl.querySelector(".tile-player-inner");
-    if (inner) inner.classList.toggle("facing-left", state.facing === "left");
+    if (inner) {
+      if (state.stageIndex > 0) {
+        inner.classList.toggle("facing-left", state.facing === "left");
+      } else {
+        inner.classList.remove("facing-left");
+        var img = inner.querySelector("img");
+        if (img) img.src = G.HERO_FIELD_SPRITES[state.facing || "down"];
+      }
+    }
     if (animateStep !== false) {
       playerEl.classList.remove("step-bounce");
       void playerEl.offsetWidth;

@@ -2,6 +2,12 @@
   "use strict";
 
   var HERO_IMAGE = "assets/hero/hero.webp";
+  var HERO_FIELD_SPRITES = {
+    down: "assets/hero/walk_down.webp",
+    left: "assets/hero/walk_left.webp",
+    right: "assets/hero/walk_right.webp",
+    up: "assets/hero/walk_up.webp"
+  };
 
   // ---------------- Evolution routes ----------------
   var EVOLUTION_ROUTES = {
@@ -189,6 +195,7 @@
 
   window.GAME_DATA = {
     HERO_IMAGE: HERO_IMAGE,
+    HERO_FIELD_SPRITES: HERO_FIELD_SPRITES,
     EVOLUTION_ROUTES: EVOLUTION_ROUTES,
     FIRST_EVOLUTION_LEVEL: FIRST_EVOLUTION_LEVEL,
     calcMaxStats: calcMaxStats,
