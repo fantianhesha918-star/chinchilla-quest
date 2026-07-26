@@ -137,6 +137,7 @@
   function renderMap() {
     var map = currentMap();
     var rows = map.tiles.length, cols = map.tiles[0].length;
+    mapViewport.className = "map-viewport map-" + map.id;
     mapViewport.style.gridTemplateColumns = "repeat(" + cols + ",1fr)";
     mapViewport.style.gridTemplateRows = "repeat(" + rows + ",1fr)";
     mapViewport.style.aspectRatio = cols + " / " + rows;
@@ -146,15 +147,19 @@
       for (var x = 0; x < cols; x++) {
         var ch = map.tiles[y][x];
         var cls = "tile " + tileClass(ch);
-        var isWarp = !!warpAtCoord(map, x, y);
+        var warp = warpAtCoord(map, x, y);
         var isBoss = !!(map.bossTrigger && map.bossTrigger.x === x && map.bossTrigger.y === y && !state.flags.bossDefeated);
-        if (isWarp) cls += " tile-warp";
+        if (warp) cls += " tile-warp";
         if (isBoss) cls += " tile-boss";
         var npc = npcAtCoord(map, x, y);
         var inner = "";
-        if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
+        if (npc && npc.image) inner = '<img class="tile-npc-mark tile-npc-img" src="' + npc.image + '" alt="' + npc.name + '">';
+        else if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
         else if (isBoss) inner = '<span class="tile-boss-mark">💀</span>';
-        else if (isWarp) inner = '<span class="tile-warp-mark">⤵</span>';
+        else if (warp) {
+          var gateImg = warp.toMap === "dungeon" ? "assets/tiles/gate_entrance.webp" : "assets/tiles/gate_exit.webp";
+          inner = '<img class="tile-warp-img" src="' + gateImg + '" alt="warp">';
+        }
         else if (ch === "H") inner = '<span class="tile-heal-mark">✨</span>';
         html += '<div class="' + cls + '">' + inner + "</div>";
       }

@@ -173,11 +173,28 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), inset 0 0 0 1px rgba(93, 71, 51, 0.06);
 }
 .tile-wall {
-  background: linear-gradient(180deg, #cbb493 0%, #b9a689 55%, #a5906c 100%);
+  background-color: #b9a689;
+  background-image: url(assets/tiles/tile_wall.webp);
+  background-size: cover;
+  background-position: center;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -3px 0 rgba(93, 61, 30, 0.25);
 }
-.tile-ground { background: #f3e6cf; }
-.tile-grass { background: repeating-linear-gradient(135deg, #a8d5ba, #a8d5ba 6px, #9bcaad 6px, #9bcaad 12px); }
+.tile-ground {
+  background-color: #f3e6cf;
+  background-image: url(assets/tiles/tile_path.webp);
+  background-size: cover;
+  background-position: center;
+}
+.tile-grass {
+  background-color: #a8d5ba;
+  background-image: url(assets/tiles/tile_ground.webp);
+  background-size: cover;
+  background-position: center;
+}
+.map-dungeon .tile-grass {
+  background-color: #b8ab95;
+  background-image: url(assets/tiles/tile_dungeon_floor.webp);
+}
 .tile-water { background: repeating-linear-gradient(135deg, #a9cce3, #a9cce3 6px, #97bfda 6px, #97bfda 12px); }
 .tile-warp { background: #f6e0ea; box-shadow: inset 0 0 0 2px var(--pink-deep); }
 .tile-boss { background: #f3d0cb; box-shadow: inset 0 0 0 2px var(--danger); animation: boss-pulse 1.6s ease-in-out infinite; }
@@ -220,6 +237,29 @@ body {
     inset 0 -3px 3px rgba(40, 90, 120, 0.3),
     inset 0 2px 2px rgba(255, 255, 255, 0.75),
     0 3px 3px rgba(93, 61, 30, 0.2);
+}
+
+.tile-npc-img {
+  inset: -18% 2% 0 2%;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 3px 2px rgba(93, 61, 30, 0.3));
+  z-index: 2;
+}
+
+.tile-warp-img {
+  position: absolute;
+  inset: -15% 0 0 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  pointer-events: none;
 }
 
 .tile-player {
