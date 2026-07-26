@@ -371,13 +371,13 @@
       renderMap();
     }
 
-    var warp = warpAtCoord(map, nx, ny);
-    if (warp) { doWarp(warp); return; }
-
     if (map.bossTrigger && map.bossTrigger.x === nx && map.bossTrigger.y === ny && !state.flags.bossDefeated) {
       startBattle(map.bossTrigger.monsterId, true);
       return;
     }
+    var warp = warpAtCoord(map, nx, ny);
+    if (warp) { doWarp(warp); return; }
+
     if (ch === "," && map.encounter && Math.random() < map.encounter.rate) {
       startBattle(pickWeighted(map.encounter.table), false);
     }
@@ -717,7 +717,7 @@
 
     var hpRatio = battle.monsterHp / battle.monsterMaxHp;
     var baseChance = Math.min(0.9, 0.15 + (1 - hpRatio) * 0.6);
-    var chance = Math.min(1, baseChance * (item.catchMult || 1));
+    var chance = item.catchMult === Infinity ? 1 : Math.min(1, baseChance * (item.catchMult || 1) * (def.catchPenalty || 1));
     var lines = [state.name + " は " + item.name + " を なげた!"];
 
     save(state);

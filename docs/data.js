@@ -198,8 +198,53 @@
     shokujinsou_2: { id: "shokujinsou_2", name: "デビルフラワー", level: 19, hp: 119, atk: 32, def: 16, spd: 16, exp: 66, money: 48, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shokujinsou_2.webp", element: "earth" },
     hone_kihei_2: { id: "hone_kihei_2", name: "デスライダー", level: 24, hp: 172, atk: 45, def: 26, spd: 25, exp: 97, money: 70, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "hone_kihei_2.webp" },
 
-    yougan_golem: { id: "yougan_golem", name: "ようがんゴーレム", level: 16, hp: 130, atk: 32, def: 20, spd: 14, exp: 140, money: 110, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "yougan_golem.webp", element: "fire" }
+    yougan_golem: { id: "yougan_golem", name: "ようがんゴーレム", level: 16, hp: 130, atk: 32, def: 20, spd: 14, exp: 140, money: 110, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "yougan_golem.webp", element: "fire" },
+
+    // ---- 隠しエリア「奥津宮の霊域」上位ティア(ボス撃破後に解放、なかまボールで捕獲可・成功率は catchPenalty で低下) ----
+    kodai_kyubi: { id: "kodai_kyubi", name: "九尾の霊狐", level: 27, hp: 234, atk: 71, def: 58, spd: 42, exp: 116, money: 84, skillIds: ["tackle", "sandkick"], image: MON_DIR + "kodai_kyubi.webp", element: "fire", catchPenalty: 0.6 },
+    kodai_oni: { id: "kodai_oni", name: "業火の鬼", level: 27, hp: 212, atk: 64, def: 52, spd: 38, exp: 105, money: 76, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_oni.webp", catchPenalty: 0.6 },
+    kodai_tengu: { id: "kodai_tengu", name: "山の大天狗", level: 27, hp: 221, atk: 67, def: 55, spd: 40, exp: 109, money: 78, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_tengu.webp", catchPenalty: 0.6 },
+    kodai_yukionna: { id: "kodai_yukionna", name: "雪女", level: 27, hp: 219, atk: 66, def: 54, spd: 39, exp: 108, money: 78, skillIds: ["tackle", "ice_shard"], image: MON_DIR + "kodai_yukionna.webp", element: "ice", catchPenalty: 0.6 },
+    kodai_gashadokuro: { id: "kodai_gashadokuro", name: "がしゃどくろ", level: 27, hp: 238, atk: 72, def: 59, spd: 43, exp: 118, money: 85, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_gashadokuro.webp", catchPenalty: 0.6 },
+    kodai_biwanushi: { id: "kodai_biwanushi", name: "琵琶ぬし", level: 27, hp: 235, atk: 71, def: 58, spd: 42, exp: 117, money: 84, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_biwanushi.webp", catchPenalty: 0.6 },
+    kodai_hitotsume: { id: "kodai_hitotsume", name: "ひとつ目の子鬼", level: 27, hp: 243, atk: 74, def: 60, spd: 44, exp: 121, money: 87, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_hitotsume.webp", catchPenalty: 0.6 },
+    kodai_kappabouzu: { id: "kodai_kappabouzu", name: "沼のカッパ坊主", level: 27, hp: 214, atk: 65, def: 53, spd: 38, exp: 106, money: 76, skillIds: ["tackle", "sandkick"], image: MON_DIR + "kodai_kappabouzu.webp", element: "earth", catchPenalty: 0.6 },
+    kodai_sakedanuki: { id: "kodai_sakedanuki", name: "酒買い狸", level: 27, hp: 226, atk: 69, def: 56, spd: 41, exp: 112, money: 81, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_sakedanuki.webp", catchPenalty: 0.6 },
+    kodai_kitsunemen: { id: "kodai_kitsunemen", name: "狐面の宵祭り", level: 27, hp: 212, atk: 64, def: 52, spd: 38, exp: 105, money: 76, skillIds: ["tackle", "sandkick"], image: MON_DIR + "kodai_kitsunemen.webp", element: "fire", catchPenalty: 0.6 },
+    kodai_bakeneko: { id: "kodai_bakeneko", name: "化け猫又", level: 27, hp: 219, atk: 66, def: 54, spd: 39, exp: 108, money: 78, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_bakeneko.webp", catchPenalty: 0.6 },
+    kodai_karakasa: { id: "kodai_karakasa", name: "からかさ小僧", level: 27, hp: 229, atk: 69, def: 57, spd: 41, exp: 113, money: 81, skillIds: ["tackle", "ice_shard"], image: MON_DIR + "kodai_karakasa.webp", element: "ice", catchPenalty: 0.6 },
+    shinju_reishishi: { id: "shinju_reishishi", name: "紅蓮の霊獅子", level: 34, hp: 257, atk: 78, def: 64, spd: 46, exp: 132, money: 95, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shinju_reishishi.webp", element: "fire", catchPenalty: 0.45 },
+    shinju_kamezan: { id: "shinju_kamezan", name: "滝ノ亀山", level: 34, hp: 265, atk: 81, def: 66, spd: 48, exp: 136, money: 98, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shinju_kamezan.webp", element: "earth", catchPenalty: 0.45 },
+    shinju_unicorn: { id: "shinju_unicorn", name: "聖獣ユニコーン", level: 34, hp: 285, atk: 87, def: 71, spd: 51, exp: 146, money: 105, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shinju_unicorn.webp", catchPenalty: 0.45 },
+    shinju_griffon: { id: "shinju_griffon", name: "蒼翼のグリフォン", level: 34, hp: 280, atk: 85, def: 70, spd: 51, exp: 144, money: 104, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shinju_griffon.webp", catchPenalty: 0.45 },
+    shinju_kimaira: { id: "shinju_kimaira", name: "三面の魔獣キマイラ", level: 34, hp: 266, atk: 81, def: 66, spd: 48, exp: 136, money: 98, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shinju_kimaira.webp", catchPenalty: 0.45 },
+    shinju_cerberus: { id: "shinju_cerberus", name: "冥犬ケルベロス", level: 34, hp: 282, atk: 86, def: 70, spd: 51, exp: 145, money: 104, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shinju_cerberus.webp", element: "fire", catchPenalty: 0.45 },
+    shinju_murasakiryu: { id: "shinju_murasakiryu", name: "闇夜の紫竜", level: 34, hp: 292, atk: 89, def: 73, spd: 53, exp: 150, money: 108, skillIds: ["tackle", "sandkick", "renzoku"], image: MON_DIR + "shinju_murasakiryu.webp", element: "thunder", catchPenalty: 0.45 },
+    shinju_hakurou: { id: "shinju_hakurou", name: "月影の白狼", level: 34, hp: 256, atk: 78, def: 64, spd: 46, exp: 132, money: 95, skillIds: ["tackle", "ice_shard", "headbutt"], image: MON_DIR + "shinju_hakurou.webp", element: "ice", catchPenalty: 0.45 },
+    shinju_pegasus: { id: "shinju_pegasus", name: "光翼のペガサス", level: 34, hp: 292, atk: 89, def: 73, spd: 53, exp: 150, money: 108, skillIds: ["tackle", "sandkick", "renzoku"], image: MON_DIR + "shinju_pegasus.webp", element: "thunder", catchPenalty: 0.45 },
+    legend_hoshiryu: { id: "legend_hoshiryu", name: "星の白龍", level: 43, hp: 352, atk: 108, def: 88, spd: 64, exp: 186, money: 134, skillIds: ["tackle", "ice_shard", "headbutt"], image: MON_DIR + "legend_hoshiryu.webp", element: "ice", catchPenalty: 0.3 },
+    legend_shinpan: { id: "legend_shinpan", name: "審判の光神", level: 43, hp: 332, atk: 102, def: 83, spd: 60, exp: 176, money: 127, skillIds: ["tackle", "headbutt", "renzoku"], image: MON_DIR + "legend_shinpan.webp", catchPenalty: 0.3 },
+    legend_kyoshin: { id: "legend_kyoshin", name: "森の古代巨神", level: 43, hp: 322, atk: 99, def: 81, spd: 58, exp: 171, money: 123, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "legend_kyoshin.webp", element: "earth", catchPenalty: 0.3 },
+    legend_rasetsuou: { id: "legend_rasetsuou", name: "六腕の羅刹王", level: 43, hp: 366, atk: 112, def: 92, spd: 66, exp: 194, money: 140, skillIds: ["tackle", "headbutt", "renzoku"], image: MON_DIR + "legend_rasetsuou.webp", catchPenalty: 0.3 },
+    legend_houou: { id: "legend_houou", name: "虹色の不死鳥", level: 43, hp: 332, atk: 102, def: 83, spd: 60, exp: 176, money: 127, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "legend_houou.webp", element: "fire", catchPenalty: 0.3 },
+    legend_hoshikujira: { id: "legend_hoshikujira", name: "星うみのクジラ", level: 43, hp: 319, atk: 98, def: 80, spd: 58, exp: 169, money: 122, skillIds: ["tackle", "ice_shard", "renzoku"], image: MON_DIR + "legend_hoshikujira.webp", element: "ice", catchPenalty: 0.3 },
+    legend_meifukishi: { id: "legend_meifukishi", name: "冥府の騎士", level: 43, hp: 319, atk: 98, def: 80, spd: 58, exp: 169, money: 122, skillIds: ["tackle", "headbutt", "renzoku"], image: MON_DIR + "legend_meifukishi.webp", catchPenalty: 0.3 },
+    legend_hyoketsuhime: { id: "legend_hyoketsuhime", name: "氷結の妖精姫", level: 43, hp: 360, atk: 110, def: 90, spd: 65, exp: 191, money: 138, skillIds: ["tackle", "ice_shard", "renzoku"], image: MON_DIR + "legend_hyoketsuhime.webp", element: "ice", catchPenalty: 0.3 },
+    kami_seikuu: { id: "kami_seikuu", name: "星空の大司教", level: 55, hp: 432, atk: 133, def: 109, spd: 79, exp: 235, money: 169, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], image: MON_DIR + "kami_seikuu.webp", element: "thunder", catchPenalty: 0.18 },
+    kami_datenken: { id: "kami_datenken", name: "堕天の剣皇", level: 55, hp: 446, atk: 137, def: 112, spd: 81, exp: 242, money: 174, skillIds: ["tackle", "headbutt", "renzoku"], image: MON_DIR + "kami_datenken.webp", catchPenalty: 0.18 },
+    kami_ryokuya: { id: "kami_ryokuya", name: "緑野の女神", level: 55, hp: 441, atk: 136, def: 111, spd: 80, exp: 239, money: 172, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], image: MON_DIR + "kami_ryokuya.webp", element: "earth", catchPenalty: 0.18 },
+    kami_kouyoku: { id: "kami_kouyoku", name: "光翼の大天使", level: 55, hp: 427, atk: 132, def: 108, spd: 78, exp: 232, money: 167, skillIds: ["tackle", "headbutt", "renzoku"], image: MON_DIR + "kami_kouyoku.webp", catchPenalty: 0.18 }
   };
+
+  var UPPER_TIER_IDS = [
+    "kodai_kyubi", "kodai_oni", "kodai_tengu", "kodai_yukionna", "kodai_gashadokuro", "kodai_biwanushi",
+    "kodai_hitotsume", "kodai_kappabouzu", "kodai_sakedanuki", "kodai_kitsunemen", "kodai_bakeneko", "kodai_karakasa",
+    "shinju_reishishi", "shinju_kamezan", "shinju_unicorn", "shinju_griffon", "shinju_kimaira",
+    "shinju_cerberus", "shinju_murasakiryu", "shinju_hakurou", "shinju_pegasus",
+    "legend_hoshiryu", "legend_shinpan", "legend_kyoshin", "legend_rasetsuou",
+    "legend_houou", "legend_hoshikujira", "legend_meifukishi", "legend_hyoketsuhime",
+    "kami_seikuu", "kami_datenken", "kami_ryokuya", "kami_kouyoku"
+  ];
 
   // ---------------- Dex (図鑑) display order: base -> evolution stages, grouped by line ----------------
   var DEX_ORDER = [
@@ -221,7 +266,14 @@
     "mira_otoko", "mira_otoko_2",
     "shokujinsou", "shokujinsou_2",
     "hone_kihei", "hone_kihei_2",
-    "yougan_golem"
+    "yougan_golem",
+    "kodai_kyubi", "kodai_oni", "kodai_tengu", "kodai_yukionna", "kodai_gashadokuro", "kodai_biwanushi",
+    "kodai_hitotsume", "kodai_kappabouzu", "kodai_sakedanuki", "kodai_kitsunemen", "kodai_bakeneko", "kodai_karakasa",
+    "shinju_reishishi", "shinju_kamezan", "shinju_unicorn", "shinju_griffon", "shinju_kimaira",
+    "shinju_cerberus", "shinju_murasakiryu", "shinju_hakurou", "shinju_pegasus",
+    "legend_hoshiryu", "legend_shinpan", "legend_kyoshin", "legend_rasetsuou",
+    "legend_houou", "legend_hoshikujira", "legend_meifukishi", "legend_hyoketsuhime",
+    "kami_seikuu", "kami_datenken", "kami_ryokuya", "kami_kouyoku"
   ];
 
   // ---------------- Maps ----------------
@@ -308,7 +360,10 @@
         "#########"
       ],
       npcs: [],
-      warps: [{ x: 4, y: 0, toMap: "field", toX: 4, toY: 9 }],
+      warps: [
+        { x: 4, y: 0, toMap: "field", toX: 4, toY: 9 },
+        { x: 4, y: 11, toMap: "reizon", toX: 4, toY: 1 }
+      ],
       chests: [
         { id: "dungeon_chest_1", x: 6, y: 6, reward: { type: "item", itemId: "kizugusuri", amount: 2 } },
         { id: "dungeon_chest_2", x: 1, y: 9, reward: { type: "item", itemId: "manashizuku", amount: 2 } }
@@ -320,6 +375,40 @@
           { id: "ankoku_kishi", weight: 2 }, { id: "ankoku_madoushi", weight: 2 }, { id: "orc", weight: 2 },
           { id: "jinrou", weight: 2 }, { id: "sarekoube", weight: 3 }, { id: "iwa_golem", weight: 1 },
           { id: "mira_otoko", weight: 2 }, { id: "shokujinsou", weight: 2 }, { id: "hone_kihei", weight: 1 }
+        ]
+      }
+    },
+    reizon: {
+      id: "reizon",
+      label: "奥津宮の霊域",
+      tiles: [
+        "#########",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "####.####",
+        "#########"
+      ],
+      npcs: [],
+      warps: [{ x: 4, y: 7, toMap: "dungeon", toX: 4, toY: 10 }],
+      encounter: {
+        rate: 0.2,
+        table: [
+          { id: "kodai_kyubi", weight: 5 }, { id: "kodai_oni", weight: 5 }, { id: "kodai_tengu", weight: 5 },
+          { id: "kodai_yukionna", weight: 5 }, { id: "kodai_gashadokuro", weight: 5 }, { id: "kodai_biwanushi", weight: 5 },
+          { id: "kodai_hitotsume", weight: 5 }, { id: "kodai_kappabouzu", weight: 5 }, { id: "kodai_sakedanuki", weight: 5 },
+          { id: "kodai_kitsunemen", weight: 5 }, { id: "kodai_bakeneko", weight: 5 }, { id: "kodai_karakasa", weight: 5 },
+          { id: "shinju_reishishi", weight: 2 }, { id: "shinju_kamezan", weight: 2 }, { id: "shinju_unicorn", weight: 2 },
+          { id: "shinju_griffon", weight: 2 }, { id: "shinju_kimaira", weight: 2 }, { id: "shinju_cerberus", weight: 2 },
+          { id: "shinju_murasakiryu", weight: 2 }, { id: "shinju_hakurou", weight: 2 }, { id: "shinju_pegasus", weight: 2 },
+          { id: "legend_hoshiryu", weight: 1 }, { id: "legend_shinpan", weight: 1 }, { id: "legend_kyoshin", weight: 1 },
+          { id: "legend_rasetsuou", weight: 1 }, { id: "legend_houou", weight: 1 }, { id: "legend_hoshikujira", weight: 1 },
+          { id: "legend_meifukishi", weight: 1 }, { id: "legend_hyoketsuhime", weight: 1 },
+          { id: "kami_seikuu", weight: 0.3 }, { id: "kami_datenken", weight: 0.3 },
+          { id: "kami_ryokuya", weight: 0.3 }, { id: "kami_kouyoku", weight: 0.3 }
         ]
       }
     }
