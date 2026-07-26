@@ -34,6 +34,7 @@
       companions: {},
       activeParty: [],
       companionLevels: {},
+      dex: {},
       mapId: G.START_MAP,
       x: G.START_X,
       y: G.START_Y,
@@ -49,6 +50,20 @@
       state.companionLevels[id] = { level: G.MONSTERS[id].level, exp: 0 };
     }
     return state.companionLevels[id];
+  }
+
+  function markDiscovered(id) {
+    if (!state.dex[id]) { state.dex[id] = true; save(state); }
+  }
+
+  function currentCompanionSpeciesId(baseId, level) {
+    var cur = G.MONSTERS[baseId];
+    var curId = baseId;
+    while (cur.evolvesTo && level >= cur.evolvesTo.level) {
+      curId = cur.evolvesTo.id;
+      cur = G.MONSTERS[curId];
+    }
+    return curId;
   }
 
   function renderPlayerSprite() {
@@ -106,12 +121,16 @@
   var battleCommandMenu = document.getElementById("battle-command-menu");
   var battleSubMenu = document.getElementById("battle-sub-menu");
   var battleSubList = document.getElementById("battle-sub-list");
+  var battleSubBack = document.getElementById("battle-sub-back");
   var runBtn = document.querySelector('.battle-cmd-btn[data-cmd="run"]');
 
   var menuStatusEl = document.getElementById("menu-status");
   var menuSkillsEl = document.getElementById("menu-skills");
   var menuItemsEl = document.getElementById("menu-items");
   var menuCompanionsEl = document.getElementById("menu-companions");
+  var zukanGridEl = document.getElementById("zukan-grid");
+  var zukanDetailEl = document.getElementById("zukan-detail");
+  var zukanProgressEl = document.getElementById("zukan-progress");
   var shopListEl = document.getElementById("shop-list");
   var routeChoicesEl = document.getElementById("route-choices");
 
@@ -123,6 +142,7 @@
   if (state && !state.companions) state.companions = {};
   if (state && !state.activeParty) state.activeParty = [];
   if (state && !state.companionLevels) state.companionLevels = {};
+  if (state && !state.dex) state.dex = {};
   var selectedStarter = false;
   var battle = null;
   var battleActive = false;
@@ -408,6 +428,7 @@
   function showCommandMenu() {
     battleCommandMenu.classList.remove("hidden");
     battleSubMenu.classList.add("hidden");
+    battleSubBack.style.display = "";
     setCommandButtonsEnabled(true);
     if (battle && battle.isBoss) runBtn.disabled = true;
   }
@@ -434,10 +455,10 @@
     battlePlayerSprite.innerHTML = renderPlayerSprite();
 
     battlePartyRowEl.innerHTML = "";
-    battle.party.forEach(function (comp) {
-      var mon = G.MONSTERS[comp.id];
+    battle.party.forEach(function (comp, idx) {
+      var mon = G.MONSTERS[comp.speciesId];
       var div = document.createElement("div");
-      div.className = "battle-party-item" + (comp.fainted ? " fainted" : "");
+      div.className = "battle-party-item" + (comp.fainted ? " fainted" : "") + (idx === battle.activeCompanionIdx ? " active" : "");
       div.innerHTML =
         '<img class="battle-party-img" src="' + mon.image + '" alt="' + mon.name + '">' +
         '<div class="battle-party-name">' + mon.name + " Lv" + comp.level + "</div>" +
@@ -448,13 +469,15 @@
 
   function startBattle(monsterId, isBoss) {
     var def = G.MONSTERS[monsterId];
+    markDiscovered(monsterId);
     var party = state.activeParty.map(function (id) {
-      var mon = G.MONSTERS[id];
       var ld = getCompanionLevelData(id);
+      var speciesId = currentCompanionSpeciesId(id, ld.level);
+      var mon = G.MONSTERS[speciesId];
       var cstats = G.getCompanionStats(mon, ld.level);
-      return { id: id, level: ld.level, hp: cstats.maxHp, maxHp: cstats.maxHp, atk: cstats.atk, def: cstats.def, spd: cstats.spd, fainted: false };
+      return { id: id, speciesId: speciesId, level: ld.level, hp: cstats.maxHp, maxHp: cstats.maxHp, atk: cstats.atk, def: cstats.def, spd: cstats.spd, fainted: false };
     });
-    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party };
+    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party, activeCompanionIdx: party.length > 0 ? 0 : -1 };
     battleActive = true;
     runBtn.disabled = !!isBoss;
     fieldScreen.classList.add("hidden");
@@ -504,33 +527,108 @@
       else if (result.elemTier === "weak") lines.push("こうかは いまひとつ のようだ…");
     }
 
-    resolveCompanionAttacks(lines, def);
-
     save(state);
     renderBattle();
     showElementEffect(skillElement, battleEnemySprite);
+    playSequence(lines, function () {
+      if (battle.monsterHp <= 0) { winBattle(); return; }
+      promptCompanionTurn();
+    });
+  }
+
+  function activeCompanion() {
+    if (!battle || battle.activeCompanionIdx < 0) return null;
+    var comp = battle.party[battle.activeCompanionIdx];
+    return comp && !comp.fainted ? comp : null;
+  }
+
+  function livingBenchedCompanions() {
+    if (!battle) return [];
+    var out = [];
+    battle.party.forEach(function (comp, idx) {
+      if (idx !== battle.activeCompanionIdx && !comp.fainted) out.push(idx);
+    });
+    return out;
+  }
+
+  function promptCompanionTurn() {
+    var active = activeCompanion();
+    var bench = livingBenchedCompanions();
+    if (!active && bench.length === 0) { enemyTurn(); return; }
+
+    battleSubList.innerHTML = "";
+    if (active) {
+      var monA = G.MONSTERS[active.speciesId];
+      var attackRow = document.createElement("div");
+      attackRow.className = "battle-sub-item";
+      attackRow.innerHTML = '<div><div class="sub-item-name">' + monA.name + " Lv" + active.level + '</div><div class="sub-item-desc">なかまに たたかわせる</div></div><button>たたかう</button>';
+      attackRow.querySelector("button").addEventListener("click", companionAttackAction);
+      battleSubList.appendChild(attackRow);
+    }
+    if (bench.length > 0) {
+      var swapRow = document.createElement("div");
+      swapRow.className = "battle-sub-item";
+      swapRow.innerHTML = '<div><div class="sub-item-name">いれかえ</div><div class="sub-item-desc">せんとうに 出す なかまを かえる(このターンは こうげきしない)</div></div><button>えらぶ</button>';
+      swapRow.querySelector("button").addEventListener("click", openCompanionSwapMenu);
+      battleSubList.appendChild(swapRow);
+    }
+    battleSubBack.style.display = "none";
+    showSubMenu();
+  }
+
+  function companionAttackAction() {
+    var comp = activeCompanion();
+    if (!comp) return;
+    var def = G.MONSTERS[battle.monsterId];
+    var mon = G.MONSTERS[comp.speciesId];
+    var skillId = mon.skillIds[Math.floor(Math.random() * mon.skillIds.length)];
+    var sk = G.SKILLS[skillId];
+    var result = calcDamage(comp.atk, sk.power, def.def, mon.element, def.element);
+    battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
+    var tag = result.crit ? "(会心)" : result.elemTier === "strong" ? "(ばつぐん)" : result.elemTier === "weak" ? "(いまひとつ)" : "";
+    var lines = [mon.name + " の こうげき! " + def.name + " に " + result.dmg + " の ダメージ!" + tag];
+    battleSubBack.style.display = "";
+    save(state);
+    renderBattle();
+    showCommandMenu();
+    setCommandButtonsEnabled(false);
     playSequence(lines, function () {
       if (battle.monsterHp <= 0) { winBattle(); return; }
       enemyTurn();
     });
   }
 
-  function resolveCompanionAttacks(lines, def) {
-    battle.party.forEach(function (comp) {
-      if (comp.fainted || battle.monsterHp <= 0) return;
-      var mon = G.MONSTERS[comp.id];
-      var skillId = mon.skillIds[Math.floor(Math.random() * mon.skillIds.length)];
-      var sk = G.SKILLS[skillId];
-      var result = calcDamage(comp.atk, sk.power, def.def, mon.element, def.element);
-      battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
-      var tag = result.crit ? "(会心)" : result.elemTier === "strong" ? "(ばつぐん)" : result.elemTier === "weak" ? "(いまひとつ)" : "";
-      lines.push(mon.name + " の こうげき! " + def.name + " に " + result.dmg + " の ダメージ!" + tag);
+  function openCompanionSwapMenu() {
+    var bench = livingBenchedCompanions();
+    battleSubList.innerHTML = "";
+    bench.forEach(function (idx) {
+      var comp = battle.party[idx];
+      var mon = G.MONSTERS[comp.speciesId];
+      var row = document.createElement("div");
+      row.className = "battle-sub-item";
+      row.innerHTML = '<div><div class="sub-item-name">' + mon.name + " Lv" + comp.level + '</div><div class="sub-item-desc">HP ' + comp.hp + " / " + comp.maxHp + '</div></div><button>いれかえる</button>';
+      row.querySelector("button").addEventListener("click", function () { swapActiveCompanion(idx); });
+      battleSubList.appendChild(row);
+    });
+    showSubMenu();
+  }
+
+  function swapActiveCompanion(idx) {
+    battle.activeCompanionIdx = idx;
+    var mon = G.MONSTERS[battle.party[idx].speciesId];
+    var lines = [mon.name + " を せんとうに 出した!"];
+    battleSubBack.style.display = "";
+    renderBattle();
+    showCommandMenu();
+    setCommandButtonsEnabled(false);
+    playSequence(lines, function () {
+      enemyTurn();
     });
   }
 
   function pickLivingTarget() {
     var targets = [{ type: "player" }];
-    battle.party.forEach(function (comp, idx) { if (!comp.fainted) targets.push({ type: "companion", idx: idx }); });
+    if (activeCompanion()) targets.push({ type: "companion", idx: battle.activeCompanionIdx });
     return targets[Math.floor(Math.random() * targets.length)];
   }
 
@@ -561,14 +659,14 @@
       });
     } else {
       var comp = battle.party[target.idx];
-      var mon = G.MONSTERS[comp.id];
+      var mon = G.MONSTERS[comp.speciesId];
       var result2 = calcDamage(def.atk, sk.power, comp.def, sk.element, mon.element);
       comp.hp = Math.max(0, comp.hp - result2.dmg);
       renderBattle();
       lines.push(def.name + " の " + sk.name + "!");
       if (result2.crit) lines.push("会心の一撃!");
       lines.push(mon.name + " に " + result2.dmg + " の ダメージ!");
-      if (comp.hp <= 0) { comp.fainted = true; lines.push(mon.name + " は たおれてしまった…"); }
+      if (comp.hp <= 0) { comp.fainted = true; battle.activeCompanionIdx = -1; lines.push(mon.name + " は たおれてしまった…"); }
       playSequence(lines, function () {
         battle.locked = false;
         showCommandMenu();
@@ -660,6 +758,10 @@
         if (nextIdx < stages.length && stages[nextIdx].level === state.level) {
           state.stageIndex += 1;
           events.push({ type: "evolve", stage: stages[nextIdx] });
+          if (stages[nextIdx].skillId && state.learnedSkills.indexOf(stages[nextIdx].skillId) === -1) {
+            state.learnedSkills.push(stages[nextIdx].skillId);
+            events.push({ type: "skill", skillId: stages[nextIdx].skillId });
+          }
         }
       }
     }
@@ -680,9 +782,14 @@
       card.addEventListener("click", function () {
         state.route = routeKey;
         state.stageIndex = 1;
+        var skillMsg = "";
+        if (firstStage.skillId && state.learnedSkills.indexOf(firstStage.skillId) === -1) {
+          state.learnedSkills.push(firstStage.skillId);
+          skillMsg = " " + G.SKILLS[firstStage.skillId].name + " を おぼえた!";
+        }
         save(state);
         closeModal("route-modal");
-        showToast(state.name + " は " + firstStage.label + " に しんかした!");
+        showToast(state.name + " は " + firstStage.label + " に しんかした!" + skillMsg);
         onDone();
       });
       routeChoicesEl.appendChild(card);
@@ -713,6 +820,8 @@
     var levelUps = [];
     state.activeParty.forEach(function (id) {
       var ld = getCompanionLevelData(id);
+      var beforeId = currentCompanionSpeciesId(id, ld.level);
+      var beforeName = G.MONSTERS[beforeId].name;
       ld.exp += expGain;
       var leveled = false;
       while (true) {
@@ -721,8 +830,16 @@
         ld.exp -= need;
         ld.level += 1;
         leveled = true;
+        var afterId = currentCompanionSpeciesId(id, ld.level);
+        var afterName = G.MONSTERS[afterId].name;
+        if (afterId !== beforeId) {
+          markDiscovered(afterId);
+          levelUps.push(beforeName + " は " + afterName + " に しんかした!");
+          beforeId = afterId;
+          beforeName = afterName;
+        }
       }
-      if (leveled) levelUps.push(G.MONSTERS[id].name + " は Lv" + ld.level + " に あがった!");
+      if (leveled) levelUps.push(beforeName + " は Lv" + ld.level + " に あがった!");
     });
     return levelUps;
   }
@@ -875,10 +992,10 @@
     partyCaption.textContent = "せんとうに つれていく なかま(さいだい" + G.MAX_PARTY_SIZE + "たいまで)";
     container.appendChild(partyCaption);
     ids.forEach(function (id) {
-      var mon = G.MONSTERS[id];
-      if (!mon) return;
+      if (!G.MONSTERS[id]) return;
       var count = state.companions[id];
       var ld = getCompanionLevelData(id);
+      var mon = G.MONSTERS[currentCompanionSpeciesId(id, ld.level)];
       var inParty = state.activeParty.indexOf(id) !== -1;
       var div = document.createElement("div");
       div.className = "companion-item" + (inParty ? " in-party" : "");
@@ -899,6 +1016,47 @@
       container.appendChild(div);
     });
   }
+
+  function showZukanDetail(mon) {
+    var elemLine = mon.element ? "<div>ぞくせい " + G.ELEMENT_LABELS[mon.element] + "</div>" : "";
+    var evoLine = "";
+    if (mon.evolvesTo && state.dex[mon.evolvesTo.id]) {
+      evoLine = "<div>Lv" + mon.evolvesTo.level + " で " + G.MONSTERS[mon.evolvesTo.id].name + " に しんかする</div>";
+    } else if (mon.evolvesTo) {
+      evoLine = "<div>さらに しんかしそうな けはいが する…</div>";
+    }
+    zukanDetailEl.innerHTML =
+      "<div><b>" + mon.name + "</b>(Lv" + mon.level + "〜)</div>" +
+      "<div>HP " + mon.hp + " ・ こうげき " + mon.atk + " ・ ぼうぎょ " + mon.def + " ・ すばやさ " + mon.spd + "</div>" +
+      elemLine + evoLine;
+    zukanDetailEl.classList.remove("hidden");
+  }
+
+  function renderZukan() {
+    zukanGridEl.innerHTML = "";
+    zukanDetailEl.classList.add("hidden");
+    var found = 0;
+    G.DEX_ORDER.forEach(function (id) {
+      var mon = G.MONSTERS[id];
+      if (!mon) return;
+      var discovered = !!state.dex[id];
+      if (discovered) found++;
+      var cell = document.createElement("button");
+      cell.className = "zukan-cell" + (discovered ? "" : " undiscovered");
+      cell.innerHTML = discovered
+        ? '<img src="' + mon.image + '" alt="' + mon.name + '"><div class="zukan-cell-name">' + mon.name + "</div>"
+        : '<div class="zukan-silhouette">?</div><div class="zukan-cell-name">？？？</div>';
+      if (discovered) cell.addEventListener("click", function () { showZukanDetail(mon); });
+      zukanGridEl.appendChild(cell);
+    });
+    zukanProgressEl.textContent = found + " / " + G.DEX_ORDER.length;
+  }
+
+  function openZukanModal() {
+    renderZukan();
+    openModal("zukan-modal");
+  }
+  document.getElementById("menu-zukan-btn").addEventListener("click", openZukanModal);
 
   function openShopModal() {
     shopListEl.innerHTML = "";

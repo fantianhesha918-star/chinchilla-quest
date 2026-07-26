@@ -499,6 +499,7 @@ body {
   gap: 3px;
 }
 .battle-party-item.fainted { opacity: 0.35; }
+.battle-party-item.active { box-shadow: 0 0 0 2px var(--pink-deep); }
 .battle-party-img { width: 34px; height: 34px; object-fit: contain; }
 .battle-party-name { font-size: 0.58rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56px; }
 .battle-party-hpbar { width: 48px; height: 6px; }
@@ -554,7 +555,7 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 50;
+  z-index: 80;
 }
 .modal-card {
   background: var(--card);
@@ -638,6 +639,44 @@ body {
 }
 .companion-item.in-party .companion-party-btn { background: var(--ink-soft); }
 
+.zukan-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 6px; }
+.zukan-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fbf3e9;
+  border-radius: 12px;
+  padding: 6px;
+  gap: 2px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.zukan-cell img { width: 40px; height: 40px; object-fit: contain; }
+.zukan-cell-name { font-size: 0.6rem; font-weight: 700; text-align: center; color: var(--ink); }
+.zukan-cell.undiscovered { opacity: 0.7; }
+.zukan-cell.undiscovered .zukan-cell-name { color: var(--ink-soft); }
+.zukan-silhouette {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+  background: #e8ddcf;
+  border-radius: 8px;
+}
+.zukan-detail {
+  background: #fbf3e9;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.zukan-detail.hidden { display: none; }
+
 .route-choices { display: flex; flex-direction: column; gap: 12px; }
 .route-choice-card {
   background: #fbf3e9;
@@ -680,7 +719,8 @@ body {
     --ink: #f3e6da;
     --ink-soft: #b8a696;
   }
-  .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item { background: #2c2420; }
+  .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item, .zukan-cell, .zukan-detail { background: #2c2420; }
+  .zukan-silhouette { background: #241d18; }
   .hud-bar-track { background: #2c2420; }
   .tile { background: #241d18; }
   .tile-ground, .tile-warp, .tile-boss { background: #3a2f26; }

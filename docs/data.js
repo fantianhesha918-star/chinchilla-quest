@@ -22,22 +22,22 @@
       label: "なかよしルート",
       desc: "たべものすがた に へんしんしていく、やさしい みち",
       stages: [
-        { id: "oyakodon", label: "おやこどん", level: 8, file: "assets/evolutions/oyakodon.webp" },
-        { id: "myoga", label: "みょうが", level: 14, file: "assets/evolutions/myoga.webp" },
-        { id: "bagel", label: "ベーグル", level: 20, file: "assets/evolutions/bagel.webp" },
-        { id: "yakiniku", label: "やきにく", level: 28, file: "assets/evolutions/yakiniku.webp" },
-        { id: "tofu", label: "とうふ", level: 36, file: "assets/evolutions/tofu.webp" }
+        { id: "oyakodon", label: "おやこどん", level: 8, file: "assets/evolutions/oyakodon.webp", skillId: "oyakodon_nage" },
+        { id: "myoga", label: "みょうが", level: 14, file: "assets/evolutions/myoga.webp", skillId: "myoga_giri" },
+        { id: "bagel", label: "ベーグル", level: 20, file: "assets/evolutions/bagel.webp", skillId: "bagel_atk" },
+        { id: "yakiniku", label: "やきにく", level: 28, file: "assets/evolutions/yakiniku.webp", skillId: "yakiniku_fire" },
+        { id: "tofu", label: "とうふ", level: 36, file: "assets/evolutions/tofu.webp", skillId: "tofu_press" }
       ]
     },
     takumashii: {
       label: "たくましいルート",
       desc: "いきもの すがた に へんしんしていく、パワフルな みち",
       stages: [
-        { id: "itachi", label: "いたち", level: 8, file: "assets/evolutions/itachi.webp" },
-        { id: "kaeru", label: "かえる", level: 14, file: "assets/evolutions/kaeru.webp" },
-        { id: "katatsumuri", label: "かたつむり", level: 20, file: "assets/evolutions/katatsumuri.webp" },
-        { id: "shachi", label: "しゃち", level: 28, file: "assets/evolutions/shachi.webp" },
-        { id: "sai", label: "サイ", level: 36, file: "assets/evolutions/sai.webp" }
+        { id: "itachi", label: "いたち", level: 8, file: "assets/evolutions/itachi.webp", skillId: "itachi_slash" },
+        { id: "kaeru", label: "かえる", level: 14, file: "assets/evolutions/kaeru.webp", skillId: "kaeru_tongue" },
+        { id: "katatsumuri", label: "かたつむり", level: 20, file: "assets/evolutions/katatsumuri.webp", skillId: "kara_tackle" },
+        { id: "shachi", label: "しゃち", level: 28, file: "assets/evolutions/shachi.webp", skillId: "orca_wave" },
+        { id: "sai", label: "サイ", level: 36, file: "assets/evolutions/sai.webp", skillId: "sai_charge" }
       ]
     }
   };
@@ -79,7 +79,21 @@
     tackle: { id: "tackle", name: "たいあたり", power: 16, mp: 0, learnLevel: 1, desc: "体当たりで こうげきする" },
     sandkick: { id: "sandkick", name: "すなかけ", power: 22, mp: 3, learnLevel: 5, desc: "すなを かけて こうげきする", element: "earth" },
     headbutt: { id: "headbutt", name: "ずつき", power: 30, mp: 6, learnLevel: 12, desc: "頭突きで つよく こうげきする" },
-    renzoku: { id: "renzoku", name: "れんぞくアタック", power: 40, mp: 10, learnLevel: 20, desc: "れんぞくで こうげきする", element: "thunder" }
+    renzoku: { id: "renzoku", name: "れんぞくアタック", power: 40, mp: 10, learnLevel: 20, desc: "れんぞくで こうげきする", element: "thunder" },
+
+    // ---- しんか専用わざ(なかよしルート) ----
+    oyakodon_nage: { id: "oyakodon_nage", name: "おやこどんナゲット", power: 26, mp: 4, desc: "あつあつの ぐを なげつける" },
+    myoga_giri: { id: "myoga_giri", name: "みょうがギリ", power: 34, mp: 6, desc: "しゃきしゃき きって こうげきする" },
+    bagel_atk: { id: "bagel_atk", name: "ベーグルアタック", power: 44, mp: 8, desc: "かたい ベーグルを ぶつける" },
+    yakiniku_fire: { id: "yakiniku_fire", name: "やきにくファイヤー", power: 54, mp: 10, desc: "あつい てっぱんで こんがり やく", element: "fire" },
+    tofu_press: { id: "tofu_press", name: "とうふプレス", power: 66, mp: 12, desc: "ぷるぷるの とうふで おしつぶす" },
+
+    // ---- しんか専用わざ(たくましいルート) ----
+    itachi_slash: { id: "itachi_slash", name: "いたちスラッシュ", power: 26, mp: 4, desc: "するどい つめで きりさく" },
+    kaeru_tongue: { id: "kaeru_tongue", name: "べろべろアタック", power: 34, mp: 6, desc: "ながい したで まきとって こうげきする" },
+    kara_tackle: { id: "kara_tackle", name: "からがらタックル", power: 44, mp: 8, desc: "からに はいって いきおいよく ぶつかる" },
+    orca_wave: { id: "orca_wave", name: "オルカウェーブ", power: 54, mp: 10, desc: "つめたい なみで おしながす", element: "ice" },
+    sai_charge: { id: "sai_charge", name: "サイクラッシュ", power: 66, mp: 12, desc: "つのを むけて つっこむ" }
   };
   var SKILL_LEARN_ORDER = ["tackle", "sandkick", "headbutt", "renzoku"];
 
@@ -116,28 +130,82 @@
   var MON_DIR = "assets/monsters/";
 
   var MONSTERS = {
-    slime: { id: "slime", name: "スライム", level: 2, hp: 26, atk: 8, def: 5, spd: 5, exp: 12, money: 9, skillIds: ["tackle"], image: MON_DIR + "slime.webp" },
-    aodori: { id: "aodori", name: "あおどり", level: 3, hp: 30, atk: 10, def: 5, spd: 8, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "aodori.webp" },
-    dokukinoko: { id: "dokukinoko", name: "どくきのこ", level: 4, hp: 38, atk: 11, def: 7, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "dokukinoko.webp", element: "earth" },
-    mogura: { id: "mogura", name: "つちもぐら", level: 3, hp: 32, atk: 10, def: 7, spd: 5, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "mogura.webp", element: "earth" },
-    hone_kenshi: { id: "hone_kenshi", name: "ほねのけんし", level: 5, hp: 44, atk: 14, def: 9, spd: 8, exp: 22, money: 16, skillIds: ["tackle", "sandkick"], image: MON_DIR + "hone_kenshi.webp" },
-    komori: { id: "komori", name: "こうもり", level: 3, hp: 29, atk: 10, def: 5, spd: 8, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "komori.webp" },
-    hinotama: { id: "hinotama", name: "ひのたま", level: 4, hp: 32, atk: 13, def: 6, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "hinotama.webp", element: "fire" },
-    saboten: { id: "saboten", name: "とげサボテン", level: 4, hp: 38, atk: 11, def: 8, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "saboten.webp", element: "earth" },
-    koyurei: { id: "koyurei", name: "こゆうれい", level: 5, hp: 40, atk: 14, def: 8, spd: 10, exp: 22, money: 16, skillIds: ["tackle", "sandkick"], image: MON_DIR + "koyurei.webp", element: "ice" },
+    slime: { id: "slime", name: "スライム", level: 2, hp: 26, atk: 8, def: 5, spd: 5, exp: 12, money: 9, skillIds: ["tackle"], image: MON_DIR + "slime.webp", evolvesTo: { level: 9, id: "slime_2" } },
+    aodori: { id: "aodori", name: "あおどり", level: 3, hp: 30, atk: 10, def: 5, spd: 8, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "aodori.webp", evolvesTo: { level: 10, id: "aodori_2" } },
+    dokukinoko: { id: "dokukinoko", name: "どくきのこ", level: 4, hp: 38, atk: 11, def: 7, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "dokukinoko.webp", element: "earth", evolvesTo: { level: 11, id: "dokukinoko_2" } },
+    mogura: { id: "mogura", name: "つちもぐら", level: 3, hp: 32, atk: 10, def: 7, spd: 5, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "mogura.webp", element: "earth", evolvesTo: { level: 10, id: "mogura_2" } },
+    hone_kenshi: { id: "hone_kenshi", name: "ほねのけんし", level: 5, hp: 44, atk: 14, def: 9, spd: 8, exp: 22, money: 16, skillIds: ["tackle", "sandkick"], image: MON_DIR + "hone_kenshi.webp", evolvesTo: { level: 12, id: "hone_kenshi_2" } },
+    komori: { id: "komori", name: "こうもり", level: 3, hp: 29, atk: 10, def: 5, spd: 8, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "komori.webp", evolvesTo: { level: 10, id: "komori_2" } },
+    hinotama: { id: "hinotama", name: "ひのたま", level: 4, hp: 32, atk: 13, def: 6, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "hinotama.webp", element: "fire", evolvesTo: { level: 11, id: "hinotama_2" } },
+    saboten: { id: "saboten", name: "とげサボテン", level: 4, hp: 38, atk: 11, def: 8, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "saboten.webp", element: "earth", evolvesTo: { level: 11, id: "saboten_2" } },
+    koyurei: { id: "koyurei", name: "こゆうれい", level: 5, hp: 40, atk: 14, def: 8, spd: 10, exp: 22, money: 16, skillIds: ["tackle", "sandkick"], image: MON_DIR + "koyurei.webp", element: "ice", evolvesTo: { level: 12, id: "koyurei_2" } },
 
-    ankoku_kishi: { id: "ankoku_kishi", name: "あんこくきし", level: 12, hp: 86, atk: 25, def: 18, spd: 14, exp: 44, money: 33, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "ankoku_kishi.webp" },
-    ankoku_madoushi: { id: "ankoku_madoushi", name: "あんこくまどうし", level: 11, hp: 72, atk: 26, def: 11, spd: 15, exp: 41, money: 30, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "ankoku_madoushi.webp", element: "thunder" },
-    orc: { id: "orc", name: "オーク", level: 10, hp: 81, atk: 22, def: 14, spd: 12, exp: 38, money: 28, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "orc.webp" },
-    jinrou: { id: "jinrou", name: "じんろう", level: 11, hp: 80, atk: 25, def: 13, spd: 20, exp: 41, money: 30, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "jinrou.webp" },
-    sarekoube: { id: "sarekoube", name: "うかぶされこうべ", level: 9, hp: 58, atk: 22, def: 10, spd: 14, exp: 35, money: 26, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "sarekoube.webp", element: "ice" },
-    iwa_golem: { id: "iwa_golem", name: "いわゴーレム", level: 13, hp: 115, atk: 25, def: 21, spd: 12, exp: 48, money: 35, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "iwa_golem.webp", element: "earth" },
-    mira_otoko: { id: "mira_otoko", name: "ミイラおとこ", level: 10, hp: 81, atk: 20, def: 14, spd: 11, exp: 38, money: 28, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "mira_otoko.webp", element: "earth" },
-    shokujinsou: { id: "shokujinsou", name: "しょくじんそう", level: 9, hp: 68, atk: 21, def: 10, spd: 13, exp: 35, money: 26, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shokujinsou.webp", element: "earth" },
-    hone_kihei: { id: "hone_kihei", name: "ほねのきへい", level: 14, hp: 98, atk: 30, def: 17, spd: 21, exp: 51, money: 38, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "hone_kihei.webp" },
+    // ---- フィールド(初級)なかま進化系 ----
+    slime_2: { id: "slime_2", name: "スライムプリンス", level: 9, hp: 47, atk: 12, def: 8, spd: 6, exp: 23, money: 17, skillIds: ["tackle"], image: MON_DIR + "slime_2.webp", evolvesTo: { level: 20, id: "slime_3" } },
+    slime_3: { id: "slime_3", name: "スライムキング", level: 20, hp: 83, atk: 21, def: 14, spd: 8, exp: 46, money: 32, skillIds: ["tackle"], image: MON_DIR + "slime_3.webp" },
+    aodori_2: { id: "aodori_2", name: "はやぶさ", level: 10, hp: 54, atk: 16, def: 8, spd: 10, exp: 30, money: 20, skillIds: ["tackle"], image: MON_DIR + "aodori_2.webp", evolvesTo: { level: 21, id: "aodori_3" } },
+    aodori_3: { id: "aodori_3", name: "せいなるグリフォン", level: 21, hp: 96, atk: 26, def: 14, spd: 13, exp: 61, money: 40, skillIds: ["tackle"], image: MON_DIR + "aodori_3.webp" },
+    dokukinoko_2: { id: "dokukinoko_2", name: "きのこせんし", level: 11, hp: 68, atk: 17, def: 11, spd: 9, exp: 36, money: 26, skillIds: ["tackle"], image: MON_DIR + "dokukinoko_2.webp", element: "earth", evolvesTo: { level: 22, id: "dokukinoko_3" } },
+    dokukinoko_3: { id: "dokukinoko_3", name: "マッシュルームキング", level: 22, hp: 122, atk: 29, def: 20, spd: 11, exp: 72, money: 50, skillIds: ["tackle"], image: MON_DIR + "dokukinoko_3.webp", element: "earth" },
+    mogura_2: { id: "mogura_2", name: "ドリルモグラ", level: 10, hp: 58, atk: 16, def: 11, spd: 6, exp: 30, money: 20, skillIds: ["tackle"], image: MON_DIR + "mogura_2.webp", element: "earth", evolvesTo: { level: 21, id: "mogura_3" } },
+    mogura_3: { id: "mogura_3", name: "アースブレイカー", level: 21, hp: 102, atk: 26, def: 20, spd: 8, exp: 61, money: 40, skillIds: ["tackle"], image: MON_DIR + "mogura_3.webp", element: "earth" },
+    hone_kenshi_2: { id: "hone_kenshi_2", name: "ボーンナイト", level: 12, hp: 79, atk: 22, def: 14, spd: 10, exp: 42, money: 30, skillIds: ["tackle", "sandkick"], image: MON_DIR + "hone_kenshi_2.webp", evolvesTo: { level: 23, id: "hone_kenshi_3" } },
+    hone_kenshi_3: { id: "hone_kenshi_3", name: "デスコード", level: 23, hp: 141, atk: 36, def: 26, spd: 13, exp: 84, money: 58, skillIds: ["tackle", "sandkick"], image: MON_DIR + "hone_kenshi_3.webp" },
+    komori_2: { id: "komori_2", name: "ナイトバット", level: 10, hp: 52, atk: 16, def: 8, spd: 10, exp: 30, money: 20, skillIds: ["tackle"], image: MON_DIR + "komori_2.webp", evolvesTo: { level: 21, id: "komori_3" } },
+    komori_3: { id: "komori_3", name: "ヴァンパイアロード", level: 21, hp: 93, atk: 26, def: 14, spd: 13, exp: 61, money: 40, skillIds: ["tackle"], image: MON_DIR + "komori_3.webp" },
+    hinotama_2: { id: "hinotama_2", name: "フレイムファイター", level: 11, hp: 58, atk: 20, def: 10, spd: 9, exp: 36, money: 26, skillIds: ["tackle"], image: MON_DIR + "hinotama_2.webp", element: "fire", evolvesTo: { level: 22, id: "hinotama_3" } },
+    hinotama_3: { id: "hinotama_3", name: "えんおうりゅう", level: 22, hp: 102, atk: 34, def: 17, spd: 11, exp: 72, money: 50, skillIds: ["tackle"], image: MON_DIR + "hinotama_3.webp", element: "fire" },
+    saboten_2: { id: "saboten_2", name: "サボテンせんし", level: 11, hp: 68, atk: 17, def: 13, spd: 9, exp: 36, money: 26, skillIds: ["tackle"], image: MON_DIR + "saboten_2.webp", element: "earth", evolvesTo: { level: 22, id: "saboten_3" } },
+    saboten_3: { id: "saboten_3", name: "サボテンキング", level: 22, hp: 122, atk: 29, def: 23, spd: 11, exp: 72, money: 50, skillIds: ["tackle"], image: MON_DIR + "saboten_3.webp", element: "earth" },
+    koyurei_2: { id: "koyurei_2", name: "ゴーストメイジ", level: 12, hp: 72, atk: 22, def: 13, spd: 12, exp: 42, money: 30, skillIds: ["tackle", "sandkick"], image: MON_DIR + "koyurei_2.webp", element: "ice", evolvesTo: { level: 23, id: "koyurei_3" } },
+    koyurei_3: { id: "koyurei_3", name: "ゴーストキング", level: 23, hp: 128, atk: 36, def: 23, spd: 16, exp: 84, money: 58, skillIds: ["tackle", "sandkick"], image: MON_DIR + "koyurei_3.webp", element: "ice" },
+
+    ankoku_kishi: { id: "ankoku_kishi", name: "あんこくきし", level: 12, hp: 86, atk: 25, def: 18, spd: 14, exp: 44, money: 33, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "ankoku_kishi.webp", evolvesTo: { level: 22, id: "ankoku_kishi_2" } },
+    ankoku_madoushi: { id: "ankoku_madoushi", name: "あんこくまどうし", level: 11, hp: 72, atk: 26, def: 11, spd: 15, exp: 41, money: 30, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "ankoku_madoushi.webp", element: "thunder", evolvesTo: { level: 21, id: "ankoku_madoushi_2" } },
+    orc: { id: "orc", name: "オーク", level: 10, hp: 81, atk: 22, def: 14, spd: 12, exp: 38, money: 28, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "orc.webp", evolvesTo: { level: 20, id: "orc_2" } },
+    jinrou: { id: "jinrou", name: "じんろう", level: 11, hp: 80, atk: 25, def: 13, spd: 20, exp: 41, money: 30, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "jinrou.webp", evolvesTo: { level: 21, id: "jinrou_2" } },
+    sarekoube: { id: "sarekoube", name: "うかぶされこうべ", level: 9, hp: 58, atk: 22, def: 10, spd: 14, exp: 35, money: 26, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "sarekoube.webp", element: "ice", evolvesTo: { level: 19, id: "sarekoube_2" } },
+    iwa_golem: { id: "iwa_golem", name: "いわゴーレム", level: 13, hp: 115, atk: 25, def: 21, spd: 12, exp: 48, money: 35, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "iwa_golem.webp", element: "earth", evolvesTo: { level: 23, id: "iwa_golem_2" } },
+    mira_otoko: { id: "mira_otoko", name: "ミイラおとこ", level: 10, hp: 81, atk: 20, def: 14, spd: 11, exp: 38, money: 28, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "mira_otoko.webp", element: "earth", evolvesTo: { level: 20, id: "mira_otoko_2" } },
+    shokujinsou: { id: "shokujinsou", name: "しょくじんそう", level: 9, hp: 68, atk: 21, def: 10, spd: 13, exp: 35, money: 26, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shokujinsou.webp", element: "earth", evolvesTo: { level: 19, id: "shokujinsou_2" } },
+    hone_kihei: { id: "hone_kihei", name: "ほねのきへい", level: 14, hp: 98, atk: 30, def: 17, spd: 21, exp: 51, money: 38, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "hone_kihei.webp", evolvesTo: { level: 24, id: "hone_kihei_2" } },
+
+    // ---- ダンジョン(中級)なかま進化系 ----
+    ankoku_kishi_2: { id: "ankoku_kishi_2", name: "あんこくきしおう", level: 22, hp: 150, atk: 38, def: 28, spd: 17, exp: 84, money: 61, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "ankoku_kishi_2.webp" },
+    ankoku_madoushi_2: { id: "ankoku_madoushi_2", name: "あんこくだいまどうし", level: 21, hp: 126, atk: 39, def: 17, spd: 18, exp: 78, money: 56, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "ankoku_madoushi_2.webp", element: "thunder" },
+    orc_2: { id: "orc_2", name: "オークキング", level: 20, hp: 142, atk: 33, def: 22, spd: 14, exp: 72, money: 52, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "orc_2.webp" },
+    jinrou_2: { id: "jinrou_2", name: "だいじんろう", level: 21, hp: 140, atk: 38, def: 20, spd: 24, exp: 78, money: 56, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "jinrou_2.webp" },
+    sarekoube_2: { id: "sarekoube_2", name: "デスヘッド", level: 19, hp: 102, atk: 33, def: 16, spd: 17, exp: 66, money: 48, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "sarekoube_2.webp", element: "ice" },
+    iwa_golem_2: { id: "iwa_golem_2", name: "こだいゴーレム", level: 23, hp: 201, atk: 38, def: 33, spd: 14, exp: 91, money: 65, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "iwa_golem_2.webp", element: "earth" },
+    mira_otoko_2: { id: "mira_otoko_2", name: "ミイラファラオ", level: 20, hp: 142, atk: 30, def: 22, spd: 13, exp: 72, money: 52, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "mira_otoko_2.webp", element: "earth" },
+    shokujinsou_2: { id: "shokujinsou_2", name: "デビルフラワー", level: 19, hp: 119, atk: 32, def: 16, spd: 16, exp: 66, money: 48, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "shokujinsou_2.webp", element: "earth" },
+    hone_kihei_2: { id: "hone_kihei_2", name: "デスライダー", level: 24, hp: 172, atk: 45, def: 26, spd: 25, exp: 97, money: 70, skillIds: ["tackle", "sandkick", "headbutt"], image: MON_DIR + "hone_kihei_2.webp" },
 
     yougan_golem: { id: "yougan_golem", name: "ようがんゴーレム", level: 16, hp: 130, atk: 32, def: 20, spd: 14, exp: 140, money: 110, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "yougan_golem.webp", element: "fire" }
   };
+
+  // ---------------- Dex (図鑑) display order: base -> evolution stages, grouped by line ----------------
+  var DEX_ORDER = [
+    "slime", "slime_2", "slime_3",
+    "aodori", "aodori_2", "aodori_3",
+    "dokukinoko", "dokukinoko_2", "dokukinoko_3",
+    "mogura", "mogura_2", "mogura_3",
+    "hone_kenshi", "hone_kenshi_2", "hone_kenshi_3",
+    "komori", "komori_2", "komori_3",
+    "hinotama", "hinotama_2", "hinotama_3",
+    "saboten", "saboten_2", "saboten_3",
+    "koyurei", "koyurei_2", "koyurei_3",
+    "ankoku_kishi", "ankoku_kishi_2",
+    "ankoku_madoushi", "ankoku_madoushi_2",
+    "orc", "orc_2",
+    "jinrou", "jinrou_2",
+    "sarekoube", "sarekoube_2",
+    "iwa_golem", "iwa_golem_2",
+    "mira_otoko", "mira_otoko_2",
+    "shokujinsou", "shokujinsou_2",
+    "hone_kihei", "hone_kihei_2",
+    "yougan_golem"
+  ];
 
   // ---------------- Maps ----------------
   var MAPS = {
@@ -266,6 +334,7 @@
     SHOP_ITEM_IDS: SHOP_ITEM_IDS,
     STARTING_INVENTORY: STARTING_INVENTORY,
     MONSTERS: MONSTERS,
+    DEX_ORDER: DEX_ORDER,
     MAPS: MAPS,
     START_MAP: START_MAP,
     START_X: START_X,
