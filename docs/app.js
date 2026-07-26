@@ -32,6 +32,7 @@
       inventory: Object.assign({}, G.STARTING_INVENTORY),
       money: 0,
       companions: {},
+      activeParty: [],
       mapId: G.START_MAP,
       x: G.START_X,
       y: G.START_Y,
@@ -92,6 +93,7 @@
   var battlePlayerMpText = document.getElementById("battle-player-mp-text");
   var battlePlayerExpBar = document.getElementById("battle-player-exp-bar");
   var battlePlayerSprite = document.getElementById("battle-player-sprite");
+  var battlePartyRowEl = document.getElementById("battle-party-row");
   var battleMessageEl = document.getElementById("battle-message");
   var battleCommandMenu = document.getElementById("battle-command-menu");
   var battleSubMenu = document.getElementById("battle-sub-menu");
@@ -111,6 +113,7 @@
   var state = load();
   if (state && !state.flags.openedChests) state.flags.openedChests = [];
   if (state && !state.companions) state.companions = {};
+  if (state && !state.activeParty) state.activeParty = [];
   var selectedStarter = false;
   var battle = null;
   var battleActive = false;
@@ -420,11 +423,27 @@
     var expNeed = G.expToNext(state.level);
     battlePlayerExpBar.style.width = Math.max(0, Math.min(100, state.exp / expNeed * 100)) + "%";
     battlePlayerSprite.innerHTML = renderPlayerSprite();
+
+    battlePartyRowEl.innerHTML = "";
+    battle.party.forEach(function (comp) {
+      var mon = G.MONSTERS[comp.id];
+      var div = document.createElement("div");
+      div.className = "battle-party-item" + (comp.fainted ? " fainted" : "");
+      div.innerHTML =
+        '<img class="battle-party-img" src="' + mon.image + '" alt="' + mon.name + '">' +
+        '<div class="battle-party-name">' + mon.name + "</div>" +
+        '<div class="hud-bar-track battle-party-hpbar"><div class="hud-bar-fill" style="width:' + Math.max(0, comp.hp / comp.maxHp * 100) + '%"></div></div>';
+      battlePartyRowEl.appendChild(div);
+    });
   }
 
   function startBattle(monsterId, isBoss) {
     var def = G.MONSTERS[monsterId];
-    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false };
+    var party = state.activeParty.map(function (id) {
+      var mon = G.MONSTERS[id];
+      return { id: id, hp: mon.hp, maxHp: mon.hp, fainted: false };
+    });
+    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party };
     battleActive = true;
     runBtn.disabled = !!isBoss;
     fieldScreen.classList.add("hidden");
@@ -474,6 +493,8 @@
       else if (result.elemTier === "weak") lines.push("こうかは いまひとつ のようだ…");
     }
 
+    resolveCompanionAttacks(lines, def);
+
     save(state);
     renderBattle();
     showElementEffect(skillElement, battleEnemySprite);
@@ -483,28 +504,66 @@
     });
   }
 
+  function resolveCompanionAttacks(lines, def) {
+    battle.party.forEach(function (comp) {
+      if (comp.fainted || battle.monsterHp <= 0) return;
+      var mon = G.MONSTERS[comp.id];
+      var skillId = mon.skillIds[Math.floor(Math.random() * mon.skillIds.length)];
+      var sk = G.SKILLS[skillId];
+      var result = calcDamage(mon.atk, sk.power, def.def, mon.element, def.element);
+      battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
+      var tag = result.crit ? "(会心)" : result.elemTier === "strong" ? "(ばつぐん)" : result.elemTier === "weak" ? "(いまひとつ)" : "";
+      lines.push(mon.name + " の こうげき! " + def.name + " に " + result.dmg + " の ダメージ!" + tag);
+    });
+  }
+
+  function pickLivingTarget() {
+    var targets = [{ type: "player" }];
+    battle.party.forEach(function (comp, idx) { if (!comp.fainted) targets.push({ type: "companion", idx: idx }); });
+    return targets[Math.floor(Math.random() * targets.length)];
+  }
+
   function enemyTurn() {
     var def = G.MONSTERS[battle.monsterId];
-    var stats = getMaxStats(state);
     var skillId = def.skillIds[Math.floor(Math.random() * def.skillIds.length)];
     var sk = G.SKILLS[skillId];
-    var result = calcDamage(def.atk, sk.power, stats.def, sk.element, null);
-    state.hp = Math.max(0, state.hp - result.dmg);
-    save(state);
-    renderBattle();
-    battlePlayerSprite.classList.add("shake");
-    setTimeout(function () { battlePlayerSprite.classList.remove("shake"); }, 400);
-    showElementEffect(sk.element, battlePlayerSprite);
+    var target = pickLivingTarget();
+    var lines = [];
 
-    var lines = [def.name + " の " + sk.name + "!"];
-    if (result.crit) lines.push("会心の一撃!");
-    lines.push(state.name + " に " + result.dmg + " の ダメージ!");
-    playSequence(lines, function () {
-      if (state.hp <= 0) { loseBattle(); return; }
-      battle.locked = false;
-      showCommandMenu();
-      setBattleMessage("つぎの コマンドを えらんでね");
-    });
+    if (target.type === "player") {
+      var stats = getMaxStats(state);
+      var result = calcDamage(def.atk, sk.power, stats.def, sk.element, null);
+      state.hp = Math.max(0, state.hp - result.dmg);
+      save(state);
+      renderBattle();
+      battlePlayerSprite.classList.add("shake");
+      setTimeout(function () { battlePlayerSprite.classList.remove("shake"); }, 400);
+      showElementEffect(sk.element, battlePlayerSprite);
+      lines.push(def.name + " の " + sk.name + "!");
+      if (result.crit) lines.push("会心の一撃!");
+      lines.push(state.name + " に " + result.dmg + " の ダメージ!");
+      playSequence(lines, function () {
+        if (state.hp <= 0) { loseBattle(); return; }
+        battle.locked = false;
+        showCommandMenu();
+        setBattleMessage("つぎの コマンドを えらんでね");
+      });
+    } else {
+      var comp = battle.party[target.idx];
+      var mon = G.MONSTERS[comp.id];
+      var result2 = calcDamage(def.atk, sk.power, mon.def, sk.element, mon.element);
+      comp.hp = Math.max(0, comp.hp - result2.dmg);
+      renderBattle();
+      lines.push(def.name + " の " + sk.name + "!");
+      if (result2.crit) lines.push("会心の一撃!");
+      lines.push(mon.name + " に " + result2.dmg + " の ダメージ!");
+      if (comp.hp <= 0) { comp.fainted = true; lines.push(mon.name + " は たおれてしまった…"); }
+      playSequence(lines, function () {
+        battle.locked = false;
+        showCommandMenu();
+        setBattleMessage("つぎの コマンドを えらんでね");
+      });
+    }
   }
 
   function tryRun() {
@@ -778,15 +837,31 @@
       container.innerHTML = '<div class="companion-empty">まだ なかまは いないよ。「なかまボール」を せんとうで なげてみよう!</div>';
       return;
     }
+    var partyCaption = document.createElement("div");
+    partyCaption.className = "companion-party-caption";
+    partyCaption.textContent = "せんとうに つれていく なかま(さいだい" + G.MAX_PARTY_SIZE + "たいまで)";
+    container.appendChild(partyCaption);
     ids.forEach(function (id) {
       var mon = G.MONSTERS[id];
       if (!mon) return;
       var count = state.companions[id];
+      var inParty = state.activeParty.indexOf(id) !== -1;
       var div = document.createElement("div");
-      div.className = "companion-item";
+      div.className = "companion-item" + (inParty ? " in-party" : "");
       div.innerHTML =
         '<img class="companion-img" src="' + mon.image + '" alt="' + mon.name + '">' +
-        '<div class="companion-name">' + mon.name + " ×" + count + "</div>";
+        '<div class="companion-name">' + mon.name + " ×" + count + "</div>" +
+        "<button class=\"companion-party-btn\">" + (inParty ? "はずす" : "くわえる") + "</button>";
+      div.querySelector("button").addEventListener("click", function () {
+        if (inParty) {
+          state.activeParty = state.activeParty.filter(function (pid) { return pid !== id; });
+        } else {
+          if (state.activeParty.length >= G.MAX_PARTY_SIZE) { showToast("パーティは さいだい" + G.MAX_PARTY_SIZE + "たいまでだよ"); return; }
+          state.activeParty.push(id);
+        }
+        save(state);
+        renderCompanionsList(container);
+      });
       container.appendChild(div);
     });
   }

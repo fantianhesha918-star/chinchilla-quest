@@ -56,7 +56,9 @@
   }
 
   function expToNext(level) {
-    return Math.round(18 * Math.pow(level, 1.5)) + 10;
+    var base = Math.round(18 * Math.pow(level, 1.5)) + 10;
+    var earlyDiscount = Math.max(0, 20 - level * 3);
+    return Math.max(10, base - earlyDiscount);
   }
 
   // ---------------- Skills ----------------
@@ -95,6 +97,7 @@
   var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1, nakama_ball: 1 };
   var CRIT_CHANCE = 0.08;
   var CRIT_MULT = 1.8;
+  var MAX_PARTY_SIZE = 3;
 
   // ---------------- Monsters (illustrated art) ----------------
   var MON_DIR = "assets/monsters/";
@@ -242,6 +245,7 @@
     MONEY_ICON: MONEY_ICON,
     CRIT_CHANCE: CRIT_CHANCE,
     CRIT_MULT: CRIT_MULT,
+    MAX_PARTY_SIZE: MAX_PARTY_SIZE,
     ELEMENT_LABELS: ELEMENT_LABELS,
     ELEMENT_EFFECTS: ELEMENT_EFFECTS,
     getElementMatchup: getElementMatchup,
