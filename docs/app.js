@@ -46,7 +46,7 @@
       var stage = G.EVOLUTION_ROUTES[state.route].stages[state.stageIndex - 1];
       return '<img src="' + stage.file + '" alt="' + stage.label + '" style="width:100%;height:100%;object-fit:contain;">';
     }
-    return G.buildChinchillaSVG("normal");
+    return '<img src="' + G.HERO_IMAGE + '" alt="' + state.name + '" style="width:100%;height:100%;object-fit:contain;">';
   }
 
   // ---------------- DOM refs ----------------
@@ -325,7 +325,7 @@
     battleEnemyLv.textContent = "Lv" + def.level;
     battleEnemyHpBar.style.width = Math.max(0, battle.monsterHp / battle.monsterMaxHp * 100) + "%";
     battleEnemyHpText.textContent = battle.monsterHp + " / " + battle.monsterMaxHp;
-    battleEnemySprite.innerHTML = def.build(def.palette);
+    battleEnemySprite.innerHTML = '<img src="' + def.image + '" alt="' + def.name + '" style="width:100%;height:100%;object-fit:contain;">';
 
     var stats = getMaxStats(state);
     battlePlayerName.textContent = state.name;
@@ -666,7 +666,7 @@
   document.getElementById("talk-btn").addEventListener("click", handleTalk);
 
   // ---------------- Title / Starter ----------------
-  starterGrayCard.querySelector(".starter-avatar").innerHTML = G.buildChinchillaSVG("happy");
+  starterGrayCard.querySelector(".starter-avatar").innerHTML = '<img src="' + G.HERO_IMAGE + '" alt="チンチラ" style="width:100%;height:100%;object-fit:contain;">';
 
   document.getElementById("title-start-btn").addEventListener("click", function () {
     titleScreen.classList.add("hidden");
