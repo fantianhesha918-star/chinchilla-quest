@@ -750,12 +750,12 @@
         }
       });
 
-      if (state.level === G.FIRST_EVOLUTION_LEVEL && !state.route) {
+      if (state.level >= G.FIRST_EVOLUTION_LEVEL && !state.route) {
         events.push({ type: "routechoice" });
       } else if (state.route) {
         var stages = G.EVOLUTION_ROUTES[state.route].stages;
         var nextIdx = state.stageIndex;
-        if (nextIdx < stages.length && stages[nextIdx].level === state.level) {
+        if (nextIdx < stages.length && stages[nextIdx].level <= state.level) {
           state.stageIndex += 1;
           events.push({ type: "evolve", stage: stages[nextIdx] });
           if (stages[nextIdx].skillId && state.learnedSkills.indexOf(stages[nextIdx].skillId) === -1) {
