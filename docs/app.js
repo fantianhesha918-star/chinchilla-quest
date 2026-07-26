@@ -31,6 +31,7 @@
       learnedSkills: ["tackle"],
       inventory: Object.assign({}, G.STARTING_INVENTORY),
       money: 0,
+      companions: {},
       mapId: G.START_MAP,
       x: G.START_X,
       y: G.START_Y,
@@ -100,6 +101,7 @@
   var menuStatusEl = document.getElementById("menu-status");
   var menuSkillsEl = document.getElementById("menu-skills");
   var menuItemsEl = document.getElementById("menu-items");
+  var menuCompanionsEl = document.getElementById("menu-companions");
   var shopListEl = document.getElementById("shop-list");
   var routeChoicesEl = document.getElementById("route-choices");
 
@@ -108,6 +110,7 @@
 
   var state = load();
   if (state && !state.flags.openedChests) state.flags.openedChests = [];
+  if (state && !state.companions) state.companions = {};
   var selectedStarter = false;
   var battle = null;
   var battleActive = false;
@@ -360,7 +363,9 @@
   function calcDamage(atk, power, def) {
     var raw = Math.max(1, atk * power / 20 - def * 0.4);
     var rand = 0.9 + Math.random() * 0.2;
-    return Math.max(1, Math.round(raw * rand));
+    var crit = Math.random() < G.CRIT_CHANCE;
+    var dmg = Math.max(1, Math.round(raw * rand * (crit ? G.CRIT_MULT : 1)));
+    return { dmg: dmg, crit: crit };
   }
 
   function setBattleMessage(msg) { battleMessageEl.textContent = msg; }
@@ -446,12 +451,13 @@
     } else {
       var sk = G.SKILLS[action.skillId];
       state.mp = Math.max(0, state.mp - sk.mp);
-      var dmg = calcDamage(stats.atk, sk.power, def.def);
-      battle.monsterHp = Math.max(0, battle.monsterHp - dmg);
+      var result = calcDamage(stats.atk, sk.power, def.def);
+      battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
       battleEnemySprite.classList.add("shake");
       setTimeout(function () { battleEnemySprite.classList.remove("shake"); }, 400);
       lines.push(state.name + " の " + sk.name + "!");
-      lines.push(def.name + " に " + dmg + " の ダメージ!");
+      if (result.crit) lines.push("会心の一撃!");
+      lines.push(def.name + " に " + result.dmg + " の ダメージ!");
     }
 
     save(state);
@@ -467,14 +473,16 @@
     var stats = getMaxStats(state);
     var skillId = def.skillIds[Math.floor(Math.random() * def.skillIds.length)];
     var sk = G.SKILLS[skillId];
-    var dmg = calcDamage(def.atk, sk.power, stats.def);
-    state.hp = Math.max(0, state.hp - dmg);
+    var result = calcDamage(def.atk, sk.power, stats.def);
+    state.hp = Math.max(0, state.hp - result.dmg);
     save(state);
     renderBattle();
     battlePlayerSprite.classList.add("shake");
     setTimeout(function () { battlePlayerSprite.classList.remove("shake"); }, 400);
 
-    var lines = [def.name + " の " + sk.name + "!", state.name + " に " + dmg + " の ダメージ!"];
+    var lines = [def.name + " の " + sk.name + "!"];
+    if (result.crit) lines.push("会心の一撃!");
+    lines.push(state.name + " に " + result.dmg + " の ダメージ!");
     playSequence(lines, function () {
       if (state.hp <= 0) { loseBattle(); return; }
       battle.locked = false;
@@ -500,6 +508,36 @@
     }
   }
 
+  function tryCapture(itemId) {
+    if (!battle || battle.locked) return;
+    if (battle.isBoss) { showToast("ボスは なかまに できない!"); return; }
+    battle.locked = true;
+    setCommandButtonsEnabled(false);
+    closeSubMenu();
+    var item = G.ITEMS[itemId];
+    var def = G.MONSTERS[battle.monsterId];
+    state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
+
+    var hpRatio = battle.monsterHp / battle.monsterMaxHp;
+    var chance = Math.min(0.9, 0.15 + (1 - hpRatio) * 0.6);
+    var lines = [state.name + " は " + item.name + " を なげた!"];
+
+    save(state);
+    renderBattle();
+
+    if (Math.random() < chance) {
+      lines.push(def.name + " を なかまに した!");
+      playSequence(lines, function () {
+        state.companions[def.id] = (state.companions[def.id] || 0) + 1;
+        save(state);
+        endBattleToField();
+      });
+    } else {
+      lines.push(def.name + " は とびだして しまった…");
+      playSequence(lines, function () { battle.locked = false; enemyTurn(); });
+    }
+  }
+
   function gainExp(expGain) {
     var events = [];
     state.exp += expGain;
@@ -512,7 +550,13 @@
       var newMax = getMaxStats(state);
       state.hp = Math.min(newMax.maxHp, state.hp + (newMax.maxHp - oldMax.maxHp));
       state.mp = Math.min(newMax.maxMp, state.mp + (newMax.maxMp - oldMax.maxMp));
-      events.push({ type: "levelup", level: state.level });
+      events.push({
+        type: "levelup", level: state.level,
+        deltas: {
+          hp: newMax.maxHp - oldMax.maxHp, mp: newMax.maxMp - oldMax.maxMp,
+          atk: newMax.atk - oldMax.atk, def: newMax.def - oldMax.def, spd: newMax.spd - oldMax.spd
+        }
+      });
 
       G.SKILL_LEARN_ORDER.forEach(function (id) {
         var sk = G.SKILLS[id];
@@ -565,7 +609,11 @@
     var lines = [];
     var routeChoiceNeeded = false;
     events.forEach(function (ev) {
-      if (ev.type === "levelup") lines.push("レベルアップ! Lv" + ev.level + " に なった!");
+      if (ev.type === "levelup") {
+        lines.push("レベルアップ! Lv" + ev.level + " に なった!");
+        var d = ev.deltas;
+        lines.push("HP+" + d.hp + " MP+" + d.mp + " こうげき+" + d.atk + " ぼうぎょ+" + d.def + " すばやさ+" + d.spd);
+      }
       else if (ev.type === "skill") lines.push(G.SKILLS[ev.skillId].name + " を おぼえた!");
       else if (ev.type === "evolve") lines.push(state.name + " は " + ev.stage.label + " に しんかした!");
       else if (ev.type === "routechoice") routeChoiceNeeded = true;
@@ -632,8 +680,10 @@
       row.className = "battle-sub-item";
       row.innerHTML =
         '<div><div class="sub-item-name"><img class="item-icon" src="' + item.icon + '" alt="">' + item.name + " ×" + count + '</div><div class="sub-item-desc">' + item.desc + "</div></div>" +
-        "<button>つかう</button>";
-      row.querySelector("button").addEventListener("click", function () { doPlayerAction({ type: "item", itemId: id }); });
+        "<button>" + (item.kind === "ball" ? "なげる" : "つかう") + "</button>";
+      row.querySelector("button").addEventListener("click", function () {
+        if (item.kind === "ball") tryCapture(id); else doPlayerAction({ type: "item", itemId: id });
+      });
       battleSubList.appendChild(row);
     });
     if (!any) { showToast("つかえる どうぐが ないよ"); return; }
@@ -662,9 +712,10 @@
       div.className = "food-item";
       div.innerHTML =
         '<div class="food-info"><img class="item-icon" src="' + item.icon + '" alt=""><div><div class="food-name">' + item.name + " ×" + count + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
-        "<button" + (count <= 0 ? " disabled" : "") + ">つかう</button>";
+        "<button" + (count <= 0 ? " disabled" : "") + ">" + (item.kind === "ball" ? "なげる" : "つかう") + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         if (count <= 0) return;
+        if (item.kind === "ball") { showToast("せんとうちゅうに つかってね"); return; }
         var stats = getMaxStats(state);
         state.inventory[id] -= 1;
         if (item.kind === "hp") state.hp = Math.min(stats.maxHp, state.hp + item.amount);
@@ -699,9 +750,30 @@
     });
 
     renderInventoryList(menuItemsEl);
+    renderCompanionsList(menuCompanionsEl);
     openModal("menu-modal");
   }
   document.getElementById("select-btn").addEventListener("click", openMenuModal);
+
+  function renderCompanionsList(container) {
+    container.innerHTML = "";
+    var ids = Object.keys(state.companions || {});
+    if (ids.length === 0) {
+      container.innerHTML = '<div class="companion-empty">まだ なかまは いないよ。「なかまボール」を せんとうで なげてみよう!</div>';
+      return;
+    }
+    ids.forEach(function (id) {
+      var mon = G.MONSTERS[id];
+      if (!mon) return;
+      var count = state.companions[id];
+      var div = document.createElement("div");
+      div.className = "companion-item";
+      div.innerHTML =
+        '<img class="companion-img" src="' + mon.image + '" alt="' + mon.name + '">' +
+        '<div class="companion-name">' + mon.name + " ×" + count + "</div>";
+      container.appendChild(div);
+    });
+  }
 
   function openShopModal() {
     shopListEl.innerHTML = "";

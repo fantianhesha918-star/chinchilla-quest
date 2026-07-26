@@ -71,11 +71,14 @@
   // ---------------- Items ----------------
   var ITEMS = {
     kizugusuri: { id: "kizugusuri", name: "きずぐすり", desc: "HPを 30 かいふくする", kind: "hp", amount: 30, price: 20, icon: "assets/items/icon_kizugusuri.webp" },
-    manashizuku: { id: "manashizuku", name: "マナのしずく", desc: "MPを 15 かいふくする", kind: "mp", amount: 15, price: 25, icon: "assets/items/icon_manashizuku.webp" }
+    manashizuku: { id: "manashizuku", name: "マナのしずく", desc: "MPを 15 かいふくする", kind: "mp", amount: 15, price: 25, icon: "assets/items/icon_manashizuku.webp" },
+    nakama_ball: { id: "nakama_ball", name: "なかまボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない)", kind: "ball", price: 40, icon: "assets/items/icon_nakamaball.webp" }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
-  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku"];
-  var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1 };
+  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "nakama_ball"];
+  var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1, nakama_ball: 1 };
+  var CRIT_CHANCE = 0.08;
+  var CRIT_MULT = 1.8;
 
   // ---------------- Monsters (illustrated art) ----------------
   var MON_DIR = "assets/monsters/";
@@ -124,7 +127,7 @@
         { x: 2, y: 2, name: "村びと", image: "assets/npc/npc_boy.webp", dialogue: ["ようこそ、はじまりの村へ!", "した の ▼ボタンで うごけるよ。", "NPCの そばで「A」ボタンを おすと 会話できるよ。", "村の南に出ると 草むらが あるから 気をつけてね。"] },
         { x: 8, y: 2, name: "おみせのひと", shop: true, image: "assets/npc/shop_building.webp", dialogue: ["いらっしゃい! きずぐすりや マナのしずくを うってるよ。"] },
         { x: 3, y: 7, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] },
-        { x: 7, y: 7, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
+        { x: 6, y: 3, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
       ],
       warps: [{ x: 5, y: 8, toMap: "field", toX: 4, toY: 1 }],
       decorations: [{ x: 5, y: 1, image: "assets/tiles/deco_well.webp" }],
@@ -221,6 +224,8 @@
     SKILL_LEARN_ORDER: SKILL_LEARN_ORDER,
     ITEMS: ITEMS,
     MONEY_ICON: MONEY_ICON,
+    CRIT_CHANCE: CRIT_CHANCE,
+    CRIT_MULT: CRIT_MULT,
     SHOP_ITEM_IDS: SHOP_ITEM_IDS,
     STARTING_INVENTORY: STARTING_INVENTORY,
     MONSTERS: MONSTERS,
