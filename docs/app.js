@@ -72,11 +72,15 @@
   var battleEnemyName = document.getElementById("battle-enemy-name");
   var battleEnemyLv = document.getElementById("battle-enemy-lv");
   var battleEnemyHpBar = document.getElementById("battle-enemy-hp-bar");
+  var battleEnemyHpText = document.getElementById("battle-enemy-hp-text");
   var battleEnemySprite = document.getElementById("battle-enemy-sprite");
   var battlePlayerName = document.getElementById("battle-player-name");
   var battlePlayerLv = document.getElementById("battle-player-lv");
   var battlePlayerHpBar = document.getElementById("battle-player-hp-bar");
+  var battlePlayerHpText = document.getElementById("battle-player-hp-text");
   var battlePlayerMpBar = document.getElementById("battle-player-mp-bar");
+  var battlePlayerMpText = document.getElementById("battle-player-mp-text");
+  var battlePlayerExpBar = document.getElementById("battle-player-exp-bar");
   var battlePlayerSprite = document.getElementById("battle-player-sprite");
   var battleMessageEl = document.getElementById("battle-message");
   var battleCommandMenu = document.getElementById("battle-command-menu");
@@ -320,13 +324,18 @@
     battleEnemyName.textContent = def.name;
     battleEnemyLv.textContent = "Lv" + def.level;
     battleEnemyHpBar.style.width = Math.max(0, battle.monsterHp / battle.monsterMaxHp * 100) + "%";
+    battleEnemyHpText.textContent = battle.monsterHp + " / " + battle.monsterMaxHp;
     battleEnemySprite.innerHTML = def.build(def.palette);
 
     var stats = getMaxStats(state);
     battlePlayerName.textContent = state.name;
     battlePlayerLv.textContent = "Lv" + state.level;
     battlePlayerHpBar.style.width = Math.max(0, state.hp / stats.maxHp * 100) + "%";
+    battlePlayerHpText.textContent = state.hp + " / " + stats.maxHp;
     battlePlayerMpBar.style.width = Math.max(0, state.mp / stats.maxMp * 100) + "%";
+    battlePlayerMpText.textContent = state.mp + " / " + stats.maxMp;
+    var expNeed = G.expToNext(state.level);
+    battlePlayerExpBar.style.width = Math.max(0, Math.min(100, state.exp / expNeed * 100)) + "%";
     battlePlayerSprite.innerHTML = renderPlayerSprite();
   }
 
@@ -508,6 +517,7 @@
     }
     var events = gainExp(def.exp);
     save(state);
+    renderBattle();
     playSequence(lines, function () {
       handleLevelUpMessages(events, endBattleToField);
     });
