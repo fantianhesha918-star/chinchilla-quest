@@ -112,21 +112,27 @@
       '<circle cx="138" cy="48" r="13" fill="' + palette.blush + '" opacity="0.55"/>' +
       '<circle cx="100" cy="88" r="50" fill="' + palette.body + '"/>';
 
-    var shadow = '<ellipse cx="100" cy="195" rx="46" ry="7" fill="#3a2f26" opacity="0.12"/>';
+    var shadow = '<ellipse cx="100" cy="195" rx="46" ry="7" fill="#3a2f26" opacity="0.16"/>';
     var outlined = '<g stroke="' + palette.dark + '" stroke-width="2.5" stroke-opacity="0.32" stroke-linejoin="round" stroke-linecap="round">' + structural + "</g>";
+    var earShade =
+      '<ellipse cx="70" cy="50" rx="7" ry="10" fill="' + palette.dark + '" opacity="0.28"/>' +
+      '<ellipse cx="146" cy="50" rx="7" ry="10" fill="' + palette.dark + '" opacity="0.28"/>';
     var cheeks =
       '<circle cx="66" cy="100" r="11" fill="' + palette.blush + '" opacity="0.6"/>' +
       '<circle cx="134" cy="100" r="11" fill="' + palette.blush + '" opacity="0.6"/>';
-    var highlight = '<ellipse cx="78" cy="58" rx="20" ry="13" fill="#ffffff" opacity="0.3"/>';
+    var bellyShade = '<path d="M76 142 Q100 132 124 142 Q112 154 100 156 Q88 154 76 142 Z" fill="' + palette.dark + '" opacity="0.18"/>';
+    var underShade = '<ellipse cx="100" cy="178" rx="34" ry="14" fill="' + palette.dark + '" opacity="0.16"/>';
+    var highlight = '<ellipse cx="76" cy="56" rx="22" ry="15" fill="#ffffff" opacity="0.38"/>';
+    var noseShine = '<ellipse cx="97" cy="93" rx="4" ry="2.5" fill="#ffffff" opacity="0.6"/>';
     var defs =
-      '<defs><radialGradient id="' + uid + '" cx="36%" cy="24%" r="75%">' +
-      '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>' +
-      '<stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>' +
-      '<stop offset="100%" stop-color="#000000" stop-opacity="0.2"/>' +
+      '<defs><radialGradient id="' + uid + '" cx="34%" cy="22%" r="78%">' +
+      '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>' +
+      '<stop offset="42%" stop-color="#ffffff" stop-opacity="0"/>' +
+      '<stop offset="100%" stop-color="#000000" stop-opacity="0.28"/>' +
       "</radialGradient></defs>";
     var sheen = '<ellipse cx="100" cy="118" rx="82" ry="96" fill="url(#' + uid + ')"/>';
 
-    return defs + shadow + outlined + cheeks + highlight + sheen;
+    return defs + shadow + outlined + earShade + underShade + bellyShade + cheeks + highlight + noseShine + sheen;
   }
 
   function buildChinchillaSVG(mood) {
@@ -236,14 +242,14 @@
         "#.........#",
         "#..#####..#",
         "#..#...#..#",
-        "#..#...#..#",
+        "#..#.H.#..#",
         "#.........#",
         "#####.#####"
       ],
       npcs: [
         { x: 2, y: 2, name: "村びと", dialogue: ["ようこそ、はじまりの村へ!", "した の ▼ボタンで うごけるよ。", "NPCの そばで「はなす」ボタンを おすと 会話できるよ。", "村の南に出ると 草むらが あるから 気をつけてね。"] },
         { x: 8, y: 2, name: "おみせのひと", shop: true, dialogue: ["いらっしゃい! きずぐすりや マナのしずくを うってるよ。"] },
-        { x: 3, y: 7, name: "村びと2", dialogue: ["南の草むらには あわがえるや くさむしりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?"] }
+        { x: 3, y: 7, name: "村びと2", dialogue: ["南の草むらには あわがえるや くさむしりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] }
       ],
       warps: [{ x: 5, y: 8, toMap: "field", toX: 4, toY: 1 }],
       encounter: null

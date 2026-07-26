@@ -124,6 +124,7 @@
     if (ch === "#") return "tile-wall";
     if (ch === ",") return "tile-grass";
     if (ch === "~") return "tile-water";
+    if (ch === "H") return "tile-heal";
     return "tile-ground";
   }
 
@@ -150,6 +151,7 @@
         if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
         else if (isBoss) inner = '<span class="tile-boss-mark">💀</span>';
         else if (isWarp) inner = '<span class="tile-warp-mark">⤵</span>';
+        else if (ch === "H") inner = '<span class="tile-heal-mark">✨</span>';
         html += '<div class="' + cls + '">' + inner + "</div>";
       }
     }
@@ -213,6 +215,19 @@
     save(state);
     positionPlayerSprite();
     updateHud();
+
+    if (ch === "H") {
+      var healStats = getMaxStats(state);
+      if (state.hp < healStats.maxHp || state.mp < healStats.maxMp) {
+        state.hp = healStats.maxHp;
+        state.mp = healStats.maxMp;
+        save(state);
+        updateHud();
+        showToast("いやしの泉で 元気を 取り戻した!");
+      } else {
+        showToast("もう げんきいっぱいだ!");
+      }
+    }
 
     var warp = warpAtCoord(map, nx, ny);
     if (warp) { doWarp(warp); return; }
