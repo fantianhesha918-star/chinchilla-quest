@@ -626,7 +626,7 @@
       var row = document.createElement("div");
       row.className = "battle-sub-item";
       row.innerHTML =
-        '<div><div class="sub-item-name">' + item.name + " ×" + count + '</div><div class="sub-item-desc">' + item.desc + "</div></div>" +
+        '<div><div class="sub-item-name"><img class="item-icon" src="' + item.icon + '" alt="">' + item.name + " ×" + count + '</div><div class="sub-item-desc">' + item.desc + "</div></div>" +
         "<button>つかう</button>";
       row.querySelector("button").addEventListener("click", function () { doPlayerAction({ type: "item", itemId: id }); });
       battleSubList.appendChild(row);
@@ -656,7 +656,7 @@
       var div = document.createElement("div");
       div.className = "food-item";
       div.innerHTML =
-        '<div class="food-info"><div><div class="food-name">' + item.name + " ×" + count + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
+        '<div class="food-info"><img class="item-icon" src="' + item.icon + '" alt=""><div><div class="food-name">' + item.name + " ×" + count + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
         "<button" + (count <= 0 ? " disabled" : "") + ">つかう</button>";
       div.querySelector("button").addEventListener("click", function () {
         if (count <= 0) return;
@@ -682,7 +682,7 @@
       "<div>MP " + state.mp + " / " + stats.maxMp + "</div>" +
       "<div>こうげき " + stats.atk + " ・ ぼうぎょ " + stats.def + " ・ すばやさ " + stats.spd + "</div>" +
       "<div>けいけんち " + state.exp + " / " + G.expToNext(state.level) + "</div>" +
-      "<div>💰 " + state.money + "</div>";
+      '<div><img class="item-icon" src="' + G.MONEY_ICON + '" alt=""> ' + state.money + "</div>";
 
     menuSkillsEl.innerHTML = "";
     state.learnedSkills.forEach(function (id) {
@@ -706,8 +706,8 @@
       var div = document.createElement("div");
       div.className = "food-item";
       div.innerHTML =
-        '<div class="food-info"><div><div class="food-name">' + item.name + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
-        "<button" + (disabled ? " disabled" : "") + ">💰" + item.price + "</button>";
+        '<div class="food-info"><img class="item-icon" src="' + item.icon + '" alt=""><div><div class="food-name">' + item.name + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
+        "<button" + (disabled ? " disabled" : "") + '><img class="item-icon item-icon-btn" src="' + G.MONEY_ICON + '" alt="">' + item.price + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         if (state.money < item.price) return;
         state.money -= item.price;

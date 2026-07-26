@@ -70,9 +70,10 @@
 
   // ---------------- Items ----------------
   var ITEMS = {
-    kizugusuri: { id: "kizugusuri", name: "きずぐすり", desc: "HPを 30 かいふくする", kind: "hp", amount: 30, price: 20 },
-    manashizuku: { id: "manashizuku", name: "マナのしずく", desc: "MPを 15 かいふくする", kind: "mp", amount: 15, price: 25 }
+    kizugusuri: { id: "kizugusuri", name: "きずぐすり", desc: "HPを 30 かいふくする", kind: "hp", amount: 30, price: 20, icon: "assets/items/icon_kizugusuri.webp" },
+    manashizuku: { id: "manashizuku", name: "マナのしずく", desc: "MPを 15 かいふくする", kind: "mp", amount: 15, price: 25, icon: "assets/items/icon_manashizuku.webp" }
   };
+  var MONEY_ICON = "assets/items/icon_coin.webp";
   var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku"];
   var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1 };
 
@@ -211,6 +212,7 @@
     SKILLS: SKILLS,
     SKILL_LEARN_ORDER: SKILL_LEARN_ORDER,
     ITEMS: ITEMS,
+    MONEY_ICON: MONEY_ICON,
     SHOP_ITEM_IDS: SHOP_ITEM_IDS,
     STARTING_INVENTORY: STARTING_INVENTORY,
     MONSTERS: MONSTERS,

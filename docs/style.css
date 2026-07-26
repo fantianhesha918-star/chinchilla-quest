@@ -141,6 +141,8 @@ body {
 .hud-bar-fill.mp { background: var(--mp); }
 .hud-bar-fill.exp { background: var(--exp); }
 .hud-money { font-size: 0.8rem; font-weight: 700; flex: 0 0 auto; }
+.item-icon { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 3px; }
+.item-icon-btn { vertical-align: -3px; margin-right: 2px; }
 .hud-bar-label {
   position: absolute;
   inset: 0;
