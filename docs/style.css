@@ -640,14 +640,16 @@ body {
   background: #fbf3e9;
   border-radius: 14px;
   padding: 8px;
-  width: 74px;
+  width: 88px;
   gap: 4px;
 }
 .companion-img { width: 44px; height: 44px; object-fit: contain; }
 .companion-name { font-size: 0.65rem; font-weight: 700; text-align: center; }
+.companion-hp { font-size: 0.6rem; color: var(--ink-soft); }
 .companion-party-caption { width: 100%; font-size: 0.72rem; color: var(--ink-soft); margin-bottom: 2px; }
 .companion-item.in-party { box-shadow: inset 0 0 0 2px var(--pink-deep); }
-.companion-party-btn {
+.companion-btn-row { display: flex; flex-direction: column; gap: 3px; width: 100%; }
+.companion-party-btn, .companion-leader-btn {
   border: none;
   border-radius: 999px;
   padding: 4px 10px;
@@ -657,6 +659,8 @@ body {
   color: #fff;
   cursor: pointer;
 }
+.companion-leader-btn { background: var(--blue); color: var(--ink); }
+.companion-leader-btn:disabled { background: var(--pink-deep); color: #fff; cursor: default; }
 .companion-item.in-party .companion-party-btn { background: var(--ink-soft); }
 
 .zukan-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 6px; }

@@ -42,6 +42,15 @@
     if (s.flags && s.flags.bossDefeated && !s.defeatedBosses.yougan_golem) s.defeatedBosses.yougan_golem = true;
     if (!s.badges) s.badges = {};
     if (!s.bossBonus) s.bossBonus = { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
+    if (!s.activeBattlerId) s.activeBattlerId = "hero";
+    Object.keys(s.companionLevels).forEach(function (id) {
+      var ld = s.companionLevels[id];
+      if (ld.hp === undefined || ld.mp === undefined) {
+        var stats = getCompanionMaxStats(id, ld.level);
+        if (ld.hp === undefined) ld.hp = stats.maxHp;
+        if (ld.mp === undefined) ld.mp = stats.maxMp;
+      }
+    });
     return s;
   }
   function formatSlotDate(ts) {
@@ -73,6 +82,7 @@
       defeatedBosses: {},
       badges: {},
       bossBonus: { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 },
+      activeBattlerId: "hero",
       mapId: G.START_MAP,
       x: G.START_X,
       y: G.START_Y,
@@ -93,9 +103,16 @@
     };
   }
 
+  function getCompanionMaxStats(id, level) {
+    var mon = G.MONSTERS[currentCompanionSpeciesId(id, level)];
+    return G.getCompanionStats(mon, level);
+  }
+
   function getCompanionLevelData(id) {
     if (!state.companionLevels[id]) {
-      state.companionLevels[id] = { level: G.MONSTERS[id].level, exp: 0 };
+      var lvl = G.MONSTERS[id].level;
+      var stats = getCompanionMaxStats(id, lvl);
+      state.companionLevels[id] = { level: lvl, exp: 0, hp: stats.maxHp, mp: stats.maxMp };
     }
     return state.companionLevels[id];
   }
@@ -371,9 +388,21 @@
 
     if (ch === "H") {
       var healStats = getMaxStats(state);
-      if (state.hp < healStats.maxHp || state.mp < healStats.maxMp) {
+      var needsHeal = state.hp < healStats.maxHp || state.mp < healStats.maxMp;
+      Object.keys(state.companions || {}).forEach(function (id) {
+        var ld = getCompanionLevelData(id);
+        var cstats = getCompanionMaxStats(id, ld.level);
+        if (ld.hp < cstats.maxHp || ld.mp < cstats.maxMp) needsHeal = true;
+      });
+      if (needsHeal) {
         state.hp = healStats.maxHp;
         state.mp = healStats.maxMp;
+        Object.keys(state.companions || {}).forEach(function (id) {
+          var ld = getCompanionLevelData(id);
+          var cstats = getCompanionMaxStats(id, ld.level);
+          ld.hp = cstats.maxHp;
+          ld.mp = cstats.maxMp;
+        });
         save(state);
         updateHud();
         showToast("いやしの泉で 元気を 取り戻した!");
@@ -518,7 +547,7 @@
       idx: idx, kind: "companion", name: mon.name, level: comp.level,
       hp: comp.hp, maxHp: comp.maxHp, mp: comp.mp, maxMp: comp.maxMp,
       atk: comp.atk, def: comp.def, spd: comp.spd, element: mon.element,
-      fainted: comp.fainted, skillIds: getCompanionSkills(comp.id), image: mon.image
+      fainted: comp.hp <= 0, skillIds: getCompanionSkills(comp.id), image: mon.image
     };
   }
   function battlerCount() { return 1 + (battle ? battle.party.length : 0); }
@@ -532,12 +561,16 @@
   }
   function isRosterWiped() { return livingBattlerIndices(false).length === 0; }
   function setBattlerHp(idx, hp) {
-    if (idx === 0) state.hp = Math.max(0, hp);
-    else battle.party[idx - 1].hp = Math.max(0, hp);
+    if (idx === 0) { state.hp = Math.max(0, hp); return; }
+    var comp = battle.party[idx - 1];
+    comp.hp = Math.max(0, hp);
+    getCompanionLevelData(comp.id).hp = comp.hp;
   }
   function setBattlerMp(idx, mp) {
-    if (idx === 0) state.mp = Math.max(0, mp);
-    else battle.party[idx - 1].mp = Math.max(0, mp);
+    if (idx === 0) { state.mp = Math.max(0, mp); return; }
+    var comp = battle.party[idx - 1];
+    comp.mp = Math.max(0, mp);
+    getCompanionLevelData(comp.id).mp = comp.mp;
   }
 
   function setElemIcon(imgEl, element) {
@@ -587,6 +620,19 @@
     }
   }
 
+  function pickInitialActiveIdx(party) {
+    var wanted = 0;
+    if (state.activeBattlerId !== "hero") {
+      var pIdx = party.findIndex(function (p) { return p.id === state.activeBattlerId; });
+      if (pIdx !== -1) wanted = pIdx + 1;
+    }
+    var wantedAlive = wanted === 0 ? state.hp > 0 : party[wanted - 1].hp > 0;
+    if (wantedAlive) return wanted;
+    if (state.hp > 0) return 0;
+    for (var i = 0; i < party.length; i++) { if (party[i].hp > 0) return i + 1; }
+    return 0;
+  }
+
   function startBattle(monsterId, isBoss) {
     var def = G.MONSTERS[monsterId];
     markDiscovered(monsterId);
@@ -595,9 +641,20 @@
       var speciesId = currentCompanionSpeciesId(id, ld.level);
       var mon = G.MONSTERS[speciesId];
       var cstats = G.getCompanionStats(mon, ld.level);
-      return { id: id, speciesId: speciesId, level: ld.level, hp: cstats.maxHp, maxHp: cstats.maxHp, mp: cstats.maxMp, maxMp: cstats.maxMp, atk: cstats.atk, def: cstats.def, spd: cstats.spd, fainted: false };
+      return { id: id, speciesId: speciesId, level: ld.level, hp: Math.min(ld.hp, cstats.maxHp), maxHp: cstats.maxHp, mp: Math.min(ld.mp, cstats.maxMp), maxMp: cstats.maxMp, atk: cstats.atk, def: cstats.def, spd: cstats.spd };
     });
-    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party, activeIdx: 0 };
+    var anyAlive = state.hp > 0 || party.some(function (p) { return p.hp > 0; });
+    if (!anyAlive) {
+      var stats = getMaxStats(state);
+      state.hp = Math.max(1, Math.round(stats.maxHp * 0.5));
+      state.mapId = G.START_MAP; state.x = G.START_X; state.y = G.START_Y;
+      save(state);
+      renderMap();
+      updateHud();
+      showToast("みんな ぼろぼろで たたかえない…村に はこばれた。");
+      return;
+    }
+    battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party, activeIdx: pickInitialActiveIdx(party) };
     battleActive = true;
     runBtn.disabled = !!isBoss;
     fieldScreen.classList.add("hidden");
@@ -676,6 +733,8 @@
     battle.locked = true;
     setCommandButtonsEnabled(false);
     battle.activeIdx = idx;
+    state.activeBattlerId = idx === 0 ? "hero" : battle.party[idx - 1].id;
+    save(state);
     var b = getBattler(idx);
     renderBattle();
     playSequence([b.name + " を せんとうに 出した!"], function () {
@@ -704,7 +763,6 @@
     lines.push(active.name + " に " + result.dmg + " の ダメージ!");
     var justFainted = newHp <= 0;
     if (justFainted) {
-      if (active.kind === "companion") battle.party[active.idx - 1].fainted = true;
       lines.push(active.name + " は たおれてしまった…");
     }
     playSequence(lines, function () {
@@ -875,7 +933,11 @@
         var need = G.expToNext(ld.level);
         if (ld.exp < need) break;
         ld.exp -= need;
+        var oldMax = getCompanionMaxStats(id, ld.level);
         ld.level += 1;
+        var newMax = getCompanionMaxStats(id, ld.level);
+        ld.hp = Math.min(newMax.maxHp, ld.hp + (newMax.maxHp - oldMax.maxHp));
+        ld.mp = Math.min(newMax.maxMp, ld.mp + (newMax.maxMp - oldMax.maxMp));
         leveled = true;
         var afterId = currentCompanionSpeciesId(id, ld.level);
         var afterName = G.MONSTERS[afterId].name;
@@ -1052,9 +1114,32 @@
 
   function renderCompanionsList(container) {
     container.innerHTML = "";
+
+    var heroImg = state.stageIndex > 0 ? G.EVOLUTION_ROUTES[state.route].stages[state.stageIndex - 1].file : G.HERO_IMAGE;
+    var heroStats = getMaxStats(state);
+    var heroIsLeader = state.activeBattlerId === "hero";
+    var heroDiv = document.createElement("div");
+    heroDiv.className = "companion-item" + (heroIsLeader ? " in-party" : "");
+    heroDiv.innerHTML =
+      '<img class="companion-img" src="' + heroImg + '" alt="' + state.name + '">' +
+      '<div class="companion-name">' + state.name + " Lv" + state.level + "</div>" +
+      '<div class="companion-hp">HP ' + state.hp + "/" + heroStats.maxHp + "</div>" +
+      "<button class=\"companion-leader-btn\"" + (heroIsLeader ? " disabled" : "") + ">" + (heroIsLeader ? "リーダー" : "リーダーにする") + "</button>";
+    if (!heroIsLeader) {
+      heroDiv.querySelector("button").addEventListener("click", function () {
+        state.activeBattlerId = "hero";
+        save(state);
+        renderCompanionsList(container);
+      });
+    }
+    container.appendChild(heroDiv);
+
     var ids = Object.keys(state.companions || {});
     if (ids.length === 0) {
-      container.innerHTML = '<div class="companion-empty">まだ なかまは いないよ。「なかまボール」を せんとうで なげてみよう!</div>';
+      var empty = document.createElement("div");
+      empty.className = "companion-empty";
+      empty.textContent = "まだ なかまは いないよ。「なかまボール」を せんとうで なげてみよう!";
+      container.appendChild(empty);
       return;
     }
     var partyCaption = document.createElement("div");
@@ -1066,16 +1151,23 @@
       var count = state.companions[id];
       var ld = getCompanionLevelData(id);
       var mon = G.MONSTERS[currentCompanionSpeciesId(id, ld.level)];
+      var cstats = getCompanionMaxStats(id, ld.level);
       var inParty = state.activeParty.indexOf(id) !== -1;
+      var isLeader = state.activeBattlerId === id;
       var div = document.createElement("div");
       div.className = "companion-item" + (inParty ? " in-party" : "");
       div.innerHTML =
         '<img class="companion-img" src="' + mon.image + '" alt="' + mon.name + '">' +
         '<div class="companion-name">' + mon.name + " ×" + count + " Lv" + ld.level + "</div>" +
-        "<button class=\"companion-party-btn\">" + (inParty ? "はずす" : "くわえる") + "</button>";
-      div.querySelector("button").addEventListener("click", function () {
+        '<div class="companion-hp">HP ' + ld.hp + "/" + cstats.maxHp + "</div>" +
+        '<div class="companion-btn-row">' +
+        "<button class=\"companion-party-btn\">" + (inParty ? "はずす" : "くわえる") + "</button>" +
+        (inParty ? "<button class=\"companion-leader-btn\"" + (isLeader ? " disabled" : "") + ">" + (isLeader ? "リーダー" : "リーダーにする") + "</button>" : "") +
+        "</div>";
+      div.querySelector(".companion-party-btn").addEventListener("click", function () {
         if (inParty) {
           state.activeParty = state.activeParty.filter(function (pid) { return pid !== id; });
+          if (state.activeBattlerId === id) state.activeBattlerId = "hero";
         } else {
           if (state.activeParty.length >= G.MAX_PARTY_SIZE) { showToast("パーティは さいだい" + G.MAX_PARTY_SIZE + "たいまでだよ"); return; }
           state.activeParty.push(id);
@@ -1083,6 +1175,14 @@
         save(state);
         renderCompanionsList(container);
       });
+      var leaderBtn = div.querySelector(".companion-leader-btn");
+      if (leaderBtn && !isLeader) {
+        leaderBtn.addEventListener("click", function () {
+          state.activeBattlerId = id;
+          save(state);
+          renderCompanionsList(container);
+        });
+      }
       container.appendChild(div);
     });
   }
