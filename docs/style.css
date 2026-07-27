@@ -561,6 +561,8 @@ body {
 .battle-sub-item button:disabled { background: #ddd0c1; cursor: not-allowed; }
 .battle-sub-item .sub-item-name { font-weight: 700; font-size: 0.85rem; }
 .battle-sub-item .sub-item-desc { font-size: 0.7rem; color: var(--ink-soft); }
+.elem-icon { width: 18px; height: 18px; vertical-align: -4px; margin-right: 3px; flex-shrink: 0; }
+.battle-name-tag .elem-icon { width: 20px; height: 20px; margin-right: 0; }
 
 /* ---------- Modals ---------- */
 .modal {

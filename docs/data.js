@@ -331,6 +331,19 @@
     magic: "assets/effects/effect_magic.webp",
     beast: "assets/effects/effect_beast.webp"
   };
+  // 属性アイコン(敵名/わざ一覧/ずかんで属性がひと目で分かるようにするバッジ画像)
+  var ELEMENT_ICONS = {
+    fire: "assets/icons/elem_fire.webp",
+    water: "assets/icons/elem_water.webp",
+    grass: "assets/icons/elem_grass.webp",
+    wind: "assets/icons/elem_wind.webp",
+    earth: "assets/icons/elem_earth.webp",
+    thunder: "assets/icons/elem_thunder.webp",
+    heaven: "assets/icons/elem_heaven.webp",
+    dark: "assets/icons/elem_dark.webp",
+    magic: "assets/icons/elem_magic.webp",
+    beast: "assets/icons/elem_beast.webp"
+  };
   // 攻撃側の属性ごとに「強い(2倍)」「弱い(0.5倍)」相手を1つずつ持つ(それ以外は等倍)
   var ELEMENT_MATCHUP = {
     fire: { strong: "grass", weak: "water" },
@@ -663,6 +676,7 @@
     MAX_PARTY_SIZE: MAX_PARTY_SIZE,
     ELEMENT_LABELS: ELEMENT_LABELS,
     ELEMENT_EFFECTS: ELEMENT_EFFECTS,
+    ELEMENT_ICONS: ELEMENT_ICONS,
     getElementMatchup: getElementMatchup,
     SHOP_ITEM_IDS: SHOP_ITEM_IDS,
     STARTING_INVENTORY: STARTING_INVENTORY,

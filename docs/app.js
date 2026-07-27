@@ -154,11 +154,13 @@
   var dialogueTextEl = document.getElementById("dialogue-text");
 
   var battleEnemyName = document.getElementById("battle-enemy-name");
+  var battleEnemyElemIcon = document.getElementById("battle-enemy-elem-icon");
   var battleEnemyLv = document.getElementById("battle-enemy-lv");
   var battleEnemyHpBar = document.getElementById("battle-enemy-hp-bar");
   var battleEnemyHpText = document.getElementById("battle-enemy-hp-text");
   var battleEnemySprite = document.getElementById("battle-enemy-sprite");
   var battlePlayerName = document.getElementById("battle-player-name");
+  var battlePlayerElemIcon = document.getElementById("battle-player-elem-icon");
   var battlePlayerLv = document.getElementById("battle-player-lv");
   var battlePlayerHpBar = document.getElementById("battle-player-hp-bar");
   var battlePlayerHpText = document.getElementById("battle-player-hp-text");
@@ -520,9 +522,20 @@
     else battle.party[idx - 1].mp = Math.max(0, mp);
   }
 
+  function setElemIcon(imgEl, element) {
+    if (element && G.ELEMENT_ICONS[element]) {
+      imgEl.src = G.ELEMENT_ICONS[element];
+      imgEl.alt = G.ELEMENT_LABELS[element];
+      imgEl.classList.remove("hidden");
+    } else {
+      imgEl.classList.add("hidden");
+    }
+  }
+
   function renderBattle() {
     var def = G.MONSTERS[battle.monsterId];
     battleEnemyName.textContent = def.name;
+    setElemIcon(battleEnemyElemIcon, def.element);
     battleEnemyLv.textContent = "Lv" + def.level;
     battleEnemyHpBar.style.width = Math.max(0, battle.monsterHp / battle.monsterMaxHp * 100) + "%";
     battleEnemyHpText.textContent = battle.monsterHp + " / " + battle.monsterMaxHp;
@@ -530,6 +543,7 @@
 
     var active = getBattler(battle.activeIdx);
     battlePlayerName.textContent = active.name;
+    setElemIcon(battlePlayerElemIcon, active.element);
     battlePlayerLv.textContent = "Lv" + active.level;
     battlePlayerHpBar.style.width = Math.max(0, active.hp / active.maxHp * 100) + "%";
     battlePlayerHpText.textContent = active.hp + " / " + active.maxHp;
@@ -903,10 +917,11 @@
     active.skillIds.forEach(function (id) {
       var sk = G.SKILLS[id];
       var disabled = active.mp < sk.mp;
+      var icon = sk.element ? '<img class="elem-icon" src="' + G.ELEMENT_ICONS[sk.element] + '" alt="' + G.ELEMENT_LABELS[sk.element] + '">' : "";
       var row = document.createElement("div");
       row.className = "battle-sub-item";
       row.innerHTML =
-        '<div><div class="sub-item-name">' + sk.name + '</div><div class="sub-item-desc">MP' + sk.mp + " ・ " + sk.desc + "</div></div>" +
+        '<div><div class="sub-item-name">' + icon + sk.name + '</div><div class="sub-item-desc">MP' + sk.mp + " ・ " + sk.desc + "</div></div>" +
         "<button" + (disabled ? " disabled" : "") + ">えらぶ</button>";
       row.querySelector("button").addEventListener("click", function () { doActiveBattlerAction({ type: "skill", skillId: id }); });
       battleSubList.appendChild(row);
@@ -1039,7 +1054,7 @@
   }
 
   function showZukanDetail(mon) {
-    var elemLine = mon.element ? "<div>ぞくせい " + G.ELEMENT_LABELS[mon.element] + "</div>" : "";
+    var elemLine = mon.element ? '<div><img class="elem-icon" src="' + G.ELEMENT_ICONS[mon.element] + '" alt="">ぞくせい ' + G.ELEMENT_LABELS[mon.element] + "</div>" : "";
     var evoLine = "";
     if (mon.evolvesTo && state.dex[mon.evolvesTo.id]) {
       evoLine = "<div>Lv" + mon.evolvesTo.level + " で " + G.MONSTERS[mon.evolvesTo.id].name + " に しんかする</div>";
