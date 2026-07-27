@@ -212,6 +212,9 @@ body {
   background-color: #b8ab95;
   background-image: url(assets/tiles/tile_dungeon_floor.webp);
 }
+.map-iceridge .tile-grass { filter: hue-rotate(150deg) saturate(0.6) brightness(1.15); }
+.map-wasteland .tile-grass { filter: hue-rotate(-35deg) saturate(0.55) brightness(0.92); }
+.map-madoushi_tower .tile-grass { filter: hue-rotate(250deg) saturate(0.75) brightness(0.85); }
 .tile-water { background: repeating-linear-gradient(135deg, #a9cce3, #a9cce3 6px, #97bfda 6px, #97bfda 12px); }
 .tile-warp { background: #f6e0ea; box-shadow: inset 0 0 0 2px var(--pink-deep); }
 .tile-boss { background: #f3d0cb; box-shadow: inset 0 0 0 2px var(--danger); animation: boss-pulse 1.6s ease-in-out infinite; }
@@ -694,6 +697,32 @@ body {
 }
 .zukan-detail.hidden { display: none; }
 
+.badge-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 6px; }
+.badge-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fbf3e9;
+  border-radius: 12px;
+  padding: 6px;
+  gap: 2px;
+}
+.badge-icon { width: 32px; height: 32px; object-fit: contain; }
+.badge-cell-name { font-size: 0.6rem; font-weight: 700; text-align: center; color: var(--ink); }
+.badge-cell.badge-locked { opacity: 0.7; }
+.badge-cell.badge-locked .badge-cell-name { color: var(--ink-soft); }
+.badge-silhouette {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  background: #e8ddcf;
+  border-radius: 8px;
+}
+
 .route-choices { display: flex; flex-direction: column; gap: 12px; }
 .route-choice-card {
   background: #fbf3e9;
@@ -736,8 +765,8 @@ body {
     --ink: #f3e6da;
     --ink-soft: #b8a696;
   }
-  .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item, .zukan-cell, .zukan-detail { background: #2c2420; }
-  .zukan-silhouette { background: #241d18; }
+  .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item, .zukan-cell, .zukan-detail, .badge-cell { background: #2c2420; }
+  .zukan-silhouette, .badge-silhouette { background: #241d18; }
   .hud-bar-track { background: #2c2420; }
   .tile { background: #241d18; }
   .tile-ground, .tile-warp, .tile-boss { background: #3a2f26; }

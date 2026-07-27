@@ -96,6 +96,12 @@
     orca_wave: { id: "orca_wave", name: "オルカウェーブ", power: 54, mp: 10, desc: "つめたい なみで おしながす", element: "water" },
     sai_charge: { id: "sai_charge", name: "サイクラッシュ", power: 66, mp: 12, desc: "つのを むけて つっこむ" },
 
+    // ---- ボス撃破の専用わざ(BOSS_REWARDSで習得) ----
+    yougan_crush: { id: "yougan_crush", name: "ようがんクラッシュ", power: 58, mp: 11, desc: "ようがんの ちからで たたきつぶす", element: "fire" },
+    yeti_blizzard: { id: "yeti_blizzard", name: "ブリザードファング", power: 60, mp: 12, desc: "こおりの きばで きりさく", element: "water" },
+    oni_smash: { id: "oni_smash", name: "おにのだいかいてん", power: 64, mp: 13, desc: "だいちを ゆるがす だいかいてん", element: "earth" },
+    madoushi_curse: { id: "madoushi_curse", name: "だいまどうのじゅそ", power: 68, mp: 14, desc: "おそろしい じゅそを かける", element: "magic" },
+
     // ---- なかま用 汎用属性わざ(旧: ほのお/こおり。こおりはみず属性に統合) ----
     flame_burst: { id: "flame_burst", name: "ほのおのつぶて", power: 22, mp: 3, learnLevel: 5, desc: "ほのおの たまを なげつける", element: "fire" },
     ice_shard: { id: "ice_shard", name: "こおりのつぶて", power: 22, mp: 3, learnLevel: 5, desc: "するどい こおりを ぶつける", element: "water" },
@@ -366,6 +372,15 @@
     return { mult: 1, tier: "neutral" };
   }
 
+  // ---------------- Boss rewards (撃破時: 専用わざ+能力アップ+バッジ) ----------------
+  var BOSS_REWARDS = {
+    yougan_golem: { skillId: "yougan_crush", badgeLabel: "ようがんのバッジ", statBonus: { maxHp: 10 } },
+    yeti: { skillId: "yeti_blizzard", badgeLabel: "こおりのバッジ", statBonus: { maxMp: 8, def: 3 } },
+    oni_ou: { skillId: "oni_smash", badgeLabel: "だいちのバッジ", statBonus: { atk: 5 } },
+    majin_madoushi: { skillId: "madoushi_curse", badgeLabel: "まほうのバッジ", statBonus: { maxMp: 10, spd: 3 } }
+  };
+  var BOSS_ORDER = ["yougan_golem", "yeti", "oni_ou", "majin_madoushi"];
+
   // ---------------- Items ----------------
   var ITEMS = {
     kizugusuri: { id: "kizugusuri", name: "きずぐすり", desc: "HPを 30 かいふくする", kind: "hp", amount: 30, price: 20, icon: "assets/items/icon_kizugusuri.webp" },
@@ -439,6 +454,11 @@
 
     yougan_golem: { id: "yougan_golem", name: "ようがんゴーレム", level: 16, hp: 130, atk: 32, def: 20, spd: 14, exp: 140, money: 110, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "yougan_golem.webp", element: "fire" },
 
+    // ---- 中間ボス(ダンジョン〜隠しエリアの崖を緩和する3体、新マップの終点に配置) ----
+    yeti: { id: "yeti", name: "ゆきおとこ", level: 21, hp: 175, atk: 42, def: 26, spd: 18, exp: 175, money: 130, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "yeti.webp", element: "water" },
+    oni_ou: { id: "oni_ou", name: "おにおう", level: 25, hp: 205, atk: 50, def: 31, spd: 20, exp: 210, money: 160, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "oni_ou.webp", element: "earth" },
+    majin_madoushi: { id: "majin_madoushi", name: "まじんまどうし", level: 28, hp: 228, atk: 56, def: 34, spd: 24, exp: 245, money: 190, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "majin_madoushi.webp", element: "magic" },
+
     // ---- 隠しエリア「奥津宮の霊域」上位ティア(ボス撃破後に解放、なかまボールで捕獲可・成功率は catchPenalty で低下) ----
     kodai_kyubi: { id: "kodai_kyubi", name: "九尾の霊狐", level: 27, hp: 234, atk: 71, def: 58, spd: 42, exp: 116, money: 84, skillIds: ["tackle", "sandkick"], image: MON_DIR + "kodai_kyubi.webp", element: "fire", catchPenalty: 0.6 },
     kodai_oni: { id: "kodai_oni", name: "業火の鬼", level: 27, hp: 212, atk: 64, def: 52, spd: 38, exp: 105, money: 76, skillIds: ["tackle", "headbutt"], image: MON_DIR + "kodai_oni.webp", element: "fire", catchPenalty: 0.6 },
@@ -505,7 +525,7 @@
     "mira_otoko", "mira_otoko_2",
     "shokujinsou", "shokujinsou_2",
     "hone_kihei", "hone_kihei_2",
-    "yougan_golem",
+    "yougan_golem", "yeti", "oni_ou", "majin_madoushi",
     "kodai_kyubi", "kodai_oni", "kodai_tengu", "kodai_yukionna", "kodai_gashadokuro", "kodai_biwanushi",
     "kodai_hitotsume", "kodai_kappabouzu", "kodai_sakedanuki", "kodai_kitsunemen", "kodai_bakeneko", "kodai_karakasa",
     "shinju_reishishi", "shinju_kamezan", "shinju_unicorn", "shinju_griffon", "shinju_kimaira",
@@ -601,7 +621,7 @@
       npcs: [],
       warps: [
         { x: 4, y: 0, toMap: "field", toX: 4, toY: 9 },
-        { x: 4, y: 11, toMap: "reizon", toX: 4, toY: 1 }
+        { x: 4, y: 11, toMap: "iceridge", toX: 4, toY: 1 }
       ],
       chests: [
         { id: "dungeon_chest_1", x: 6, y: 6, reward: { type: "item", itemId: "kizugusuri", amount: 2 } },
@@ -614,6 +634,91 @@
           { id: "ankoku_kishi", weight: 2 }, { id: "ankoku_madoushi", weight: 2 }, { id: "orc", weight: 2 },
           { id: "jinrou", weight: 2 }, { id: "sarekoube", weight: 3 }, { id: "iwa_golem", weight: 1 },
           { id: "mira_otoko", weight: 2 }, { id: "shokujinsou", weight: 2 }, { id: "hone_kihei", weight: 1 }
+        ]
+      }
+    },
+    iceridge: {
+      id: "iceridge",
+      label: "こおりの尾根",
+      tiles: [
+        "####.####",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#...Y...#",
+        "#########"
+      ],
+      npcs: [],
+      warps: [
+        { x: 4, y: 0, toMap: "dungeon", toX: 4, toY: 10 },
+        { x: 4, y: 7, toMap: "wasteland", toX: 4, toY: 1 }
+      ],
+      bossTrigger: { x: 4, y: 7, monsterId: "yeti" },
+      encounter: {
+        rate: 0.16,
+        table: [
+          { id: "slime_3", weight: 3 }, { id: "aodori_3", weight: 3 }, { id: "sarekoube_2", weight: 2 },
+          { id: "orc_2", weight: 2 }, { id: "mira_otoko_2", weight: 2 }
+        ]
+      }
+    },
+    wasteland: {
+      id: "wasteland",
+      label: "たそがれの荒野",
+      tiles: [
+        "####.####",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#...O...#",
+        "#########"
+      ],
+      npcs: [],
+      warps: [
+        { x: 4, y: 0, toMap: "iceridge", toX: 4, toY: 6 },
+        { x: 4, y: 7, toMap: "madoushi_tower", toX: 4, toY: 1 }
+      ],
+      bossTrigger: { x: 4, y: 7, monsterId: "oni_ou" },
+      encounter: {
+        rate: 0.16,
+        table: [
+          { id: "mogura_3", weight: 3 }, { id: "komori_3", weight: 3 }, { id: "ankoku_madoushi_2", weight: 2 },
+          { id: "jinrou_2", weight: 2 }, { id: "shokujinsou_2", weight: 2 }
+        ]
+      }
+    },
+    madoushi_tower: {
+      id: "madoushi_tower",
+      label: "だいまどうしの塔",
+      tiles: [
+        "####.####",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#,,,,,,,#",
+        "#...M...#",
+        "#########"
+      ],
+      npcs: [],
+      warps: [
+        { x: 4, y: 0, toMap: "wasteland", toX: 4, toY: 6 },
+        { x: 4, y: 7, toMap: "reizon", toX: 4, toY: 1 }
+      ],
+      bossTrigger: { x: 4, y: 7, monsterId: "majin_madoushi" },
+      encounter: {
+        rate: 0.16,
+        table: [
+          { id: "dokukinoko_3", weight: 2 }, { id: "hinotama_3", weight: 2 }, { id: "saboten_3", weight: 2 },
+          { id: "ankoku_kishi_2", weight: 2 }, { id: "hone_kenshi_3", weight: 2 }, { id: "koyurei_3", weight: 2 },
+          { id: "iwa_golem_2", weight: 1 }, { id: "hone_kihei_2", weight: 1 }
         ]
       }
     },
@@ -632,7 +737,7 @@
         "#########"
       ],
       npcs: [],
-      warps: [{ x: 4, y: 7, toMap: "dungeon", toX: 4, toY: 10 }],
+      warps: [{ x: 4, y: 7, toMap: "madoushi_tower", toX: 4, toY: 6 }],
       encounter: {
         rate: 0.2,
         table: [
@@ -677,6 +782,8 @@
     ELEMENT_LABELS: ELEMENT_LABELS,
     ELEMENT_EFFECTS: ELEMENT_EFFECTS,
     ELEMENT_ICONS: ELEMENT_ICONS,
+    BOSS_REWARDS: BOSS_REWARDS,
+    BOSS_ORDER: BOSS_ORDER,
     getElementMatchup: getElementMatchup,
     SHOP_ITEM_IDS: SHOP_ITEM_IDS,
     STARTING_INVENTORY: STARTING_INVENTORY,

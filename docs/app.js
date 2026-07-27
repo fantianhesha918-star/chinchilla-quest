@@ -38,6 +38,10 @@
     if (!s.companionLevels) s.companionLevels = {};
     if (!s.companionSkills) s.companionSkills = {};
     if (!s.dex) s.dex = {};
+    if (!s.defeatedBosses) s.defeatedBosses = {};
+    if (s.flags && s.flags.bossDefeated && !s.defeatedBosses.yougan_golem) s.defeatedBosses.yougan_golem = true;
+    if (!s.badges) s.badges = {};
+    if (!s.bossBonus) s.bossBonus = { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
     return s;
   }
   function formatSlotDate(ts) {
@@ -66,6 +70,9 @@
       companionLevels: {},
       companionSkills: {},
       dex: {},
+      defeatedBosses: {},
+      badges: {},
+      bossBonus: { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 },
       mapId: G.START_MAP,
       x: G.START_X,
       y: G.START_Y,
@@ -74,7 +81,17 @@
     };
   }
 
-  function getMaxStats(s) { return G.calcMaxStats(s.level, s.stageIndex); }
+  function getMaxStats(s) {
+    var base = G.calcMaxStats(s.level, s.stageIndex);
+    var bonus = s.bossBonus || {};
+    return {
+      maxHp: base.maxHp + (bonus.maxHp || 0),
+      maxMp: base.maxMp + (bonus.maxMp || 0),
+      atk: base.atk + (bonus.atk || 0),
+      def: base.def + (bonus.def || 0),
+      spd: base.spd + (bonus.spd || 0)
+    };
+  }
 
   function getCompanionLevelData(id) {
     if (!state.companionLevels[id]) {
@@ -180,6 +197,7 @@
   var menuSkillsEl = document.getElementById("menu-skills");
   var menuItemsEl = document.getElementById("menu-items");
   var menuCompanionsEl = document.getElementById("menu-companions");
+  var menuBadgesEl = document.getElementById("menu-badges");
   var zukanGridEl = document.getElementById("zukan-grid");
   var zukanDetailEl = document.getElementById("zukan-detail");
   var zukanProgressEl = document.getElementById("zukan-progress");
@@ -246,7 +264,7 @@
         var ch = map.tiles[y][x];
         var cls = "tile " + tileClass(ch);
         var warp = warpAtCoord(map, x, y);
-        var isBoss = !!(map.bossTrigger && map.bossTrigger.x === x && map.bossTrigger.y === y && !state.flags.bossDefeated);
+        var isBoss = !!(map.bossTrigger && map.bossTrigger.x === x && map.bossTrigger.y === y && !state.defeatedBosses[map.bossTrigger.monsterId]);
         if (warp) cls += " tile-warp";
         if (isBoss) cls += " tile-boss";
         var npc = npcAtCoord(map, x, y);
@@ -373,7 +391,7 @@
       renderMap();
     }
 
-    if (map.bossTrigger && map.bossTrigger.x === nx && map.bossTrigger.y === ny && !state.flags.bossDefeated) {
+    if (map.bossTrigger && map.bossTrigger.x === nx && map.bossTrigger.y === ny && !state.defeatedBosses[map.bossTrigger.monsterId]) {
       startBattle(map.bossTrigger.monsterId, true);
       return;
     }
@@ -885,8 +903,23 @@
     state.money += def.money;
     var lines = [def.name + " を たおした!", def.exp + " の けいけんちを 手に入れた!", def.money + "まい の コインを 手に入れた!"];
     if (battle.isBoss) {
-      state.flags.bossDefeated = true;
+      state.defeatedBosses[def.id] = true;
       lines.push("つよい モンスターを たおした! これからも ぼうけんは つづく…");
+      var reward = G.BOSS_REWARDS[def.id];
+      if (reward) {
+        if (!state.badges[def.id]) {
+          state.badges[def.id] = true;
+          lines.push(reward.badgeLabel + " を 手に入れた!");
+        }
+        if (state.learnedSkills.indexOf(reward.skillId) === -1) {
+          state.learnedSkills.push(reward.skillId);
+          lines.push(state.name + " は " + G.SKILLS[reward.skillId].name + " を おぼえた!");
+        }
+        Object.keys(reward.statBonus).forEach(function (key) {
+          state.bossBonus[key] = (state.bossBonus[key] || 0) + reward.statBonus[key];
+        });
+        lines.push("のうりょくが 上がった!");
+      }
     }
     var events = gainExp(def.exp);
     var companionLevelUpLines = gainCompanionExp(def.exp);
@@ -1012,6 +1045,7 @@
 
     renderInventoryList(menuItemsEl);
     renderCompanionsList(menuCompanionsEl);
+    renderBadges();
     openModal("menu-modal");
   }
   document.getElementById("select-btn").addEventListener("click", openMenuModal);
@@ -1066,6 +1100,27 @@
       "<div>HP " + mon.hp + " ・ こうげき " + mon.atk + " ・ ぼうぎょ " + mon.def + " ・ すばやさ " + mon.spd + "</div>" +
       elemLine + evoLine;
     zukanDetailEl.classList.remove("hidden");
+  }
+
+  function renderBadges() {
+    if (!menuBadgesEl) return;
+    menuBadgesEl.innerHTML = "";
+    var got = 0;
+    G.BOSS_ORDER.forEach(function (id) {
+      var mon = G.MONSTERS[id];
+      var reward = G.BOSS_REWARDS[id];
+      var earned = !!state.badges[id];
+      if (earned) got++;
+      var cell = document.createElement("div");
+      cell.className = "badge-cell" + (earned ? "" : " badge-locked");
+      cell.title = earned ? reward.badgeLabel : "？？？";
+      cell.innerHTML = earned
+        ? '<img class="badge-icon" src="' + G.ELEMENT_ICONS[mon.element] + '" alt="' + reward.badgeLabel + '"><div class="badge-cell-name">' + reward.badgeLabel + "</div>"
+        : '<div class="badge-silhouette">?</div><div class="badge-cell-name">？？？</div>';
+      menuBadgesEl.appendChild(cell);
+    });
+    var progressEl = document.getElementById("badge-progress");
+    if (progressEl) progressEl.textContent = got + " / " + G.BOSS_ORDER.length;
   }
 
   function renderZukan() {
