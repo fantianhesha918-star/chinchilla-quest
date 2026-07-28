@@ -916,6 +916,6 @@ body {
   .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item, .zukan-cell, .zukan-detail, .badge-cell { background: #2c2420; }
   .zukan-silhouette, .badge-silhouette { background: #241d18; }
   .hud-bar-track { background: #2c2420; }
-  .tile { background: #241d18; }
-  .tile-ground, .tile-warp, .tile-boss { background: #3a2f26; }
+  .tile { background-color: #241d18; }
+  .tile-ground, .tile-warp, .tile-boss { background-color: #3a2f26; }
 }
