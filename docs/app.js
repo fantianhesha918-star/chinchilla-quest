@@ -172,6 +172,7 @@
   var starterScreen = document.getElementById("starter-screen");
   var fieldScreen = document.getElementById("field-screen");
   var battleScreen = document.getElementById("battle-screen");
+  var battleFieldEl = document.querySelector(".battle-field");
 
   var starterGrayCard = document.getElementById("starter-gray");
   var starterNameInput = document.getElementById("starter-name-input");
@@ -223,6 +224,9 @@
 
   var toastEl = document.getElementById("toast");
   var toastTimer = null;
+  var areaBannerEl = document.getElementById("area-banner");
+  var areaBannerTextEl = document.getElementById("area-banner-text");
+  var areaBannerTimer = null;
 
   var currentSlot = null;
   var state = null;
@@ -239,6 +243,17 @@
     toastEl.classList.remove("hidden");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { toastEl.classList.add("hidden"); }, 2200);
+  }
+  function showAreaBanner(label) {
+    areaBannerTextEl.textContent = label;
+    areaBannerEl.classList.remove("hidden", "show");
+    void areaBannerEl.offsetWidth;
+    areaBannerEl.classList.add("show");
+    clearTimeout(areaBannerTimer);
+    areaBannerTimer = setTimeout(function () {
+      areaBannerEl.classList.add("hidden");
+      areaBannerEl.classList.remove("show");
+    }, 2200);
   }
   function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
   function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
@@ -257,23 +272,39 @@
 
   function tileClass(ch) {
     if (ch === "#") return "tile-wall";
-    if (ch === ",") return "tile-grass";
+    if (ch === "," || ch === "T" || ch === "R") return "tile-grass";
     if (ch === "~") return "tile-water";
     if (ch === "H") return "tile-heal";
     return "tile-ground";
   }
+  var TREE_IMAGES = ["assets/tiles/obstacle_tree1.webp", "assets/tiles/obstacle_tree2.webp"];
+  var ROCK_IMAGES = ["assets/tiles/obstacle_rock1.webp", "assets/tiles/obstacle_rock2.webp"];
+  function obstacleImage(ch, x, y) {
+    var variants = ch === "T" ? TREE_IMAGES : ROCK_IMAGES;
+    return variants[(x * 3 + y * 7) % variants.length];
+  }
 
   var playerEl = null;
   var heroWalkFrame = 0;
+  var mapWorldEl = null;
+  var mapTileSize = 0;
+  var VISIBLE_TILES = 7;
 
   function renderMap() {
     heroWalkFrame = 0;
     var map = currentMap();
     var rows = map.tiles.length, cols = map.tiles[0].length;
     mapViewport.className = "map-viewport map-" + map.id;
-    mapViewport.style.gridTemplateColumns = "repeat(" + cols + ",1fr)";
-    mapViewport.style.gridTemplateRows = "repeat(" + rows + ",1fr)";
-    mapViewport.style.aspectRatio = cols + " / " + rows;
+
+    var viewportWidth = mapViewport.getBoundingClientRect().width || mapViewport.clientWidth;
+    mapTileSize = viewportWidth / VISIBLE_TILES;
+
+    var world = document.createElement("div");
+    world.className = "map-world";
+    world.style.gridTemplateColumns = "repeat(" + cols + "," + mapTileSize + "px)";
+    world.style.gridTemplateRows = "repeat(" + rows + "," + mapTileSize + "px)";
+    world.style.width = (cols * mapTileSize) + "px";
+    world.style.height = (rows * mapTileSize) + "px";
 
     var html = "";
     for (var y = 0; y < rows; y++) {
@@ -290,13 +321,17 @@
         var inner = "";
         if (npc && npc.image) inner = '<img class="tile-npc-mark tile-npc-img" src="' + npc.image + '" alt="' + npc.name + '">';
         else if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
-        else if (isBoss) inner = '<span class="tile-boss-mark">💀</span>';
+        else if (isBoss) {
+          var bossMon = G.MONSTERS[map.bossTrigger.monsterId];
+          inner = '<img class="tile-deco-img tile-boss-img" src="' + bossMon.image + '" alt="' + bossMon.name + '">';
+        }
         else if (warp) {
           var gateImg = warp.toMap === "dungeon" ? "assets/tiles/gate_entrance.webp" : "assets/tiles/gate_exit.webp";
           inner = '<img class="tile-warp-img" src="' + gateImg + '" alt="warp">';
         }
         else if (ch === "H") inner = '<span class="tile-heal-mark">✨</span>';
         else if (chest && !chestOpened) inner = '<img class="tile-chest-img" src="assets/tiles/treasure_chest.webp" alt="たからばこ">';
+        else if (ch === "T" || ch === "R") inner = '<img class="tile-deco-img tile-obstacle-img" src="' + obstacleImage(ch, x, y) + '" alt="">';
         else {
           var deco = decoAtCoord(map, x, y);
           if (deco) inner = '<img class="tile-deco-img" src="' + deco.image + '" alt="">';
@@ -304,23 +339,44 @@
         html += '<div class="' + cls + '">' + inner + "</div>";
       }
     }
-    mapViewport.innerHTML = html;
+    world.innerHTML = html;
 
     playerEl = document.createElement("div");
     playerEl.className = "tile-player";
     playerEl.innerHTML = '<div class="tile-player-inner">' + renderFieldPlayerSprite() + "</div>";
-    mapViewport.appendChild(playerEl);
+    world.appendChild(playerEl);
+
+    mapViewport.innerHTML = "";
+    mapViewport.appendChild(world);
+    mapWorldEl = world;
     positionPlayerSprite(false);
+  }
+
+  function updateCamera() {
+    if (!mapWorldEl) return;
+    var map = currentMap();
+    var rows = map.tiles.length, cols = map.tiles[0].length;
+    var ts = mapTileSize;
+    var vw = mapViewport.clientWidth, vh = mapViewport.clientHeight;
+    var worldW = cols * ts, worldH = rows * ts;
+
+    var camX = (state.x + 0.5) * ts - vw / 2;
+    var camY = (state.y + 0.5) * ts - vh / 2;
+    camX = Math.max(0, Math.min(camX, Math.max(0, worldW - vw)));
+    camY = Math.max(0, Math.min(camY, Math.max(0, worldH - vh)));
+    if (worldW <= vw) camX = -(vw - worldW) / 2;
+    if (worldH <= vh) camY = -(vh - worldH) / 2;
+
+    mapWorldEl.style.transform = "translate(" + (-camX) + "px, " + (-camY) + "px)";
   }
 
   function positionPlayerSprite(animateStep) {
     if (!playerEl) return;
-    var map = currentMap();
-    var rows = map.tiles.length, cols = map.tiles[0].length;
-    playerEl.style.left = (state.x / cols * 100) + "%";
-    playerEl.style.top = (state.y / rows * 100) + "%";
-    playerEl.style.width = (100 / cols) + "%";
-    playerEl.style.height = (100 / rows) + "%";
+    var ts = mapTileSize;
+    playerEl.style.left = (state.x * ts) + "px";
+    playerEl.style.top = (state.y * ts) + "px";
+    playerEl.style.width = ts + "px";
+    playerEl.style.height = ts + "px";
     var inner = playerEl.querySelector(".tile-player-inner");
     if (inner) {
       if (state.stageIndex > 0) {
@@ -337,6 +393,7 @@
       void playerEl.offsetWidth;
       playerEl.classList.add("step-bounce");
     }
+    updateCamera();
   }
 
   function updateHud() {
@@ -376,7 +433,7 @@
     var nx = state.x + d.dx, ny = state.y + d.dy;
     if (!inBounds(map, nx, ny)) return;
     var ch = map.tiles[ny][nx];
-    if (ch === "#" || ch === "~") return;
+    if (ch === "#" || ch === "~" || ch === "T" || ch === "R") return;
     var blockingNpc = npcAtCoord(map, nx, ny);
     if (blockingNpc) { showToast(blockingNpc.name + " が いる。「はなす」で話しかけよう"); return; }
 
@@ -438,7 +495,7 @@
     save(state);
     renderMap();
     updateHud();
-    showToast(G.MAPS[warp.toMap].label + " に着いた");
+    showAreaBanner(G.MAPS[warp.toMap].label);
   }
 
   function handleTalk() {
@@ -503,6 +560,26 @@
     img.className = "battle-elem-effect";
     containerEl.appendChild(img);
     setTimeout(function () { img.remove(); }, 650);
+  }
+
+  function showDamagePopup(containerEl, dmg, crit) {
+    if (!containerEl) return;
+    var el = document.createElement("div");
+    el.className = "dmg-popup" + (crit ? " crit" : "");
+    el.textContent = "-" + dmg;
+    containerEl.appendChild(el);
+    setTimeout(function () { el.remove(); }, 900);
+  }
+
+  function triggerHitEffect(spriteEl, crit) {
+    if (!spriteEl) return;
+    var cls = crit ? "shake-crit" : "shake";
+    spriteEl.classList.add(cls);
+    setTimeout(function () { spriteEl.classList.remove(cls); }, crit ? 500 : 400);
+    if (crit && battleFieldEl) {
+      battleFieldEl.classList.add("field-shake", "crit-flash");
+      setTimeout(function () { battleFieldEl.classList.remove("field-shake", "crit-flash"); }, 500);
+    }
   }
 
   function setBattleMessage(msg) { battleMessageEl.textContent = msg; }
@@ -636,6 +713,8 @@
   function startBattle(monsterId, isBoss) {
     var def = G.MONSTERS[monsterId];
     markDiscovered(monsterId);
+    battleEnemySprite.style.visibility = "";
+    battleEnemySprite.classList.remove("suck-in", "pop-out");
     var party = state.activeParty.map(function (id) {
       var ld = getCompanionLevelData(id);
       var speciesId = currentCompanionSpeciesId(id, ld.level);
@@ -694,8 +773,7 @@
       setBattlerMp(active.idx, active.mp - sk.mp);
       var result = calcDamage(active.atk, sk.power, def.def, sk.element, def.element);
       battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
-      battleEnemySprite.classList.add("shake");
-      setTimeout(function () { battleEnemySprite.classList.remove("shake"); }, 400);
+      triggerHitEffect(battleEnemySprite, result.crit);
       skillElement = sk.element;
       lines.push(active.name + " の " + sk.name + "!");
       if (result.crit) lines.push("会心の一撃!");
@@ -707,6 +785,7 @@
     save(state);
     renderBattle();
     showElementEffect(skillElement, battleEnemySprite);
+    if (result) showDamagePopup(battleEnemySprite, result.dmg, result.crit);
     playSequence(lines, function () {
       if (battle.monsterHp <= 0) { winBattle(); return; }
       enemyTurn();
@@ -753,11 +832,9 @@
     var newHp = Math.max(0, active.hp - result.dmg);
     setBattlerHp(active.idx, newHp);
     renderBattle();
-    if (active.kind === "hero") {
-      battlePlayerSprite.classList.add("shake");
-      setTimeout(function () { battlePlayerSprite.classList.remove("shake"); }, 400);
-    }
+    triggerHitEffect(battlePlayerSprite, result.crit);
     showElementEffect(sk.element, battlePlayerSprite);
+    showDamagePopup(battlePlayerSprite, result.dmg, result.crit);
     var lines = [def.name + " の " + sk.name + "!"];
     if (result.crit) lines.push("会心の一撃!");
     lines.push(active.name + " に " + result.dmg + " の ダメージ!");
@@ -795,6 +872,76 @@
     }
   }
 
+  function playCaptureAnimation(anim, success, onDone) {
+    if (!anim || !battleFieldEl) { onDone(); return; }
+    var fieldRect = battleFieldEl.getBoundingClientRect();
+    var playerRect = battlePlayerSprite.getBoundingClientRect();
+    var enemyRect = battleEnemySprite.getBoundingClientRect();
+    var startX = playerRect.left + playerRect.width / 2 - fieldRect.left;
+    var startY = playerRect.top + playerRect.height / 2 - fieldRect.top;
+    var endX = enemyRect.left + enemyRect.width / 2 - fieldRect.left;
+    var endY = enemyRect.top + enemyRect.height / 2 - fieldRect.top;
+
+    var ball = document.createElement("img");
+    ball.className = "capture-ball-anim";
+    ball.src = anim.fly;
+    ball.style.left = startX + "px";
+    ball.style.top = startY + "px";
+    battleFieldEl.appendChild(ball);
+
+    requestAnimationFrame(function () {
+      ball.classList.add("flying", "spin");
+      ball.style.left = endX + "px";
+      ball.style.top = endY + "px";
+    });
+
+    setTimeout(function () {
+      ball.classList.remove("flying", "spin");
+      battleEnemySprite.classList.add("suck-in");
+      setTimeout(function () {
+        battleEnemySprite.style.visibility = "hidden";
+        battleEnemySprite.classList.remove("suck-in");
+      }, 260);
+      ball.src = anim.squish;
+      ball.classList.add("squish");
+    }, 450);
+
+    setTimeout(function () {
+      ball.classList.remove("squish");
+      var wobbleIdx = 0;
+      function nextWobble() {
+        if (wobbleIdx >= anim.wobble.length) {
+          finish();
+          return;
+        }
+        ball.src = anim.wobble[wobbleIdx];
+        ball.classList.remove("wobble");
+        void ball.offsetWidth;
+        ball.classList.add("wobble");
+        wobbleIdx++;
+        setTimeout(nextWobble, 340);
+      }
+      function finish() {
+        if (success) {
+          ball.src = anim.success;
+          ball.classList.add("success-pop");
+          setTimeout(function () { ball.remove(); onDone(); }, 750);
+        } else {
+          ball.src = anim.fail;
+          ball.classList.add("fail-pop");
+          battleEnemySprite.style.visibility = "";
+          battleEnemySprite.classList.add("pop-out");
+          setTimeout(function () { battleEnemySprite.classList.remove("pop-out"); }, 400);
+          setTimeout(function () {
+            ball.remove();
+            onDone();
+          }, 550);
+        }
+      }
+      nextWobble();
+    }, 700);
+  }
+
   function tryCapture(itemId) {
     if (!battle || battle.locked) return;
     if (battle.isBoss) { showToast("ボスは なかまに できない!"); return; }
@@ -808,22 +955,25 @@
     var hpRatio = battle.monsterHp / battle.monsterMaxHp;
     var baseChance = Math.min(0.9, 0.15 + (1 - hpRatio) * 0.6);
     var chance = item.catchMult === Infinity ? 1 : Math.min(1, baseChance * (item.catchMult || 1) * (def.catchPenalty || 1));
-    var lines = [state.name + " は " + item.name + " を なげた!"];
+    var success = Math.random() < chance;
 
     save(state);
     renderBattle();
+    setBattleMessage(state.name + " は " + item.name + " を なげた!");
 
-    if (Math.random() < chance) {
-      lines.push(def.name + " を なかまに した!");
-      playSequence(lines, function () {
-        state.companions[def.id] = (state.companions[def.id] || 0) + 1;
-        save(state);
-        endBattleToField();
-      });
-    } else {
-      lines.push(def.name + " は とびだして しまった…");
-      playSequence(lines, function () { battle.locked = false; enemyTurn(); });
-    }
+    playCaptureAnimation(item.captureAnim, success, function () {
+      if (success) {
+        setBattleMessage(def.name + " を なかまに した!");
+        setTimeout(function () {
+          state.companions[def.id] = (state.companions[def.id] || 0) + 1;
+          save(state);
+          endBattleToField();
+        }, 900);
+      } else {
+        setBattleMessage(def.name + " は とびだして しまった…");
+        setTimeout(function () { battle.locked = false; enemyTurn(); }, 900);
+      }
+    });
   }
 
   function gainExp(expGain) {

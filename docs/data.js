@@ -382,13 +382,23 @@
   var BOSS_ORDER = ["yougan_golem", "yeti", "oni_ou", "majin_madoushi"];
 
   // ---------------- Items ----------------
+  function ballAnim(prefix) {
+    var base = "assets/capture/capture_" + prefix + "_";
+    return {
+      fly: base + "fly.webp",
+      squish: base + "squish.webp",
+      wobble: [base + "wobble1.webp", base + "wobble2.webp", base + "wobble3.webp"],
+      success: base + "success.webp",
+      fail: base + "fail.webp"
+    };
+  }
   var ITEMS = {
     kizugusuri: { id: "kizugusuri", name: "きずぐすり", desc: "HPを 30 かいふくする", kind: "hp", amount: 30, price: 20, icon: "assets/items/icon_kizugusuri.webp" },
     manashizuku: { id: "manashizuku", name: "マナのしずく", desc: "MPを 15 かいふくする", kind: "mp", amount: 15, price: 25, icon: "assets/items/icon_manashizuku.webp" },
-    nakama_ball: { id: "nakama_ball", name: "チモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.0", kind: "ball", catchMult: 1.0, price: 40, icon: "assets/items/icon_ball_timothy.webp" },
-    super_ball: { id: "super_ball", name: "スーパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.5", kind: "ball", catchMult: 1.5, price: 100, icon: "assets/items/icon_ball_super.webp" },
-    hyper_ball: { id: "hyper_ball", name: "ハイパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×2.0", kind: "ball", catchMult: 2.0, price: 220, icon: "assets/items/icon_ball_hyper.webp" },
-    master_ball: { id: "master_ball", name: "マスターチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) かならず なかまに なる", kind: "ball", catchMult: Infinity, price: 800, icon: "assets/items/icon_ball_master.webp" }
+    nakama_ball: { id: "nakama_ball", name: "チモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.0", kind: "ball", catchMult: 1.0, price: 40, icon: "assets/items/icon_ball_timothy.webp", captureAnim: ballAnim("ball") },
+    super_ball: { id: "super_ball", name: "スーパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.5", kind: "ball", catchMult: 1.5, price: 100, icon: "assets/items/icon_ball_super.webp", captureAnim: ballAnim("super_ball") },
+    hyper_ball: { id: "hyper_ball", name: "ハイパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×2.0", kind: "ball", catchMult: 2.0, price: 220, icon: "assets/items/icon_ball_hyper.webp", captureAnim: ballAnim("hyper_ball") },
+    master_ball: { id: "master_ball", name: "マスターチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) かならず なかまに なる", kind: "ball", catchMult: Infinity, price: 800, icon: "assets/items/icon_ball_master.webp", captureAnim: ballAnim("master_ball") }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
   var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "nakama_ball", "super_ball", "hyper_ball", "master_ball"];
@@ -541,55 +551,64 @@
       id: "village",
       label: "はじまりの村",
       tiles: [
-        "###########",
-        "#.........#",
-        "#.........#",
-        "#.........#",
-        "#..#####..#",
-        "#..#...#..#",
-        "#..#.H.#..#",
-        "#.........#",
-        "#####.#####"
+        "###############",
+        "#.............#",
+        "#.............#",
+        "#.............#",
+        "#....#####....#",
+        "#....#...#....#",
+        "#....#.H.#....#",
+        "#....#...#....#",
+        "#....#####....#",
+        "#.............#",
+        "#.............#",
+        "#.............#",
+        "#######.#######"
       ],
       npcs: [
-        { x: 2, y: 2, name: "村びと", image: "assets/npc/npc_boy.webp", dialogue: ["ようこそ、はじまりの村へ!", "した の ▼ボタンで うごけるよ。", "NPCの そばで「A」ボタンを おすと 会話できるよ。", "村の南に出ると 草むらが あるから 気をつけてね。"] },
-        { x: 8, y: 2, name: "おみせのひと", shop: true, image: "assets/npc/shop_building.webp", dialogue: ["いらっしゃい! きずぐすりや マナのしずくを うってるよ。"] },
-        { x: 3, y: 7, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] },
-        { x: 6, y: 3, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
+        { x: 3, y: 2, name: "村びと", image: "assets/npc/npc_boy.webp", dialogue: ["ようこそ、はじまりの村へ!", "した の ▼ボタンで うごけるよ。", "NPCの そばで「A」ボタンを おすと 会話できるよ。", "村の南に出ると 草むらが あるから 気をつけてね。"] },
+        { x: 11, y: 2, name: "おみせのひと", shop: true, image: "assets/npc/shop_building.webp", dialogue: ["いらっしゃい! きずぐすりや マナのしずくを うってるよ。"] },
+        { x: 3, y: 10, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] },
+        { x: 7, y: 3, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
       ],
-      warps: [{ x: 5, y: 8, toMap: "field", toX: 4, toY: 1 }],
-      decorations: [{ x: 5, y: 1, image: "assets/tiles/deco_well.webp" }],
+      warps: [{ x: 7, y: 12, toMap: "field", toX: 6, toY: 1 }],
+      decorations: [{ x: 3, y: 1, image: "assets/tiles/deco_well.webp" }],
       encounter: null
     },
     field: {
       id: "field",
       label: "しばふの草原",
       tiles: [
-        "####.####",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "####.####"
+        "######.######",
+        "#,,,,,.,,,,,#",
+        "#,T,,,.,,,,R#",
+        "#,,,,,.,,,,,#",
+        "#,,,,..,,,,,#",
+        "#,,,,.,,,,,,#",
+        "#,,R,.,,,T,,#",
+        "#,,,....,,,,#",
+        "#,,,,.,,,,,,#",
+        "#,,,,..,,,,,#",
+        "#,,,,,.,,,,,#",
+        "#,T,,,.,,,R,#",
+        "#,,,,,.,,,,,#",
+        "#,,R,,.,,T,,#",
+        "#,,,,,.,,,,,#",
+        "######.######"
       ],
       npcs: [],
       warps: [
-        { x: 4, y: 0, toMap: "village", toX: 5, toY: 7 },
-        { x: 4, y: 10, toMap: "dungeon", toX: 4, toY: 1 }
+        { x: 6, y: 0, toMap: "village", toX: 7, toY: 11 },
+        { x: 6, y: 15, toMap: "dungeon", toX: 6, toY: 1 }
       ],
       chests: [
-        { id: "field_chest_1", x: 2, y: 5, reward: { type: "money", amount: 30 } }
+        { id: "field_chest_1", x: 4, y: 7, reward: { type: "money", amount: 30 } }
       ],
       decorations: [
-        { x: 1, y: 2, image: "assets/tiles/deco_flowerbush.webp" },
-        { x: 6, y: 3, image: "assets/tiles/deco_flowerbush.webp" },
-        { x: 2, y: 8, image: "assets/tiles/deco_flowerbush.webp" },
-        { x: 6, y: 7, image: "assets/tiles/deco_flowerbush.webp" }
+        { x: 2, y: 3, image: "assets/tiles/deco_flowerbush_white.webp" },
+        { x: 9, y: 5, image: "assets/tiles/deco_flowerbush_orange.webp" },
+        { x: 2, y: 12, image: "assets/tiles/deco_flowerbush.webp" },
+        { x: 9, y: 10, image: "assets/tiles/deco_stump.webp" }
       ],
       encounter: {
         rate: 0.14,
@@ -604,30 +623,37 @@
       id: "dungeon",
       label: "コケむした洞窟",
       tiles: [
-        "####.####",
-        "#,,,,,,,#",
-        "#,,,#,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,#,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#...B...#",
-        "#########"
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,,,#,,,#,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,#,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,#,,,#,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,#,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,#,,,#,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,#,,,,,#",
+        "#,,,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,B,,#,,#",
+        "#,,#######,,#"
       ],
       npcs: [],
       warps: [
-        { x: 4, y: 0, toMap: "field", toX: 4, toY: 9 },
-        { x: 4, y: 11, toMap: "iceridge", toX: 4, toY: 1 }
+        { x: 6, y: 0, toMap: "field", toX: 6, toY: 14 },
+        { x: 6, y: 18, toMap: "iceridge", toX: 6, toY: 1 }
       ],
       chests: [
-        { id: "dungeon_chest_1", x: 6, y: 6, reward: { type: "item", itemId: "kizugusuri", amount: 2 } },
-        { id: "dungeon_chest_2", x: 1, y: 9, reward: { type: "item", itemId: "manashizuku", amount: 2 } }
+        { id: "dungeon_chest_1", x: 3, y: 4, reward: { type: "item", itemId: "kizugusuri", amount: 2 } },
+        { id: "dungeon_chest_2", x: 9, y: 10, reward: { type: "item", itemId: "manashizuku", amount: 2 } }
       ],
-      bossTrigger: { x: 4, y: 11, monsterId: "yougan_golem" },
+      bossTrigger: { x: 6, y: 18, monsterId: "yougan_golem" },
       encounter: {
         rate: 0.16,
         table: [
@@ -641,22 +667,26 @@
       id: "iceridge",
       label: "こおりの尾根",
       tiles: [
-        "####.####",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#...Y...#",
-        "#########"
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,R,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,Y,,#,,#",
+        "#,,#######,,#"
       ],
       npcs: [],
       warps: [
-        { x: 4, y: 0, toMap: "dungeon", toX: 4, toY: 10 },
-        { x: 4, y: 7, toMap: "wasteland", toX: 4, toY: 1 }
+        { x: 6, y: 0, toMap: "dungeon", toX: 6, toY: 17 },
+        { x: 6, y: 11, toMap: "wasteland", toX: 6, toY: 1 }
       ],
-      bossTrigger: { x: 4, y: 7, monsterId: "yeti" },
+      bossTrigger: { x: 6, y: 11, monsterId: "yeti" },
       encounter: {
         rate: 0.16,
         table: [
@@ -669,22 +699,26 @@
       id: "wasteland",
       label: "たそがれの荒野",
       tiles: [
-        "####.####",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#...O...#",
-        "#########"
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,R,,,,,T,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,T,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,O,,#,,#",
+        "#,,#######,,#"
       ],
       npcs: [],
       warps: [
-        { x: 4, y: 0, toMap: "iceridge", toX: 4, toY: 6 },
-        { x: 4, y: 7, toMap: "madoushi_tower", toX: 4, toY: 1 }
+        { x: 6, y: 0, toMap: "iceridge", toX: 6, toY: 10 },
+        { x: 6, y: 11, toMap: "madoushi_tower", toX: 6, toY: 1 }
       ],
-      bossTrigger: { x: 4, y: 7, monsterId: "oni_ou" },
+      bossTrigger: { x: 6, y: 11, monsterId: "oni_ou" },
       encounter: {
         rate: 0.16,
         table: [
@@ -697,22 +731,26 @@
       id: "madoushi_tower",
       label: "だいまどうしの塔",
       tiles: [
-        "####.####",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#...M...#",
-        "#########"
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,,R,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,T,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,R,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,M,,#,,#",
+        "#,,#######,,#"
       ],
       npcs: [],
       warps: [
-        { x: 4, y: 0, toMap: "wasteland", toX: 4, toY: 6 },
-        { x: 4, y: 7, toMap: "reizon", toX: 4, toY: 1 }
+        { x: 6, y: 0, toMap: "wasteland", toX: 6, toY: 10 },
+        { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
       ],
-      bossTrigger: { x: 4, y: 7, monsterId: "majin_madoushi" },
+      bossTrigger: { x: 6, y: 11, monsterId: "majin_madoushi" },
       encounter: {
         rate: 0.16,
         table: [
@@ -726,18 +764,22 @@
       id: "reizon",
       label: "奥津宮の霊域",
       tiles: [
-        "#########",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "#,,,,,,,#",
-        "####.####",
-        "#########"
+        "#############",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,R,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,R,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "######.######",
+        "#############"
       ],
       npcs: [],
-      warps: [{ x: 4, y: 7, toMap: "madoushi_tower", toX: 4, toY: 6 }],
+      warps: [{ x: 6, y: 11, toMap: "madoushi_tower", toX: 6, toY: 10 }],
       encounter: {
         rate: 0.2,
         table: [
@@ -759,7 +801,7 @@
   };
 
   var START_MAP = "village";
-  var START_X = 5;
+  var START_X = 7;
   var START_Y = 1;
 
   window.GAME_DATA = {
