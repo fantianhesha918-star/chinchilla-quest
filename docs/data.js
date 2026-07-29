@@ -56,7 +56,7 @@
   }
 
   function expToNext(level) {
-    var base = Math.round(14 * Math.pow(level, 1.5)) + 8;
+    var base = Math.round(10 * Math.pow(level, 1.5)) + 8;
     var earlyDiscount = Math.max(0, 24 - level * 2.5);
     return Math.max(8, Math.round(base - earlyDiscount));
   }
@@ -101,6 +101,14 @@
     yeti_blizzard: { id: "yeti_blizzard", name: "ブリザードファング", power: 60, mp: 12, desc: "こおりの きばで きりさく", element: "water" },
     oni_smash: { id: "oni_smash", name: "おにのだいかいてん", power: 64, mp: 13, desc: "だいちを ゆるがす だいかいてん", element: "earth" },
     madoushi_curse: { id: "madoushi_curse", name: "だいまどうのじゅそ", power: 68, mp: 14, desc: "おそろしい じゅそを かける", element: "magic" },
+    akuma_claw: { id: "akuma_claw", name: "あんこくのつめ", power: 72, mp: 15, desc: "やみの つめで ひきさく", element: "dark" },
+    dragon_thunder: { id: "dragon_thunder", name: "らいめいのつめ", power: 74, mp: 15, desc: "いなずまを まとった つめで ひきさく", element: "thunder" },
+    mahitotsu_smash: { id: "mahitotsu_smash", name: "だいちのてっけん", power: 78, mp: 16, desc: "だいちを ふるわせる てっけん", element: "beast" },
+    yurei_ou_curse: { id: "yurei_ou_curse", name: "しのちょうふく", power: 82, mp: 16, desc: "たましいを こおりつかせる のろい", element: "dark" },
+    shitennou_yougan_blast: { id: "shitennou_yougan_blast", name: "だいばくはつ", power: 84, mp: 17, desc: "ようがんが だいばくはつする", element: "fire" },
+    shitennou_yeti_zero: { id: "shitennou_yeti_zero", name: "ぜったいれいど", power: 86, mp: 17, desc: "すべてを こおりつかせる", element: "water" },
+    shitennou_oni_split: { id: "shitennou_oni_split", name: "だいちわり", power: 89, mp: 18, desc: "だいちを まっぷたつに わる", element: "earth" },
+    shitennou_madoushi_ultima: { id: "shitennou_madoushi_ultima", name: "げんかいじゅもん", power: 92, mp: 18, desc: "げんかいを こえた だいじゅもん", element: "magic" },
 
     // ---- なかま用 汎用属性わざ(旧: ほのお/こおり。こおりはみず属性に統合) ----
     flame_burst: { id: "flame_burst", name: "ほのおのつぶて", power: 22, mp: 3, learnLevel: 5, desc: "ほのおの たまを なげつける", element: "fire" },
@@ -377,9 +385,21 @@
     yougan_golem: { skillId: "yougan_crush", badgeLabel: "ようがんのバッジ", statBonus: { maxHp: 10 } },
     yeti: { skillId: "yeti_blizzard", badgeLabel: "こおりのバッジ", statBonus: { maxMp: 8, def: 3 } },
     oni_ou: { skillId: "oni_smash", badgeLabel: "だいちのバッジ", statBonus: { atk: 5 } },
-    majin_madoushi: { skillId: "madoushi_curse", badgeLabel: "まほうのバッジ", statBonus: { maxMp: 10, spd: 3 } }
+    majin_madoushi: { skillId: "madoushi_curse", badgeLabel: "まほうのバッジ", statBonus: { maxMp: 10, spd: 3 } },
+    akuma: { skillId: "akuma_claw", badgeLabel: "あくまのバッジ", statBonus: { maxHp: 15, def: 5 } },
+    dragon: { skillId: "dragon_thunder", badgeLabel: "りゅうのバッジ", statBonus: { atk: 6 } },
+    mahitotsu_ou: { skillId: "mahitotsu_smash", badgeLabel: "まひとつめのバッジ", statBonus: { maxHp: 12, def: 4 } },
+    yurei_ou: { skillId: "yurei_ou_curse", badgeLabel: "ゆうれいおうのバッジ", statBonus: { spd: 6, atk: 4 } },
+    shitennou_yougan: { skillId: "shitennou_yougan_blast", badgeLabel: "してんのう・えんのバッジ", statBonus: { maxHp: 15 } },
+    shitennou_yeti: { skillId: "shitennou_yeti_zero", badgeLabel: "してんのう・ひょうのバッジ", statBonus: { maxMp: 12, def: 4 } },
+    shitennou_oni: { skillId: "shitennou_oni_split", badgeLabel: "してんのう・ちのバッジ", statBonus: { atk: 8 } },
+    shitennou_madoushi: { skillId: "shitennou_madoushi_ultima", badgeLabel: "してんのう・まのバッジ", statBonus: { maxMp: 15, spd: 5 } }
   };
-  var BOSS_ORDER = ["yougan_golem", "yeti", "oni_ou", "majin_madoushi"];
+  var BOSS_ORDER = [
+    "yougan_golem", "yeti", "oni_ou", "majin_madoushi", "akuma",
+    "dragon", "mahitotsu_ou", "yurei_ou",
+    "shitennou_yougan", "shitennou_yeti", "shitennou_oni", "shitennou_madoushi"
+  ];
 
   // ---------------- Items ----------------
   function ballAnim(prefix) {
@@ -468,6 +488,18 @@
     yeti: { id: "yeti", name: "ゆきおとこ", level: 21, hp: 175, atk: 42, def: 26, spd: 18, exp: 175, money: 130, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "yeti.webp", element: "water" },
     oni_ou: { id: "oni_ou", name: "おにおう", level: 25, hp: 205, atk: 50, def: 31, spd: 20, exp: 210, money: 160, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "oni_ou.webp", element: "earth" },
     majin_madoushi: { id: "majin_madoushi", name: "まじんまどうし", level: 28, hp: 228, atk: 56, def: 34, spd: 24, exp: 245, money: 190, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "majin_madoushi.webp", element: "magic" },
+    akuma: { id: "akuma", name: "あくま", level: 32, hp: 258, atk: 63, def: 39, spd: 26, exp: 290, money: 220, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "akuma.webp", element: "dark" },
+
+    // ---- 村からの三方向(北/西/東)の signature boss ----
+    dragon: { id: "dragon", name: "ドラゴン", level: 34, hp: 280, atk: 68, def: 42, spd: 29, exp: 310, money: 235, skillIds: ["tackle", "sandkick", "headbutt"], isBoss: true, image: MON_DIR + "dragon.webp", element: "thunder" },
+    mahitotsu_ou: { id: "mahitotsu_ou", name: "まひとつ目王", level: 38, hp: 315, atk: 76, def: 46, spd: 31, exp: 345, money: 260, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], isBoss: true, image: MON_DIR + "mahitotsu_ou.webp", element: "beast" },
+    yurei_ou: { id: "yurei_ou", name: "幽霊王", level: 42, hp: 350, atk: 84, def: 50, spd: 34, exp: 380, money: 290, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], isBoss: true, image: MON_DIR + "yurei_ou.webp", element: "dark" },
+
+    // ---- 四天王(既存ボス4体のリベンジ版。同じイラストを再利用し別idで強化) ----
+    shitennou_yougan: { id: "shitennou_yougan", name: "してんのう・ようがんゴーレム", level: 45, hp: 380, atk: 90, def: 55, spd: 35, exp: 420, money: 320, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], isBoss: true, image: MON_DIR + "yougan_golem.webp", element: "fire" },
+    shitennou_yeti: { id: "shitennou_yeti", name: "してんのう・ゆきおとこ", level: 47, hp: 400, atk: 94, def: 58, spd: 37, exp: 440, money: 335, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], isBoss: true, image: MON_DIR + "yeti.webp", element: "water" },
+    shitennou_oni: { id: "shitennou_oni", name: "してんのう・おにおう", level: 49, hp: 420, atk: 99, def: 61, spd: 39, exp: 460, money: 350, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], isBoss: true, image: MON_DIR + "oni_ou.webp", element: "earth" },
+    shitennou_madoushi: { id: "shitennou_madoushi", name: "してんのう・まじんまどうし", level: 52, hp: 450, atk: 106, def: 65, spd: 42, exp: 490, money: 375, skillIds: ["tackle", "sandkick", "headbutt", "renzoku"], isBoss: true, image: MON_DIR + "majin_madoushi.webp", element: "magic" },
 
     // ---- 隠しエリア「奥津宮の霊域」上位ティア(ボス撃破後に解放、なかまボールで捕獲可・成功率は catchPenalty で低下) ----
     kodai_kyubi: { id: "kodai_kyubi", name: "九尾の霊狐", level: 27, hp: 234, atk: 71, def: 58, spd: 42, exp: 116, money: 84, skillIds: ["tackle", "sandkick"], image: MON_DIR + "kodai_kyubi.webp", element: "fire", catchPenalty: 0.6 },
@@ -535,7 +567,8 @@
     "mira_otoko", "mira_otoko_2",
     "shokujinsou", "shokujinsou_2",
     "hone_kihei", "hone_kihei_2",
-    "yougan_golem", "yeti", "oni_ou", "majin_madoushi",
+    "yougan_golem", "yeti", "oni_ou", "majin_madoushi", "akuma",
+    "dragon", "mahitotsu_ou", "yurei_ou",
     "kodai_kyubi", "kodai_oni", "kodai_tengu", "kodai_yukionna", "kodai_gashadokuro", "kodai_biwanushi",
     "kodai_hitotsume", "kodai_kappabouzu", "kodai_sakedanuki", "kodai_kitsunemen", "kodai_bakeneko", "kodai_karakasa",
     "shinju_reishishi", "shinju_kamezan", "shinju_unicorn", "shinju_griffon", "shinju_kimaira",
@@ -551,13 +584,13 @@
       id: "village",
       label: "はじまりの村",
       tiles: [
-        "###############",
+        "#######.#######",
         "#.............#",
         "#.............#",
         "#.............#",
         "#....#####....#",
         "#....#...#....#",
-        "#....#.H.#....#",
+        ".....#.H.#.....",
         "#....#...#....#",
         "#.............#",
         "#.............#",
@@ -572,6 +605,11 @@
         { x: 7, y: 3, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
       ],
       warps: [{ x: 7, y: 12, toMap: "field", toX: 6, toY: 1 }],
+      gatedExits: [
+        { x: 7, y: 0, requires: "akuma", toMap: "north_path", toX: 6, toY: 1 },
+        { x: 0, y: 6, requires: "dragon", toMap: "west_path", toX: 6, toY: 1 },
+        { x: 14, y: 6, requires: "mahitotsu_ou", toMap: "east_path", toX: 6, toY: 1 }
+      ],
       decorations: [{ x: 3, y: 1, image: "assets/tiles/deco_well.webp" }],
       encounter: null
     },
@@ -751,7 +789,7 @@
       npcs: [],
       warps: [
         { x: 6, y: 0, toMap: "wasteland", toX: 6, toY: 10 },
-        { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
+        { x: 6, y: 11, toMap: "ma_corridor", toX: 6, toY: 1 }
       ],
       bossTrigger: { x: 6, y: 11, monsterId: "majin_madoushi" },
       encounter: {
@@ -763,11 +801,43 @@
         ]
       }
     },
+    ma_corridor: {
+      id: "ma_corridor",
+      label: "魔の回廊",
+      tiles: [
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,R,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,B,,#,,#",
+        "#,,#######,,#"
+      ],
+      npcs: [],
+      warps: [
+        { x: 6, y: 0, toMap: "madoushi_tower", toX: 6, toY: 10 },
+        { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
+      ],
+      bossTrigger: { x: 6, y: 11, monsterId: "akuma" },
+      encounter: {
+        rate: 0.17,
+        table: [
+          { id: "jinrou_2", weight: 3 }, { id: "ankoku_madoushi_2", weight: 3 },
+          { id: "mira_otoko_2", weight: 2 }, { id: "sarekoube_2", weight: 2 }
+        ]
+      }
+    },
     reizon: {
       id: "reizon",
       label: "奥津宮の霊域",
       tiles: [
-        "#############",
+        "######.######",
         "#,,,,,,,,,,,#",
         "#,,,,,,,,,,,#",
         "#,,R,,,,,R,,#",
@@ -782,7 +852,10 @@
         "#############"
       ],
       npcs: [],
-      warps: [{ x: 6, y: 11, toMap: "madoushi_tower", toX: 6, toY: 10 }],
+      warps: [{ x: 6, y: 11, toMap: "ma_corridor", toX: 6, toY: 10 }],
+      gatedExits: [
+        { x: 6, y: 0, requires: "yurei_ou", toMap: "shitennou_hall", toX: 6, toY: 1 }
+      ],
       encounter: {
         rate: 0.2,
         table: [
@@ -800,6 +873,133 @@
           { id: "kami_ryokuya", weight: 0.3 }, { id: "kami_kouyoku", weight: 0.3 }
         ]
       }
+    },
+    north_path: {
+      id: "north_path",
+      label: "きたの獣道",
+      tiles: [
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,R,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,B,,#,,#",
+        "#,,#######,,#"
+      ],
+      npcs: [],
+      warps: [{ x: 6, y: 0, toMap: "village", toX: 7, toY: 1 }],
+      bossTriggers: [
+        { x: 4, y: 8, monsterId: "iwa_golem_2" },
+        { x: 6, y: 11, monsterId: "dragon" }
+      ],
+      encounter: {
+        rate: 0.17,
+        table: [
+          { id: "aodori_3", weight: 3 }, { id: "slime_3", weight: 3 },
+          { id: "komori_3", weight: 2 }, { id: "koyurei_3", weight: 2 }
+        ]
+      }
+    },
+    west_path: {
+      id: "west_path",
+      label: "にしの荒れ地",
+      tiles: [
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,R,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,B,,#,,#",
+        "#,,#######,,#"
+      ],
+      npcs: [],
+      warps: [{ x: 6, y: 0, toMap: "village", toX: 1, toY: 6 }],
+      bossTriggers: [
+        { x: 4, y: 8, monsterId: "hone_kihei_2" },
+        { x: 6, y: 11, monsterId: "mahitotsu_ou" }
+      ],
+      encounter: {
+        rate: 0.17,
+        table: [
+          { id: "mogura_3", weight: 3 }, { id: "orc_2", weight: 3 },
+          { id: "hinotama_3", weight: 2 }, { id: "hone_kenshi_3", weight: 2 }
+        ]
+      }
+    },
+    east_path: {
+      id: "east_path",
+      label: "ひがしの霧の森",
+      tiles: [
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,R,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,R,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,T,,,,,,,,,#",
+        "####.########",
+        "#,,,...,,,,,#",
+        "#,,#,,,,,#,,#",
+        "#,,#,,B,,#,,#",
+        "#,,#######,,#"
+      ],
+      npcs: [],
+      warps: [{ x: 6, y: 0, toMap: "village", toX: 13, toY: 6 }],
+      bossTriggers: [
+        { x: 4, y: 8, monsterId: "ankoku_kishi_2" },
+        { x: 6, y: 11, monsterId: "yurei_ou" }
+      ],
+      encounter: {
+        rate: 0.17,
+        table: [
+          { id: "dokukinoko_3", weight: 3 }, { id: "saboten_3", weight: 3 },
+          { id: "shokujinsou_2", weight: 2 }
+        ]
+      }
+    },
+    shitennou_hall: {
+      id: "shitennou_hall",
+      label: "してんのうの間",
+      tiles: [
+        "######.######",
+        "######.######",
+        "#####...#####",
+        "######.######",
+        "######.######",
+        "#####...#####",
+        "######.######",
+        "######.######",
+        "#####...#####",
+        "######.######",
+        "######.######",
+        "#####...#####",
+        "######.######"
+      ],
+      npcs: [],
+      warps: [{ x: 6, y: 0, toMap: "reizon", toX: 6, toY: 1 }],
+      bossTriggers: [
+        { x: 6, y: 2, monsterId: "shitennou_yougan" },
+        { x: 6, y: 5, monsterId: "shitennou_yeti" },
+        { x: 6, y: 8, monsterId: "shitennou_oni" },
+        { x: 6, y: 11, monsterId: "shitennou_madoushi" }
+      ],
+      chests: [
+        { id: "shitennou_chest_1", x: 6, y: 12, reward: { type: "money", amount: 500 } }
+      ],
+      encounter: null
     }
   };
 

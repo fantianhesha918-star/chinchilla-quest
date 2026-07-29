@@ -269,6 +269,17 @@
   function chestAtCoord(map, x, y) { return (map.chests || []).filter(function (c) { return c.x === x && c.y === y; })[0] || null; }
   function decoAtCoord(map, x, y) { return (map.decorations || []).filter(function (d) { return d.x === x && d.y === y; })[0] || null; }
   function isChestOpened(chest) { return state.flags.openedChests.indexOf(chest.id) !== -1; }
+  function gatedExitAtCoord(map, x, y) { return (map.gatedExits || []).filter(function (g) { return g.x === x && g.y === y; })[0] || null; }
+  function isGateLocked(gate) { return !state.defeatedBosses[gate.requires]; }
+  function activeBossTriggerAt(map, x, y) {
+    var triggers = map.bossTriggers ? map.bossTriggers.slice() : [];
+    if (map.bossTrigger) triggers.push(map.bossTrigger);
+    for (var i = 0; i < triggers.length; i++) {
+      var t = triggers[i];
+      if (t.x === x && t.y === y && !state.defeatedBosses[t.monsterId]) return t;
+    }
+    return null;
+  }
 
   function tileClass(ch) {
     if (ch === "#") return "tile-wall";
@@ -312,8 +323,12 @@
         var ch = map.tiles[y][x];
         var cls = "tile " + tileClass(ch);
         var warp = warpAtCoord(map, x, y);
-        var isBoss = !!(map.bossTrigger && map.bossTrigger.x === x && map.bossTrigger.y === y && !state.defeatedBosses[map.bossTrigger.monsterId]);
-        if (warp) cls += " tile-warp";
+        var activeBoss = activeBossTriggerAt(map, x, y);
+        var isBoss = !!activeBoss;
+        var gatedExit = gatedExitAtCoord(map, x, y);
+        var gateLocked = gatedExit && isGateLocked(gatedExit);
+        if (gatedExit) cls = "tile " + (gateLocked ? "tile-wall" : "tile-grass tile-warp");
+        else if (warp) cls += " tile-warp";
         if (isBoss) cls += " tile-boss";
         var npc = npcAtCoord(map, x, y);
         var chest = chestAtCoord(map, x, y);
@@ -322,8 +337,13 @@
         if (npc && npc.image) inner = '<img class="tile-npc-mark tile-npc-img" src="' + npc.image + '" alt="' + npc.name + '">';
         else if (npc) inner = '<span class="tile-npc-mark' + (npc.shop ? " tile-npc-shop" : "") + '">' + (npc.shop ? "🛍️" : "🧑") + "</span>";
         else if (isBoss) {
-          var bossMon = G.MONSTERS[map.bossTrigger.monsterId];
+          var bossMon = G.MONSTERS[activeBoss.monsterId];
           inner = '<img class="tile-deco-img tile-boss-img" src="' + bossMon.image + '" alt="' + bossMon.name + '">';
+        }
+        else if (gatedExit) {
+          inner = gateLocked
+            ? '<img class="tile-deco-img tile-obstacle-img" src="assets/tiles/obstacle_rock1.webp" alt="ふさがれた道">'
+            : '<img class="tile-warp-img" src="assets/tiles/gate_exit.webp" alt="warp">';
         }
         else if (warp) {
           var gateImg = warp.toMap === "dungeon" ? "assets/tiles/gate_entrance.webp" : "assets/tiles/gate_exit.webp";
@@ -436,6 +456,8 @@
     if (ch === "#" || ch === "~" || ch === "T" || ch === "R") return;
     var blockingNpc = npcAtCoord(map, nx, ny);
     if (blockingNpc) { showToast(blockingNpc.name + " が いる。「はなす」で話しかけよう"); return; }
+    var gatedExit = gatedExitAtCoord(map, nx, ny);
+    if (gatedExit && isGateLocked(gatedExit)) { showToast("大きな岩が 道を ふさいでいる…"); return; }
 
     state.x = nx; state.y = ny;
     heroWalkFrame += 1;
@@ -477,10 +499,12 @@
       renderMap();
     }
 
-    if (map.bossTrigger && map.bossTrigger.x === nx && map.bossTrigger.y === ny && !state.defeatedBosses[map.bossTrigger.monsterId]) {
-      startBattle(map.bossTrigger.monsterId, true);
+    var activeBoss = activeBossTriggerAt(map, nx, ny);
+    if (activeBoss) {
+      startBattle(activeBoss.monsterId, true);
       return;
     }
+    if (gatedExit) { doWarp(gatedExit); return; }
     var warp = warpAtCoord(map, nx, ny);
     if (warp) { doWarp(warp); return; }
 
