@@ -438,12 +438,17 @@ body {
   position: relative;
   width: 100%;
   background: linear-gradient(180deg, #fdf3e7 0%, #f3e3d3 100%);
+  background-size: cover;
+  background-position: center;
   border-radius: 20px;
   box-shadow: var(--shadow) inset;
   padding: 14px;
   min-height: 66vh;
   overflow: hidden;
 }
+.battle-field.bg-grass { background-image: url("assets/battlefields/battle_grass.webp"); }
+.battle-field.bg-cave { background-image: url("assets/battlefields/battle_cave.webp"); }
+.battle-field.bg-snow { background-image: url("assets/battlefields/battle_snow.webp"); }
 
 .battle-enemy-area, .battle-player-area {
   position: absolute;
@@ -454,14 +459,18 @@ body {
 .battle-enemy-area { top: 14px; right: 14px; align-items: flex-end; text-align: right; }
 .battle-player-area { bottom: 14px; left: 14px; align-items: flex-start; text-align: left; }
 
-.battle-name-tag { font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+.battle-name-tag { font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 3px rgba(255,255,255,0.85), 0 0 6px rgba(255,255,255,0.6); }
 .battle-hpbar, .battle-mpbar { width: 140px; height: 16px; }
 .battle-expbar { width: 140px; height: 6px; }
 .battle-exp-caption { font-size: 0.6rem; color: var(--ink-soft); margin-top: 1px; }
 
-.battle-sprite { width: 40vw; height: 40vw; max-width: 190px; max-height: 190px; position: relative; }
-.enemy-sprite { align-self: flex-end; }
+.battle-sprite { width: 40vw; height: 40vw; max-width: 190px; max-height: 190px; position: relative; animation: sprite-idle-bob 2.2s ease-in-out infinite; }
+.enemy-sprite { align-self: flex-end; animation-delay: -1.1s; }
 .player-sprite { align-self: flex-start; }
+@keyframes sprite-idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
 .battle-sprite.shake { animation: battle-shake 0.4s ease; }
 @keyframes battle-shake {
   0%, 100% { transform: translateX(0); }
@@ -476,7 +485,7 @@ body {
   55% { transform: translate(-9px, 1px) rotate(-2deg); }
   75% { transform: translate(6px, 0) rotate(1deg); }
 }
-.battle-sprite.faint { opacity: 0.15; transform: translateY(20px); transition: all 0.4s ease; }
+.battle-sprite.faint { animation: none; opacity: 0.15; transform: translateY(20px); transition: all 0.4s ease; }
 
 .battle-sprite.suck-in { animation: capture-suck-in 0.26s ease-in forwards; }
 @keyframes capture-suck-in {

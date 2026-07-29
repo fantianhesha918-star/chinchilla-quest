@@ -735,6 +735,9 @@
     }
     battle = { monsterId: monsterId, monsterHp: def.hp, monsterMaxHp: def.hp, isBoss: !!isBoss, locked: false, party: party, activeIdx: pickInitialActiveIdx(party) };
     battleActive = true;
+    battleFieldEl.classList.remove("bg-grass", "bg-cave", "bg-snow");
+    var battleBg = currentMap().battleBg;
+    if (battleBg) battleFieldEl.classList.add("bg-" + battleBg);
     runBtn.disabled = !!isBoss;
     fieldScreen.classList.add("hidden");
     battleScreen.classList.remove("hidden");

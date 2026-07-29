@@ -578,6 +578,7 @@
     field: {
       id: "field",
       label: "しばふの草原",
+      battleBg: "grass",
       tiles: [
         "######.######",
         "#,,,,,.,,,,,#",
@@ -622,6 +623,7 @@
     dungeon: {
       id: "dungeon",
       label: "コケむした洞窟",
+      battleBg: "cave",
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
@@ -666,6 +668,7 @@
     iceridge: {
       id: "iceridge",
       label: "こおりの尾根",
+      battleBg: "snow",
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
