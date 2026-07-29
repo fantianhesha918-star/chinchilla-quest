@@ -473,19 +473,54 @@ body {
 }
 .battle-sprite.shake { animation: battle-shake 0.4s ease; }
 @keyframes battle-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  10% { filter: brightness(2.2); }
+  25% { transform: translateX(-8px); filter: brightness(1); }
   75% { transform: translateX(8px); }
 }
 .battle-sprite.shake-crit { animation: battle-shake-crit 0.5s ease; }
 @keyframes battle-shake-crit {
-  0%, 100% { transform: translate(0, 0) rotate(0); }
-  15% { transform: translate(-14px, 2px) rotate(-4deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0); filter: brightness(1); }
+  10% { filter: brightness(2.6); }
+  15% { transform: translate(-14px, 2px) rotate(-4deg); filter: brightness(1); }
   35% { transform: translate(12px, -2px) rotate(3deg); }
   55% { transform: translate(-9px, 1px) rotate(-2deg); }
   75% { transform: translate(6px, 0) rotate(1deg); }
 }
 .battle-sprite.faint { animation: none; opacity: 0.15; transform: translateY(20px); transition: all 0.4s ease; }
+
+.player-sprite.attack-lunge { animation: attack-lunge-player 0.36s cubic-bezier(.3,.6,.4,1); }
+@keyframes attack-lunge-player {
+  0% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(20px, -16px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.enemy-sprite.attack-lunge { animation: attack-lunge-enemy 0.36s cubic-bezier(.3,.6,.4,1); }
+@keyframes attack-lunge-enemy {
+  0% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(-20px, 16px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.atk-projectile {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  transform: translate(-50%, -50%) scale(0.5);
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0.5;
+}
+.atk-projectile.flying {
+  transition: left 0.32s cubic-bezier(.4,.1,.4,1), top 0.32s cubic-bezier(.4,.1,.4,1);
+  animation: projectile-approach 0.32s linear forwards;
+}
+@keyframes projectile-approach {
+  0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 0.5; }
+  20% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.2) rotate(220deg); opacity: 1; }
+}
 
 .battle-sprite.suck-in { animation: capture-suck-in 0.26s ease-in forwards; }
 @keyframes capture-suck-in {
@@ -501,11 +536,11 @@ body {
 
 .battle-field.field-shake { animation: field-shake 0.5s ease; }
 @keyframes field-shake {
-  0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(-6px, 3px); }
-  40% { transform: translate(5px, -3px); }
-  60% { transform: translate(-4px, 2px); }
-  80% { transform: translate(3px, -1px); }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  15% { transform: translate(-6px, 3px) scale(1.035); }
+  40% { transform: translate(5px, -3px) scale(1.02); }
+  60% { transform: translate(-4px, 2px) scale(1.01); }
+  80% { transform: translate(3px, -1px) scale(1); }
 }
 .battle-field.crit-flash::after {
   content: "";

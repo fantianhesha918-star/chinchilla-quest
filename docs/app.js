@@ -623,6 +623,56 @@
     }
   }
 
+  // 無属性(体当たり系)の技は踏み込みモーションのみ。着弾処理(onImpact)は踏み込みのピークで呼ぶ。
+  function playAttackAnim(attackerEl, onImpact) {
+    if (!attackerEl) { onImpact(); return; }
+    attackerEl.classList.add("attack-lunge");
+    setTimeout(function () {
+      onImpact();
+      setTimeout(function () { attackerEl.classList.remove("attack-lunge"); }, 160);
+    }, 180);
+  }
+
+  // 属性ありの技は、その属性のエフェクト画像を弾として相手に向かって飛ばし、着弾した瞬間に onImpact を呼ぶ。
+  function playProjectileAnim(attackerEl, defenderEl, element, onImpact) {
+    var src = element && G.ELEMENT_EFFECTS[element];
+    if (!src || !battleFieldEl || !attackerEl || !defenderEl) { onImpact(); return; }
+    var fieldRect = battleFieldEl.getBoundingClientRect();
+    var startRect = attackerEl.getBoundingClientRect();
+    var endRect = defenderEl.getBoundingClientRect();
+    var startX = startRect.left + startRect.width / 2 - fieldRect.left;
+    var startY = startRect.top + startRect.height / 2 - fieldRect.top;
+    var endX = endRect.left + endRect.width / 2 - fieldRect.left;
+    var endY = endRect.top + endRect.height / 2 - fieldRect.top;
+
+    var proj = document.createElement("img");
+    proj.className = "atk-projectile";
+    proj.src = src;
+    proj.style.left = startX + "px";
+    proj.style.top = startY + "px";
+    battleFieldEl.appendChild(proj);
+
+    requestAnimationFrame(function () {
+      proj.classList.add("flying");
+      proj.style.left = endX + "px";
+      proj.style.top = endY + "px";
+    });
+
+    setTimeout(function () {
+      proj.remove();
+      onImpact();
+    }, 320);
+  }
+
+  // 技の属性の有無で「踏み込み」か「弾が飛んでいく」かを振り分ける共通入り口。
+  function playMoveAnim(attackerEl, defenderEl, element, onImpact) {
+    if (element && G.ELEMENT_EFFECTS[element]) {
+      playProjectileAnim(attackerEl, defenderEl, element, onImpact);
+    } else {
+      playAttackAnim(attackerEl, onImpact);
+    }
+  }
+
   function setBattleMessage(msg) { battleMessageEl.textContent = msg; }
 
   function triggerLevelUpEffect() {
@@ -827,8 +877,20 @@
     closeSubMenu();
     var active = getBattler(battle.activeIdx);
     var def = G.MONSTERS[battle.monsterId];
-    var lines = [];
-    var skillElement = null;
+
+    function finishTurn(lines, skillElement, result) {
+      save(state);
+      renderBattle();
+      if (skillElement) showElementEffect(skillElement, battleEnemySprite);
+      if (result) {
+        triggerHitEffect(battleEnemySprite, result.crit);
+        showDamagePopup(battleEnemySprite, result.dmg, result.crit);
+      }
+      playSequence(lines, function () {
+        if (battle.monsterHp <= 0) { winBattle(); return; }
+        enemyTurn();
+      });
+    }
 
     if (action.type === "item") {
       var item = G.ITEMS[action.itemId];
@@ -836,28 +898,21 @@
       if (item.kind === "hp") setBattlerHp(active.idx, Math.min(active.maxHp, active.hp + item.amount));
       else if (item.kind === "mp") setBattlerMp(active.idx, Math.min(active.maxMp, active.mp + item.amount));
       else if (item.kind === "full") { setBattlerHp(active.idx, active.maxHp); setBattlerMp(active.idx, active.maxMp); }
-      lines.push(active.name + " は " + item.name + " を つかった!");
-    } else {
-      var sk = G.SKILLS[action.skillId];
-      setBattlerMp(active.idx, active.mp - sk.mp);
+      finishTurn([active.name + " は " + item.name + " を つかった!"], null, null);
+      return;
+    }
+
+    var sk = G.SKILLS[action.skillId];
+    setBattlerMp(active.idx, active.mp - sk.mp);
+    var lines = [active.name + " の " + sk.name + "!"];
+    playMoveAnim(battlePlayerSprite, battleEnemySprite, sk.element, function () {
       var result = calcDamage(active.atk, sk.power, def.def, sk.element, def.element);
       battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
-      triggerHitEffect(battleEnemySprite, result.crit);
-      skillElement = sk.element;
-      lines.push(active.name + " の " + sk.name + "!");
       if (result.crit) lines.push("会心の一撃!");
       lines.push(def.name + " に " + result.dmg + " の ダメージ!");
       if (result.elemTier === "strong") lines.push("こうかは ばつぐんだ!");
       else if (result.elemTier === "weak") lines.push("こうかは いまひとつ のようだ…");
-    }
-
-    save(state);
-    renderBattle();
-    showElementEffect(skillElement, battleEnemySprite);
-    if (result) showDamagePopup(battleEnemySprite, result.dmg, result.crit);
-    playSequence(lines, function () {
-      if (battle.monsterHp <= 0) { winBattle(); return; }
-      enemyTurn();
+      finishTurn(lines, sk.element, result);
     });
   }
 
@@ -896,31 +951,33 @@
     var def = G.MONSTERS[battle.monsterId];
     var skillId = def.skillIds[Math.floor(Math.random() * def.skillIds.length)];
     var sk = G.SKILLS[skillId];
-    var active = getBattler(battle.activeIdx);
-    var result = calcDamage(def.atk, sk.power, active.def, sk.element, active.element);
-    var newHp = Math.max(0, active.hp - result.dmg);
-    setBattlerHp(active.idx, newHp);
-    renderBattle();
-    triggerHitEffect(battlePlayerSprite, result.crit);
-    showElementEffect(sk.element, battlePlayerSprite);
-    showDamagePopup(battlePlayerSprite, result.dmg, result.crit);
     var lines = [def.name + " の " + sk.name + "!"];
-    if (result.crit) lines.push("会心の一撃!");
-    lines.push(active.name + " に " + result.dmg + " の ダメージ!");
-    var justFainted = newHp <= 0;
-    if (justFainted) {
-      lines.push(active.name + " は たおれてしまった…");
-    }
-    playSequence(lines, function () {
+    playMoveAnim(battleEnemySprite, battlePlayerSprite, sk.element, function () {
+      var active = getBattler(battle.activeIdx);
+      var result = calcDamage(def.atk, sk.power, active.def, sk.element, active.element);
+      var newHp = Math.max(0, active.hp - result.dmg);
+      setBattlerHp(active.idx, newHp);
+      renderBattle();
+      triggerHitEffect(battlePlayerSprite, result.crit);
+      showElementEffect(sk.element, battlePlayerSprite);
+      showDamagePopup(battlePlayerSprite, result.dmg, result.crit);
+      if (result.crit) lines.push("会心の一撃!");
+      lines.push(active.name + " に " + result.dmg + " の ダメージ!");
+      var justFainted = newHp <= 0;
       if (justFainted) {
-        if (isRosterWiped()) { loseBattle(); return; }
-        setBattleMessage("つぎの なかまを えらんでね");
-        openSwapSubMenu(true);
-        return;
+        lines.push(active.name + " は たおれてしまった…");
       }
-      battle.locked = false;
-      showCommandMenu();
-      setBattleMessage("つぎの コマンドを えらんでね");
+      playSequence(lines, function () {
+        if (justFainted) {
+          if (isRosterWiped()) { loseBattle(); return; }
+          setBattleMessage("つぎの なかまを えらんでね");
+          openSwapSubMenu(true);
+          return;
+        }
+        battle.locked = false;
+        showCommandMenu();
+        setBattleMessage("つぎの コマンドを えらんでね");
+      });
     });
   }
 
