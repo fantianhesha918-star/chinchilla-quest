@@ -1430,6 +1430,29 @@
   document.getElementById("a-btn").addEventListener("click", handleAButton);
   document.getElementById("b-btn").addEventListener("click", handleBButton);
 
+  var KEY_DIR_MAP = {
+    ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+    w: "up", s: "down", a: "left", d: "right"
+  };
+  document.addEventListener("keydown", function (e) {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    var openModalEl = document.querySelector(".modal:not(.hidden)");
+    var fieldIdle = !fieldScreen.classList.contains("hidden") && !openModalEl;
+
+    var dir = KEY_DIR_MAP[e.key];
+    if (dir) {
+      if (fieldIdle) { e.preventDefault(); tryMove(dir); }
+      return;
+    }
+    if (e.key === "Enter" || e.key === " " || e.key === "z" || e.key === "Z") {
+      if (dialogueActive || fieldIdle) { e.preventDefault(); handleAButton(); }
+      return;
+    }
+    if (e.key === "Escape" || e.key === "x" || e.key === "X") {
+      if (dialogueActive || openModalEl) { e.preventDefault(); handleBButton(); }
+    }
+  });
+
   // ---------------- Title / Slot select / Starter ----------------
   starterGrayCard.querySelector(".starter-avatar").innerHTML = '<img src="' + G.HERO_IMAGE + '" alt="チンチラ" style="width:100%;height:100%;object-fit:contain;">';
 
