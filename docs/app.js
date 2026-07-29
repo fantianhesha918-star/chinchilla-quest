@@ -33,6 +33,7 @@
   }
   function normalizeState(s) {
     if (!s.flags.openedChests) s.flags.openedChests = [];
+    if (!s.flags.npcGifts) s.flags.npcGifts = {};
     if (!s.companions) s.companions = {};
     if (!s.activeParty) s.activeParty = [];
     if (!s.companionLevels) s.companionLevels = {};
@@ -87,7 +88,7 @@
       x: G.START_X,
       y: G.START_Y,
       facing: "down",
-      flags: { bossDefeated: false, openedChests: [] }
+      flags: { bossDefeated: false, openedChests: [], npcGifts: {} }
     };
   }
 
@@ -236,6 +237,7 @@
   var dialogueQueue = [];
   var dialogueActive = false;
   var pendingShopAfterDialogue = false;
+  var pendingGiftNpc = null;
 
   // ---------------- UI helpers ----------------
   function showToast(msg) {
@@ -270,7 +272,10 @@
   function decoAtCoord(map, x, y) { return (map.decorations || []).filter(function (d) { return d.x === x && d.y === y; })[0] || null; }
   function isChestOpened(chest) { return state.flags.openedChests.indexOf(chest.id) !== -1; }
   function gatedExitAtCoord(map, x, y) { return (map.gatedExits || []).filter(function (g) { return g.x === x && g.y === y; })[0] || null; }
-  function isGateLocked(gate) { return !state.defeatedBosses[gate.requires]; }
+  function isGateLocked(gate) {
+    if (gate.requiresItem) return !((state.inventory[gate.requiresItem] || 0) > 0);
+    return !state.defeatedBosses[gate.requires];
+  }
   function activeBossTriggerAt(map, x, y) {
     var triggers = map.bossTriggers ? map.bossTriggers.slice() : [];
     if (map.bossTrigger) triggers.push(map.bossTrigger);
@@ -457,7 +462,10 @@
     var blockingNpc = npcAtCoord(map, nx, ny);
     if (blockingNpc) { showToast(blockingNpc.name + " が いる。「はなす」で話しかけよう"); return; }
     var gatedExit = gatedExitAtCoord(map, nx, ny);
-    if (gatedExit && isGateLocked(gatedExit)) { showToast("大きな岩が 道を ふさいでいる…"); return; }
+    if (gatedExit && isGateLocked(gatedExit)) {
+      showToast(gatedExit.requiresItem ? "カギが かかっている…" : "大きな岩が 道を ふさいでいる…");
+      return;
+    }
 
     state.x = nx; state.y = ny;
     heroWalkFrame += 1;
@@ -546,6 +554,7 @@
     dialogueActive = true;
     dialogueQueue = npc.dialogue.slice();
     pendingShopAfterDialogue = !!npc.shop;
+    pendingGiftNpc = (npc.givesItem && !state.flags.npcGifts[npc.id]) ? npc : null;
     dialogueNameEl.textContent = npc.name;
     dialogueOverlay.classList.remove("hidden");
     advanceDialogue();
@@ -560,6 +569,14 @@
   function closeDialogue() {
     dialogueActive = false;
     dialogueOverlay.classList.add("hidden");
+    if (pendingGiftNpc) {
+      var gift = pendingGiftNpc.givesItem;
+      state.flags.npcGifts[pendingGiftNpc.id] = true;
+      state.inventory[gift.itemId] = (state.inventory[gift.itemId] || 0) + gift.amount;
+      pendingGiftNpc = null;
+      save(state);
+      showToast(G.ITEMS[gift.itemId].name + " を もらった!");
+    }
     if (pendingShopAfterDialogue) {
       pendingShopAfterDialogue = false;
       openShopModal();

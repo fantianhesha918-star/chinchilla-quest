@@ -418,7 +418,9 @@
     nakama_ball: { id: "nakama_ball", name: "チモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.0", kind: "ball", catchMult: 1.0, price: 40, icon: "assets/items/icon_ball_timothy.webp", captureAnim: ballAnim("ball") },
     super_ball: { id: "super_ball", name: "スーパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.5", kind: "ball", catchMult: 1.5, price: 100, icon: "assets/items/icon_ball_super.webp", captureAnim: ballAnim("super_ball") },
     hyper_ball: { id: "hyper_ball", name: "ハイパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×2.0", kind: "ball", catchMult: 2.0, price: 220, icon: "assets/items/icon_ball_hyper.webp", captureAnim: ballAnim("hyper_ball") },
-    master_ball: { id: "master_ball", name: "マスターチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) かならず なかまに なる", kind: "ball", catchMult: Infinity, price: 800, icon: "assets/items/icon_ball_master.webp", captureAnim: ballAnim("master_ball") }
+    master_ball: { id: "master_ball", name: "マスターチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) かならず なかまに なる", kind: "ball", catchMult: Infinity, price: 800, icon: "assets/items/icon_ball_master.webp", captureAnim: ballAnim("master_ball") },
+    furui_kagi: { id: "furui_kagi", name: "ふるいカギ", desc: "村のどこかで 使えそうな、古びたカギ。", kind: "key" },
+    chika_kagi: { id: "chika_kagi", name: "ちかみちのカギ", desc: "ほらあなの おくで 使えそうな、ひんやりした カギ。", kind: "key" }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
   var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "nakama_ball", "super_ball", "hyper_ball", "master_ball"];
@@ -584,7 +586,7 @@
       id: "village",
       label: "はじまりの村",
       tiles: [
-        "#######.#######",
+        "#######.###.###",
         "#.............#",
         "#.............#",
         "#.............#",
@@ -601,16 +603,34 @@
       npcs: [
         { x: 3, y: 2, name: "村びと", image: "assets/npc/npc_boy.webp", dialogue: ["ようこそ、はじまりの村へ!", "した の ▼ボタンで うごけるよ。", "NPCの そばで「A」ボタンを おすと 会話できるよ。", "村の南に出ると 草むらが あるから 気をつけてね。"] },
         { x: 11, y: 2, name: "おみせのひと", shop: true, image: "assets/npc/shop_building.webp", dialogue: ["いらっしゃい! きずぐすりや マナのしずくを うってるよ。"] },
-        { x: 3, y: 10, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。"] },
+        { x: 3, y: 10, name: "村びと2", image: "assets/npc/npc_girl.webp", dialogue: ["南の草むらには スライムや あおどりが 出るよ。", "もっと南に すすむと ほらあなが あるみたい。", "おくに つよい モンスターが いるかも…?", "村の中の たてものの南がわに いやしの泉が あるよ。のると 元気に なれるよ。", "そういえば、村の北の壁の すきまに 古い扉が あるって うわさを 聞いたよ。カギが あれば 開くのかも…?"] },
         { x: 7, y: 3, name: "くすし", image: "assets/npc/npc_herbalist.webp", dialogue: ["わたしは くすし。やくそうから きずぐすりを 作っているんじゃ。", "ダンジョンは くらいから、きずぐすりを 忘れずにね。", "マナのしずくは おみせのひとから 買えるよ。"] }
       ],
       warps: [{ x: 7, y: 12, toMap: "field", toX: 6, toY: 1 }],
       gatedExits: [
+        { x: 11, y: 0, requiresItem: "furui_kagi", toMap: "himitsu_beya", toX: 2, toY: 1 },
         { x: 7, y: 0, requires: "akuma", toMap: "north_path", toX: 6, toY: 1 },
         { x: 0, y: 6, requires: "dragon", toMap: "west_path", toX: 6, toY: 1 },
         { x: 14, y: 6, requires: "mahitotsu_ou", toMap: "east_path", toX: 6, toY: 1 }
       ],
       decorations: [{ x: 3, y: 1, image: "assets/tiles/deco_well.webp" }],
+      encounter: null
+    },
+    himitsu_beya: {
+      id: "himitsu_beya",
+      label: "村の隠し部屋",
+      tiles: [
+        "##.##",
+        "#...#",
+        "#...#",
+        "#...#",
+        "#####"
+      ],
+      npcs: [],
+      warps: [{ x: 2, y: 0, toMap: "village", toX: 11, toY: 1 }],
+      chests: [
+        { id: "himitsu_beya_chest_1", x: 2, y: 2, reward: { type: "item", itemId: "hyper_ball", amount: 1 } }
+      ],
       encounter: null
     },
     field: {
@@ -635,13 +655,16 @@
         "#,,,,,.,,,,,#",
         "######.######"
       ],
-      npcs: [],
+      npcs: [
+        { x: 11, y: 8, name: "たびびと", image: "assets/npc/npc_girl.webp", dialogue: ["この草むらの おくの ほらあなに、ほのお属性の ボスが いるらしいよ。", "みず属性の わざが よく効くはずだから、そなえておくと いいかも。"] }
+      ],
       warps: [
         { x: 6, y: 0, toMap: "village", toX: 7, toY: 11 },
         { x: 6, y: 15, toMap: "dungeon", toX: 6, toY: 1 }
       ],
       chests: [
-        { id: "field_chest_1", x: 4, y: 7, reward: { type: "money", amount: 30 } }
+        { id: "field_chest_1", x: 4, y: 7, reward: { type: "money", amount: 30 } },
+        { id: "field_chest_2", x: 11, y: 3, reward: { type: "item", itemId: "furui_kagi", amount: 1 } }
       ],
       decorations: [
         { x: 2, y: 3, image: "assets/tiles/deco_flowerbush_white.webp" },
@@ -668,7 +691,7 @@
         "#,,,#,,,#,,,#",
         "#,,,,,,,,,,,#",
         "#,,,,,,,,,,,#",
-        "#,,,,,#,,,,,#",
+        "#,,,,,#,,,,,.",
         "#,,,,,,,,,,,#",
         "#,,,#,,,#,,,#",
         "#,,,,,,,,,,,#",
@@ -684,7 +707,12 @@
         "#,,#,,B,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { id: "dungeon_npc_kagi", x: 9, y: 1, name: "まよえるぼうけんしゃ", image: "assets/npc/npc_boy.webp", dialogue: ["ここで 迷ってしまって… 助けてくれた お礼に、このカギを あげるよ。", "このダンジョンの どこかに 隠し部屋が あるみたいなんだ。", "そういえば、この先の こおりの尾根には みず属性の ボスが いるらしい。でんき属性の わざが 弱点だとか。"], givesItem: { itemId: "chika_kagi", amount: 1 } }
+      ],
+      gatedExits: [
+        { x: 12, y: 5, requiresItem: "chika_kagi", toMap: "chika_beya", toX: 2, toY: 1 }
+      ],
       warps: [
         { x: 6, y: 0, toMap: "field", toX: 6, toY: 14 },
         { x: 6, y: 18, toMap: "iceridge", toX: 6, toY: 1 }
@@ -702,6 +730,23 @@
           { id: "mira_otoko", weight: 2 }, { id: "shokujinsou", weight: 2 }, { id: "hone_kihei", weight: 1 }
         ]
       }
+    },
+    chika_beya: {
+      id: "chika_beya",
+      label: "ダンジョンの隠し部屋",
+      tiles: [
+        "##.##",
+        "#...#",
+        "#...#",
+        "#...#",
+        "#####"
+      ],
+      npcs: [],
+      warps: [{ x: 2, y: 0, toMap: "dungeon", toX: 11, toY: 5 }],
+      chests: [
+        { id: "chika_beya_chest_1", x: 2, y: 2, reward: { type: "money", amount: 200 } }
+      ],
+      encounter: null
     },
     iceridge: {
       id: "iceridge",
@@ -722,7 +767,9 @@
         "#,,#,,Y,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "こおりの狩人", image: "assets/npc/npc_boy.webp", dialogue: ["この先の たそがれの荒野には、つち属性の ボスが いるらしい。", "みず属性の わざが 弱点だと きいたよ。"] }
+      ],
       warps: [
         { x: 6, y: 0, toMap: "dungeon", toX: 6, toY: 17 },
         { x: 6, y: 11, toMap: "wasteland", toX: 6, toY: 1 }
@@ -754,7 +801,9 @@
         "#,,#,,O,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "さすらいの魔導師", image: "assets/npc/npc_girl.webp", dialogue: ["この先の だいまどうしの塔には、まほう属性の ボスが いるらしいわ。", "やみ属性の わざが 弱点だそうよ。"] }
+      ],
       warps: [
         { x: 6, y: 0, toMap: "iceridge", toX: 6, toY: 10 },
         { x: 6, y: 11, toMap: "madoushi_tower", toX: 6, toY: 1 }
@@ -786,7 +835,9 @@
         "#,,#,,M,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "塔のみはりばん", image: "assets/npc/npc_herbalist.webp", dialogue: ["この先の 魔の回廊には、やみ属性の ボスが いるらしい。", "てん属性の わざが 弱点だと いわれておる。"] }
+      ],
       warps: [
         { x: 6, y: 0, toMap: "wasteland", toX: 6, toY: 10 },
         { x: 6, y: 11, toMap: "ma_corridor", toX: 6, toY: 1 }
@@ -819,7 +870,9 @@
         "#,,#,,B,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "まよいびと", image: "assets/npc/npc_boy.webp", dialogue: ["この回廊の おくには、てん属性の わざが 弱点の あくまが いるらしい。", "たおせば、村の 別の道が 開けると うわさで きいたよ。"] }
+      ],
       warps: [
         { x: 6, y: 0, toMap: "madoushi_tower", toX: 6, toY: 10 },
         { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
@@ -892,7 +945,9 @@
         "#,,#,,B,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "けもの道の番人", image: "assets/npc/npc_boy.webp", dialogue: ["この先には こだいゴーレムが 道を ふさいでいる。", "そのおくに でんき属性の ドラゴンが いるらしい。つち属性の わざが 弱点だそうだ。"] }
+      ],
       warps: [{ x: 6, y: 0, toMap: "village", toX: 7, toY: 1 }],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "iwa_golem_2" },
@@ -924,7 +979,9 @@
         "#,,#,,B,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "荒れ地の旅人", image: "assets/npc/npc_girl.webp", dialogue: ["この先は デスライダーが うろついてるわ。", "おくに いる まひとつ目王は けもの属性。かぜ属性の わざが 弱点らしいわよ。"] }
+      ],
       warps: [{ x: 6, y: 0, toMap: "village", toX: 1, toY: 6 }],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "hone_kihei_2" },
@@ -956,7 +1013,9 @@
         "#,,#,,B,,#,,#",
         "#,,#######,,#"
       ],
-      npcs: [],
+      npcs: [
+        { x: 9, y: 3, name: "霧の中の学者", image: "assets/npc/npc_herbalist.webp", dialogue: ["この霧の おくには あんこくきしおうが おるぞ。", "そのさきの 幽霊王は やみ属性。てん属性の わざが 弱点じゃ。"] }
+      ],
       warps: [{ x: 6, y: 0, toMap: "village", toX: 13, toY: 6 }],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "ankoku_kishi_2" },
