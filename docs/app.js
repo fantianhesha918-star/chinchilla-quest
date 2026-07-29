@@ -810,7 +810,8 @@
       var item = G.ITEMS[action.itemId];
       state.inventory[action.itemId] = Math.max(0, (state.inventory[action.itemId] || 0) - 1);
       if (item.kind === "hp") setBattlerHp(active.idx, Math.min(active.maxHp, active.hp + item.amount));
-      else setBattlerMp(active.idx, Math.min(active.maxMp, active.mp + item.amount));
+      else if (item.kind === "mp") setBattlerMp(active.idx, Math.min(active.maxMp, active.mp + item.amount));
+      else if (item.kind === "full") { setBattlerHp(active.idx, active.maxHp); setBattlerMp(active.idx, active.maxMp); }
       lines.push(active.name + " は " + item.name + " を つかった!");
     } else {
       var sk = G.SKILLS[action.skillId];
@@ -1166,6 +1167,11 @@
         if (!state.badges[def.id]) {
           state.badges[def.id] = true;
           lines.push(reward.badgeLabel + " を 手に入れた!");
+          if (reward.itemId) {
+            var dropAmount = reward.itemAmount || 1;
+            state.inventory[reward.itemId] = (state.inventory[reward.itemId] || 0) + dropAmount;
+            lines.push(G.ITEMS[reward.itemId].name + " を " + dropAmount + "こ 手に入れた!");
+          }
         }
         if (state.learnedSkills.indexOf(reward.skillId) === -1) {
           state.learnedSkills.push(reward.skillId);
@@ -1221,7 +1227,7 @@
   function openItemSubMenu() {
     var any = false;
     battleSubList.innerHTML = "";
-    G.SHOP_ITEM_IDS.forEach(function (id) {
+    G.USABLE_ITEM_IDS.forEach(function (id) {
       var count = state.inventory[id] || 0;
       if (count <= 0) return;
       any = true;
@@ -1255,7 +1261,7 @@
   // ---------------- Menu / Shop ----------------
   function renderInventoryList(container) {
     container.innerHTML = "";
-    G.SHOP_ITEM_IDS.forEach(function (id) {
+    G.USABLE_ITEM_IDS.forEach(function (id) {
       var item = G.ITEMS[id];
       var count = state.inventory[id] || 0;
       var div = document.createElement("div");
@@ -1269,7 +1275,8 @@
         var stats = getMaxStats(state);
         state.inventory[id] -= 1;
         if (item.kind === "hp") state.hp = Math.min(stats.maxHp, state.hp + item.amount);
-        else state.mp = Math.min(stats.maxMp, state.mp + item.amount);
+        else if (item.kind === "mp") state.mp = Math.min(stats.maxMp, state.mp + item.amount);
+        else if (item.kind === "full") { state.hp = stats.maxHp; state.mp = stats.maxMp; }
         save(state);
         showToast(item.name + " を つかった!");
         updateHud();

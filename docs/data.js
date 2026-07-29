@@ -382,18 +382,18 @@
 
   // ---------------- Boss rewards (撃破時: 専用わざ+能力アップ+バッジ) ----------------
   var BOSS_REWARDS = {
-    yougan_golem: { skillId: "yougan_crush", badgeLabel: "ようがんのバッジ", statBonus: { maxHp: 10 } },
-    yeti: { skillId: "yeti_blizzard", badgeLabel: "こおりのバッジ", statBonus: { maxMp: 8, def: 3 } },
-    oni_ou: { skillId: "oni_smash", badgeLabel: "だいちのバッジ", statBonus: { atk: 5 } },
-    majin_madoushi: { skillId: "madoushi_curse", badgeLabel: "まほうのバッジ", statBonus: { maxMp: 10, spd: 3 } },
-    akuma: { skillId: "akuma_claw", badgeLabel: "あくまのバッジ", statBonus: { maxHp: 15, def: 5 } },
-    dragon: { skillId: "dragon_thunder", badgeLabel: "りゅうのバッジ", statBonus: { atk: 6 } },
-    mahitotsu_ou: { skillId: "mahitotsu_smash", badgeLabel: "まひとつめのバッジ", statBonus: { maxHp: 12, def: 4 } },
-    yurei_ou: { skillId: "yurei_ou_curse", badgeLabel: "ゆうれいおうのバッジ", statBonus: { spd: 6, atk: 4 } },
-    shitennou_yougan: { skillId: "shitennou_yougan_blast", badgeLabel: "してんのう・えんのバッジ", statBonus: { maxHp: 15 } },
-    shitennou_yeti: { skillId: "shitennou_yeti_zero", badgeLabel: "してんのう・ひょうのバッジ", statBonus: { maxMp: 12, def: 4 } },
-    shitennou_oni: { skillId: "shitennou_oni_split", badgeLabel: "してんのう・ちのバッジ", statBonus: { atk: 8 } },
-    shitennou_madoushi: { skillId: "shitennou_madoushi_ultima", badgeLabel: "してんのう・まのバッジ", statBonus: { maxMp: 15, spd: 5 } }
+    yougan_golem: { skillId: "yougan_crush", badgeLabel: "ようがんのバッジ", statBonus: { maxHp: 10 }, itemId: "high_potion", itemAmount: 2 },
+    yeti: { skillId: "yeti_blizzard", badgeLabel: "こおりのバッジ", statBonus: { maxMp: 8, def: 3 }, itemId: "high_mana", itemAmount: 2 },
+    oni_ou: { skillId: "oni_smash", badgeLabel: "だいちのバッジ", statBonus: { atk: 5 }, itemId: "high_potion", itemAmount: 2 },
+    majin_madoushi: { skillId: "madoushi_curse", badgeLabel: "まほうのバッジ", statBonus: { maxMp: 10, spd: 3 }, itemId: "high_mana", itemAmount: 2 },
+    akuma: { skillId: "akuma_claw", badgeLabel: "あくまのバッジ", statBonus: { maxHp: 15, def: 5 }, itemId: "high_potion", itemAmount: 2 },
+    dragon: { skillId: "dragon_thunder", badgeLabel: "りゅうのバッジ", statBonus: { atk: 6 }, itemId: "high_mana", itemAmount: 2 },
+    mahitotsu_ou: { skillId: "mahitotsu_smash", badgeLabel: "まひとつめのバッジ", statBonus: { maxHp: 12, def: 4 }, itemId: "high_potion", itemAmount: 2 },
+    yurei_ou: { skillId: "yurei_ou_curse", badgeLabel: "ゆうれいおうのバッジ", statBonus: { spd: 6, atk: 4 }, itemId: "high_mana", itemAmount: 2 },
+    shitennou_yougan: { skillId: "shitennou_yougan_blast", badgeLabel: "してんのう・えんのバッジ", statBonus: { maxHp: 15 }, itemId: "elixir", itemAmount: 1 },
+    shitennou_yeti: { skillId: "shitennou_yeti_zero", badgeLabel: "してんのう・ひょうのバッジ", statBonus: { maxMp: 12, def: 4 }, itemId: "elixir", itemAmount: 1 },
+    shitennou_oni: { skillId: "shitennou_oni_split", badgeLabel: "してんのう・ちのバッジ", statBonus: { atk: 8 }, itemId: "elixir", itemAmount: 1 },
+    shitennou_madoushi: { skillId: "shitennou_madoushi_ultima", badgeLabel: "してんのう・まのバッジ", statBonus: { maxMp: 15, spd: 5 }, itemId: "elixir", itemAmount: 1 }
   };
   var BOSS_ORDER = [
     "yougan_golem", "yeti", "oni_ou", "majin_madoushi", "akuma",
@@ -419,11 +419,15 @@
     super_ball: { id: "super_ball", name: "スーパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×1.5", kind: "ball", catchMult: 1.5, price: 100, icon: "assets/items/icon_ball_super.webp", captureAnim: ballAnim("super_ball") },
     hyper_ball: { id: "hyper_ball", name: "ハイパーチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) せいこうりつ ×2.0", kind: "ball", catchMult: 2.0, price: 220, icon: "assets/items/icon_ball_hyper.webp", captureAnim: ballAnim("hyper_ball") },
     master_ball: { id: "master_ball", name: "マスターチモシーボール", desc: "やせいの モンスターに なげて なかまに できる(ボスには 使えない) かならず なかまに なる", kind: "ball", catchMult: Infinity, price: 800, icon: "assets/items/icon_ball_master.webp", captureAnim: ballAnim("master_ball") },
+    high_potion: { id: "high_potion", name: "ハイポーション", desc: "HPを 60 かいふくする", kind: "hp", amount: 60, price: 55, icon: "assets/items/icon_high_potion.webp" },
+    high_mana: { id: "high_mana", name: "せいれいの けっしょう", desc: "MPを 35 かいふくする", kind: "mp", amount: 35, price: 70, icon: "assets/items/icon_high_mana.webp" },
+    elixir: { id: "elixir", name: "エリクサー", desc: "HPと MPを ぜんかい かいふくする", kind: "full", icon: "assets/items/icon_elixir.webp" },
     furui_kagi: { id: "furui_kagi", name: "ふるいカギ", desc: "村のどこかで 使えそうな、古びたカギ。", kind: "key" },
     chika_kagi: { id: "chika_kagi", name: "ちかみちのカギ", desc: "ほらあなの おくで 使えそうな、ひんやりした カギ。", kind: "key" }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
-  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "nakama_ball", "super_ball", "hyper_ball", "master_ball"];
+  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "high_potion", "high_mana", "nakama_ball", "super_ball", "hyper_ball", "master_ball"];
+  var USABLE_ITEM_IDS = SHOP_ITEM_IDS.concat(["elixir"]);
   var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1, nakama_ball: 1 };
   var CRIT_CHANCE = 0.08;
   var CRIT_MULT = 1.8;
@@ -768,11 +772,14 @@
         "#,,#######,,#"
       ],
       npcs: [
-        { x: 9, y: 3, name: "こおりの狩人", image: "assets/npc/npc_boy.webp", dialogue: ["この先の たそがれの荒野には、つち属性の ボスが いるらしい。", "みず属性の わざが 弱点だと きいたよ。"] }
+        { id: "iceridge_hunter", x: 9, y: 3, name: "こおりの狩人", image: "assets/npc/npc_boy.webp", dialogue: ["この先の たそがれの荒野には、つち属性の ボスが いるらしい。", "みず属性の わざが 弱点だと きいたよ。", "けがの手当てに 使うといい。よければ もらってくれ。"], givesItem: { itemId: "high_potion", amount: 1 } }
       ],
       warps: [
         { x: 6, y: 0, toMap: "dungeon", toX: 6, toY: 17 },
         { x: 6, y: 11, toMap: "wasteland", toX: 6, toY: 1 }
+      ],
+      chests: [
+        { id: "iceridge_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_potion", amount: 1 } }
       ],
       bossTrigger: { x: 6, y: 11, monsterId: "yeti" },
       encounter: {
@@ -802,11 +809,14 @@
         "#,,#######,,#"
       ],
       npcs: [
-        { x: 9, y: 3, name: "さすらいの魔導師", image: "assets/npc/npc_girl.webp", dialogue: ["この先の だいまどうしの塔には、まほう属性の ボスが いるらしいわ。", "やみ属性の わざが 弱点だそうよ。"] }
+        { id: "wasteland_mage", x: 9, y: 3, name: "さすらいの魔導師", image: "assets/npc/npc_girl.webp", dialogue: ["この先の だいまどうしの塔には、まほう属性の ボスが いるらしいわ。", "やみ属性の わざが 弱点だそうよ。", "わたしが 作った けっしょうを ひとつ わけてあげるわ。"], givesItem: { itemId: "high_mana", amount: 1 } }
       ],
       warps: [
         { x: 6, y: 0, toMap: "iceridge", toX: 6, toY: 10 },
         { x: 6, y: 11, toMap: "madoushi_tower", toX: 6, toY: 1 }
+      ],
+      chests: [
+        { id: "wasteland_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_mana", amount: 1 } }
       ],
       bossTrigger: { x: 6, y: 11, monsterId: "oni_ou" },
       encounter: {
@@ -842,6 +852,9 @@
         { x: 6, y: 0, toMap: "wasteland", toX: 6, toY: 10 },
         { x: 6, y: 11, toMap: "ma_corridor", toX: 6, toY: 1 }
       ],
+      chests: [
+        { id: "madoushi_tower_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_potion", amount: 2 } }
+      ],
       bossTrigger: { x: 6, y: 11, monsterId: "majin_madoushi" },
       encounter: {
         rate: 0.16,
@@ -876,6 +889,9 @@
       warps: [
         { x: 6, y: 0, toMap: "madoushi_tower", toX: 6, toY: 10 },
         { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
+      ],
+      chests: [
+        { id: "ma_corridor_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_mana", amount: 2 } }
       ],
       bossTrigger: { x: 6, y: 11, monsterId: "akuma" },
       encounter: {
@@ -949,6 +965,9 @@
         { x: 9, y: 3, name: "けもの道の番人", image: "assets/npc/npc_boy.webp", dialogue: ["この先には こだいゴーレムが 道を ふさいでいる。", "そのおくに でんき属性の ドラゴンが いるらしい。つち属性の わざが 弱点だそうだ。"] }
       ],
       warps: [{ x: 6, y: 0, toMap: "village", toX: 7, toY: 1 }],
+      chests: [
+        { id: "north_path_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "elixir", amount: 1 } }
+      ],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "iwa_golem_2" },
         { x: 6, y: 11, monsterId: "dragon" }
@@ -983,6 +1002,9 @@
         { x: 9, y: 3, name: "荒れ地の旅人", image: "assets/npc/npc_girl.webp", dialogue: ["この先は デスライダーが うろついてるわ。", "おくに いる まひとつ目王は けもの属性。かぜ属性の わざが 弱点らしいわよ。"] }
       ],
       warps: [{ x: 6, y: 0, toMap: "village", toX: 1, toY: 6 }],
+      chests: [
+        { id: "west_path_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "elixir", amount: 1 } }
+      ],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "hone_kihei_2" },
         { x: 6, y: 11, monsterId: "mahitotsu_ou" }
@@ -1017,6 +1039,9 @@
         { x: 9, y: 3, name: "霧の中の学者", image: "assets/npc/npc_herbalist.webp", dialogue: ["この霧の おくには あんこくきしおうが おるぞ。", "そのさきの 幽霊王は やみ属性。てん属性の わざが 弱点じゃ。"] }
       ],
       warps: [{ x: 6, y: 0, toMap: "village", toX: 13, toY: 6 }],
+      chests: [
+        { id: "east_path_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "elixir", amount: 1 } }
+      ],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "ankoku_kishi_2" },
         { x: 6, y: 11, monsterId: "yurei_ou" }
@@ -1090,6 +1115,7 @@
     BOSS_ORDER: BOSS_ORDER,
     getElementMatchup: getElementMatchup,
     SHOP_ITEM_IDS: SHOP_ITEM_IDS,
+    USABLE_ITEM_IDS: USABLE_ITEM_IDS,
     STARTING_INVENTORY: STARTING_INVENTORY,
     MONSTERS: MONSTERS,
     DEX_ORDER: DEX_ORDER,
