@@ -521,6 +521,49 @@ body {
   100% { opacity: 0; }
 }
 
+.battle-field.levelup-flash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255,244,180,0.95) 0%, rgba(255,215,90,0.55) 45%, rgba(255,215,90,0) 75%);
+  pointer-events: none;
+  z-index: 8;
+  animation: levelup-flash 0.8s ease-out;
+}
+@keyframes levelup-flash {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.battle-sprite.levelup-glow {
+  animation: levelup-glow 0.7s ease-in-out;
+}
+@keyframes levelup-glow {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,215,90,0)); transform: scale(1); }
+  40% { filter: brightness(1.6) drop-shadow(0 0 18px rgba(255,215,90,0.9)); transform: scale(1.1); }
+}
+.levelup-banner {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  transform: translate(-50%, 0);
+  font-weight: 800;
+  font-size: 1.6rem;
+  letter-spacing: 0.05em;
+  color: #fff3b0;
+  text-shadow: -1px -1px 0 #7a5200, 1px -1px 0 #7a5200, -1px 1px 0 #7a5200, 1px 1px 0 #7a5200, 0 0 14px rgba(255,215,90,0.9);
+  pointer-events: none;
+  z-index: 10;
+  animation: levelup-banner-pop 1.3s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes levelup-banner-pop {
+  0% { opacity: 0; transform: translate(-50%, 12px) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -4px) scale(1.15); }
+  32% { transform: translate(-50%, 0) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -18px) scale(1); }
+}
+
 .capture-ball-anim {
   position: absolute;
   max-width: 120px;

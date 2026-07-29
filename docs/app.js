@@ -625,11 +625,35 @@
 
   function setBattleMessage(msg) { battleMessageEl.textContent = msg; }
 
+  function triggerLevelUpEffect() {
+    if (battleFieldEl) {
+      battleFieldEl.classList.add("levelup-flash");
+      setTimeout(function () { battleFieldEl.classList.remove("levelup-flash"); }, 800);
+    }
+    if (battlePlayerSprite) {
+      battlePlayerSprite.classList.add("levelup-glow");
+      setTimeout(function () { battlePlayerSprite.classList.remove("levelup-glow"); }, 700);
+    }
+    if (battleFieldEl) {
+      var banner = document.createElement("div");
+      banner.className = "levelup-banner";
+      banner.textContent = "LEVEL UP!";
+      battleFieldEl.appendChild(banner);
+      setTimeout(function () { banner.remove(); }, 1300);
+    }
+  }
+
   function playSequence(lines, done) {
     var i = 0;
     function step() {
       if (i >= lines.length) { done(); return; }
-      setBattleMessage(lines[i]); i++;
+      var line = lines[i]; i++;
+      if (line && typeof line === "object") {
+        setBattleMessage(line.text);
+        if (line.effect) line.effect();
+      } else {
+        setBattleMessage(line);
+      }
       setTimeout(step, 850);
     }
     step();
@@ -1102,7 +1126,7 @@
     var routeChoiceNeeded = false;
     events.forEach(function (ev) {
       if (ev.type === "levelup") {
-        lines.push("レベルアップ! Lv" + ev.level + " に なった!");
+        lines.push({ text: "レベルアップ! Lv" + ev.level + " に なった!", effect: triggerLevelUpEffect });
         var d = ev.deltas;
         lines.push("HP+" + d.hp + " MP+" + d.mp + " こうげき+" + d.atk + " ぼうぎょ+" + d.def + " すばやさ+" + d.spd);
       }
@@ -1150,7 +1174,7 @@
           }
         });
       }
-      if (leveled) levelUps.push(beforeName + " は Lv" + ld.level + " に あがった!");
+      if (leveled) levelUps.push({ text: beforeName + " は Lv" + ld.level + " に あがった!", effect: triggerLevelUpEffect });
     });
     return levelUps;
   }
