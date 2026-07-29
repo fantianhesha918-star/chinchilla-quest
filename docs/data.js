@@ -422,11 +422,25 @@
     high_potion: { id: "high_potion", name: "ハイポーション", desc: "HPを 60 かいふくする", kind: "hp", amount: 60, price: 55, icon: "assets/items/icon_high_potion.webp" },
     high_mana: { id: "high_mana", name: "せいれいの けっしょう", desc: "MPを 35 かいふくする", kind: "mp", amount: 35, price: 70, icon: "assets/items/icon_high_mana.webp" },
     elixir: { id: "elixir", name: "エリクサー", desc: "HPと MPを ぜんかい かいふくする", kind: "full", icon: "assets/items/icon_elixir.webp" },
+    fire_pellet: { id: "fire_pellet", name: "ほのおのペレット", desc: "たべると ほのお属性の わざを おぼえる(なかまは ほのお属性のみ)", kind: "pellet", element: "fire", skillId: "fire3_1", price: 150, icon: "assets/icons/elem_fire.webp" },
+    water_pellet: { id: "water_pellet", name: "みずのペレット", desc: "たべると みず属性の わざを おぼえる(なかまは みず属性のみ)", kind: "pellet", element: "water", skillId: "water3_1", price: 150, icon: "assets/icons/elem_water.webp" },
+    grass_pellet: { id: "grass_pellet", name: "くさのペレット", desc: "たべると くさ属性の わざを おぼえる(なかまは くさ属性のみ)", kind: "pellet", element: "grass", skillId: "grass3_1", price: 150, icon: "assets/icons/elem_grass.webp" },
+    wind_pellet: { id: "wind_pellet", name: "かぜのペレット", desc: "たべると かぜ属性の わざを おぼえる(なかまは かぜ属性のみ)", kind: "pellet", element: "wind", skillId: "wind3_1", price: 150, icon: "assets/icons/elem_wind.webp" },
+    earth_pellet: { id: "earth_pellet", name: "つちのペレット", desc: "たべると つち属性の わざを おぼえる(なかまは つち属性のみ)", kind: "pellet", element: "earth", skillId: "earth3_1", price: 150, icon: "assets/icons/elem_earth.webp" },
+    thunder_pellet: { id: "thunder_pellet", name: "でんきのペレット", desc: "たべると でんき属性の わざを おぼえる(なかまは でんき属性のみ)", kind: "pellet", element: "thunder", skillId: "thunder3_1", price: 150, icon: "assets/icons/elem_thunder.webp" },
+    heaven_pellet: { id: "heaven_pellet", name: "てんのペレット", desc: "たべると てん属性の わざを おぼえる(なかまは てん属性のみ)", kind: "pellet", element: "heaven", skillId: "heaven3_1", price: 150, icon: "assets/icons/elem_heaven.webp" },
+    dark_pellet: { id: "dark_pellet", name: "やみのペレット", desc: "たべると やみ属性の わざを おぼえる(なかまは やみ属性のみ)", kind: "pellet", element: "dark", skillId: "dark3_1", price: 150, icon: "assets/icons/elem_dark.webp" },
+    magic_pellet: { id: "magic_pellet", name: "まほうのペレット", desc: "たべると まほう属性の わざを おぼえる(なかまは まほう属性のみ)", kind: "pellet", element: "magic", skillId: "magic3_1", price: 150, icon: "assets/icons/elem_magic.webp" },
+    beast_pellet: { id: "beast_pellet", name: "けもののペレット", desc: "たべると けもの属性の わざを おぼえる(なかまは けもの属性のみ)", kind: "pellet", element: "beast", skillId: "beast3_1", price: 150, icon: "assets/icons/elem_beast.webp" },
     furui_kagi: { id: "furui_kagi", name: "ふるいカギ", desc: "村のどこかで 使えそうな、古びたカギ。", kind: "key" },
     chika_kagi: { id: "chika_kagi", name: "ちかみちのカギ", desc: "ほらあなの おくで 使えそうな、ひんやりした カギ。", kind: "key" }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
-  var SHOP_ITEM_IDS = ["kizugusuri", "manashizuku", "high_potion", "high_mana", "nakama_ball", "super_ball", "hyper_ball", "master_ball"];
+  var SHOP_ITEM_IDS = [
+    "kizugusuri", "manashizuku", "high_potion", "high_mana", "nakama_ball", "super_ball", "hyper_ball", "master_ball",
+    "fire_pellet", "water_pellet", "grass_pellet", "wind_pellet", "earth_pellet",
+    "thunder_pellet", "heaven_pellet", "dark_pellet", "magic_pellet", "beast_pellet"
+  ];
   var USABLE_ITEM_IDS = SHOP_ITEM_IDS.concat(["elixir"]);
   var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1, nakama_ball: 1 };
   var CRIT_CHANCE = 0.08;

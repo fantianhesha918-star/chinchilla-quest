@@ -1045,6 +1045,37 @@
     });
   }
 
+  function tryFeedPellet(itemId) {
+    if (!battle || battle.locked) return;
+    var item = G.ITEMS[itemId];
+    var sk = G.SKILLS[item.skillId];
+    var active = getBattler(battle.activeIdx);
+    if (active.kind === "companion" && active.element !== item.element) {
+      showToast(active.name + " は この ペレットを たべられない…");
+      return;
+    }
+    var known = active.kind === "hero"
+      ? state.learnedSkills.indexOf(item.skillId) !== -1
+      : active.skillIds.indexOf(item.skillId) !== -1;
+    if (known) {
+      showToast(active.name + " は もう " + sk.name + " を おぼえている");
+      return;
+    }
+    battle.locked = true;
+    setCommandButtonsEnabled(false);
+    closeSubMenu();
+    state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
+    if (active.kind === "hero") state.learnedSkills.push(item.skillId);
+    else active.skillIds.push(item.skillId);
+    save(state);
+    renderBattle();
+    setBattleMessage(active.name + " は " + item.name + " を たべた!");
+    setTimeout(function () {
+      setBattleMessage(active.name + " は " + sk.name + " を おぼえた!");
+      setTimeout(function () { battle.locked = false; enemyTurn(); }, 900);
+    }, 900);
+  }
+
   function gainExp(expGain) {
     var events = [];
     state.exp += expGain;
@@ -1260,9 +1291,11 @@
       row.className = "battle-sub-item";
       row.innerHTML =
         '<div><div class="sub-item-name"><img class="item-icon" src="' + item.icon + '" alt="">' + item.name + " ×" + count + '</div><div class="sub-item-desc">' + item.desc + "</div></div>" +
-        "<button>" + (item.kind === "ball" ? "なげる" : "つかう") + "</button>";
+        "<button>" + (item.kind === "ball" ? "なげる" : item.kind === "pellet" ? "たべる" : "つかう") + "</button>";
       row.querySelector("button").addEventListener("click", function () {
-        if (item.kind === "ball") tryCapture(id); else doActiveBattlerAction({ type: "item", itemId: id });
+        if (item.kind === "ball") tryCapture(id);
+        else if (item.kind === "pellet") tryFeedPellet(id);
+        else doActiveBattlerAction({ type: "item", itemId: id });
       });
       battleSubList.appendChild(row);
     });
@@ -1292,10 +1325,24 @@
       div.className = "food-item";
       div.innerHTML =
         '<div class="food-info"><img class="item-icon" src="' + item.icon + '" alt=""><div><div class="food-name">' + item.name + " ×" + count + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
-        "<button" + (count <= 0 ? " disabled" : "") + ">" + (item.kind === "ball" ? "なげる" : "つかう") + "</button>";
+        "<button" + (count <= 0 ? " disabled" : "") + ">" + (item.kind === "ball" ? "なげる" : item.kind === "pellet" ? "たべる" : "つかう") + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         if (count <= 0) return;
         if (item.kind === "ball") { showToast("せんとうちゅうに つかってね"); return; }
+        if (item.kind === "pellet") {
+          var sk = G.SKILLS[item.skillId];
+          if (state.learnedSkills.indexOf(item.skillId) !== -1) {
+            showToast(state.name + " は もう " + sk.name + " を おぼえている");
+            return;
+          }
+          state.inventory[id] -= 1;
+          state.learnedSkills.push(item.skillId);
+          save(state);
+          showToast(state.name + " は " + sk.name + " を おぼえた!");
+          updateHud();
+          openMenuModal();
+          return;
+        }
         var stats = getMaxStats(state);
         state.inventory[id] -= 1;
         if (item.kind === "hp") state.hp = Math.min(stats.maxHp, state.hp + item.amount);
