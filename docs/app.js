@@ -305,6 +305,9 @@
   var mapWorldEl = null;
   var mapTileSize = 0;
   var VISIBLE_TILES = 7;
+  var WALK_STEP_MS = 150;
+  var lastStepAt = 0;
+  var midStepTimer = null;
 
   function renderMap() {
     heroWalkFrame = 0;
@@ -403,6 +406,7 @@
     playerEl.style.width = ts + "px";
     playerEl.style.height = ts + "px";
     var inner = playerEl.querySelector(".tile-player-inner");
+    if (midStepTimer) { clearTimeout(midStepTimer); midStepTimer = null; }
     if (inner) {
       if (state.stageIndex > 0) {
         inner.classList.toggle("facing-left", state.facing === "left");
@@ -410,7 +414,14 @@
         inner.classList.remove("facing-left");
         var img = inner.querySelector("img");
         var frames = G.HERO_WALK_FRAMES[state.facing || "down"];
-        if (img) img.src = frames[heroWalkFrame % frames.length];
+        if (img) {
+          img.src = frames[heroWalkFrame % frames.length];
+          if (animateStep !== false) {
+            // マスの移動中(スライド中)に2枚目の歩行フレームへ切り替え、足が動いて見えるようにする
+            var nextFrameSrc = frames[(heroWalkFrame + 1) % frames.length];
+            midStepTimer = setTimeout(function () { img.src = nextFrameSrc; }, WALK_STEP_MS / 2);
+          }
+        }
       }
     }
     if (animateStep !== false) {
@@ -452,6 +463,9 @@
 
   function tryMove(dir) {
     if (battleActive || dialogueActive) return;
+    var now = performance.now();
+    if (now - lastStepAt < WALK_STEP_MS) return;
+    lastStepAt = now;
     state.facing = dir;
     var d = DIR_VECT[dir];
     var map = currentMap();
@@ -468,7 +482,7 @@
     }
 
     state.x = nx; state.y = ny;
-    heroWalkFrame += 1;
+    heroWalkFrame += 2;
     save(state);
     positionPlayerSprite();
     updateHud();
