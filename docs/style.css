@@ -734,6 +734,25 @@ body {
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
 }
 
+/* 複数コマ演出(playFramedMoveAnim)の1コマぶん。90msおきに次々差し替わるので、
+   elem-pop のような長い拡大縮小はかけず、さっと出てさっと消えるだけにする。 */
+.battle-elem-effect-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 5;
+  animation: elem-frame-flash 0.16s ease-out forwards;
+}
+@keyframes elem-frame-flash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 .battle-lower {
   position: fixed;
   left: 0;

@@ -609,11 +609,19 @@
 
   function showElementEffect(element, containerEl) {
     if (!element || !G.ELEMENT_EFFECTS[element] || !containerEl) return;
+    showElementEffectFrame(G.ELEMENT_EFFECTS[element], containerEl, 650, "battle-elem-effect");
+  }
+
+  // 1コマ分のエフェクト画像を指定コンテナに一定時間だけ重ねて表示する(汎用ヘルパー)。
+  // 単一静止画(showElementEffect)にも、複数コマ演出(playFramedMoveAnim)にも使う。
+  // 複数コマ再生時は個々のコマの表示時間が短いので、専用の軽いクラスを使う。
+  function showElementEffectFrame(src, containerEl, life, className) {
+    if (!src || !containerEl) return;
     var img = document.createElement("img");
-    img.src = G.ELEMENT_EFFECTS[element];
-    img.className = "battle-elem-effect";
+    img.src = src;
+    img.className = className || "battle-elem-effect-frame";
     containerEl.appendChild(img);
-    setTimeout(function () { img.remove(); }, 650);
+    setTimeout(function () { img.remove(); }, life);
   }
 
   function showDamagePopup(containerEl, dmg, crit) {
@@ -655,8 +663,7 @@
   }
 
   // 属性ありの技は、その属性のエフェクト画像を弾として相手に向かって飛ばし、着弾した瞬間に onImpact を呼ぶ。
-  function playProjectileAnim(attackerEl, defenderEl, element, onImpact, boss) {
-    var src = element && G.ELEMENT_EFFECTS[element];
+  function playProjectileAnim(attackerEl, defenderEl, src, onImpact, boss) {
     if (!src || !battleFieldEl || !attackerEl || !defenderEl) { onImpact(); return; }
     var fieldRect = battleFieldEl.getBoundingClientRect();
     var startRect = attackerEl.getBoundingClientRect();
@@ -685,11 +692,50 @@
     }, 320);
   }
 
+  // 複数コマ(チャージ→飛翔→着弾+消散)のエフェクト演出。攻撃側でコマ送りしてから
+  // 1コマを弾として飛ばし、着弾と同時に onImpact を呼び、残りのコマは防御側で再生する。
+  function playFramedMoveAnim(attackerEl, defenderEl, frames, onImpact, boss) {
+    if (!attackerEl || !defenderEl || !battleFieldEl || !frames || !frames.length) {
+      onImpact();
+      return;
+    }
+    var frameMs = 90;
+    var travelIdx = Math.max(0, frames.length - 3);
+    var chargeFrames = frames.slice(0, travelIdx);
+    var travelFrame = frames[travelIdx];
+    var defenderFrames = frames.slice(travelIdx + 1);
+
+    function playChargeStep(i) {
+      if (i >= chargeFrames.length) { launchTravel(); return; }
+      showElementEffectFrame(chargeFrames[i], attackerEl, frameMs + 20);
+      setTimeout(function () { playChargeStep(i + 1); }, frameMs);
+    }
+
+    function launchTravel() {
+      playProjectileAnim(attackerEl, defenderEl, travelFrame, function () {
+        onImpact();
+        playDefenderStep(0);
+      }, boss);
+    }
+
+    function playDefenderStep(i) {
+      if (i >= defenderFrames.length) return;
+      showElementEffectFrame(defenderFrames[i], defenderEl, frameMs + 60);
+      setTimeout(function () { playDefenderStep(i + 1); }, frameMs);
+    }
+
+    playChargeStep(0);
+  }
+
   // 技の属性の有無で「踏み込み」か「弾が飛んでいく」かを振り分ける共通入り口。
+  // moveId があり、その属性に複数コマのエフェクト素材があれば、そちらを優先して使う。
   // boss=true のときは、こうげき側がボスであることを示す追加の演出クラスを付与する。
-  function playMoveAnim(attackerEl, defenderEl, element, onImpact, boss) {
-    if (element && G.ELEMENT_EFFECTS[element]) {
-      playProjectileAnim(attackerEl, defenderEl, element, onImpact, boss);
+  function playMoveAnim(attackerEl, defenderEl, element, moveId, onImpact, boss) {
+    var frames = element && moveId && G.pickEffectFrames && G.pickEffectFrames(element, moveId);
+    if (frames && frames.length) {
+      playFramedMoveAnim(attackerEl, defenderEl, frames, onImpact, boss);
+    } else if (element && G.ELEMENT_EFFECTS[element]) {
+      playProjectileAnim(attackerEl, defenderEl, G.ELEMENT_EFFECTS[element], onImpact, boss);
     } else {
       playAttackAnim(attackerEl, onImpact, boss);
     }
@@ -936,7 +982,7 @@
     var sk = G.SKILLS[action.skillId];
     setBattlerMp(active.idx, active.mp - sk.mp);
     var lines = [active.name + " の " + sk.name + "!"];
-    playMoveAnim(battlePlayerSprite, battleEnemySprite, sk.element, function () {
+    playMoveAnim(battlePlayerSprite, battleEnemySprite, sk.element, sk.id, function () {
       var result = calcDamage(active.atk, sk.power, def.def, sk.element, def.element);
       battle.monsterHp = Math.max(0, battle.monsterHp - result.dmg);
       if (result.crit) lines.push("会心の一撃!");
@@ -983,14 +1029,17 @@
     var skillId = def.skillIds[Math.floor(Math.random() * def.skillIds.length)];
     var sk = G.SKILLS[skillId];
     var lines = [def.name + " の " + sk.name + "!"];
-    playMoveAnim(battleEnemySprite, battlePlayerSprite, sk.element, function () {
+    playMoveAnim(battleEnemySprite, battlePlayerSprite, sk.element, skillId, function () {
       var active = getBattler(battle.activeIdx);
       var result = calcDamage(def.atk, sk.power, active.def, sk.element, active.element);
       var newHp = Math.max(0, active.hp - result.dmg);
       setBattlerHp(active.idx, newHp);
       renderBattle();
       triggerHitEffect(battlePlayerSprite, result.crit, battle.isBoss);
-      showElementEffect(sk.element, battlePlayerSprite);
+      // 複数コマ演出がある属性は playMoveAnim 側で着弾+消散コマを表示済みなので二重に出さない
+      if (!(G.ELEMENT_EFFECT_ANIM && G.ELEMENT_EFFECT_ANIM[sk.element])) {
+        showElementEffect(sk.element, battlePlayerSprite);
+      }
       showDamagePopup(battlePlayerSprite, result.dmg, result.crit);
       if (result.crit) lines.push("会心の一撃!");
       lines.push(active.name + " に " + result.dmg + " の ダメージ!");

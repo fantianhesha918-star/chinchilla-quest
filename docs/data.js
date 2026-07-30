@@ -345,6 +345,49 @@
     magic: "assets/effects/effect_magic.webp",
     beast: "assets/effects/effect_beast.webp"
   };
+  // 属性ごとの「チャージ→飛翔→着弾+消散」複数コマ演出素材(1属性につき1〜3パターン)。
+  // ここに無い属性(つち・やみ・まほう・けもの)は ELEMENT_EFFECTS の単一静止画にフォールバックする。
+  var ELEMENT_EFFECT_ANIM = {
+    fire: [
+      ["assets/effects/anim/fire_1/f1.webp", "assets/effects/anim/fire_1/f2.webp", "assets/effects/anim/fire_1/f3.webp", "assets/effects/anim/fire_1/f4.webp", "assets/effects/anim/fire_1/f5.webp", "assets/effects/anim/fire_1/f6.webp"],
+      ["assets/effects/anim/fire_2/f1.webp", "assets/effects/anim/fire_2/f2.webp", "assets/effects/anim/fire_2/f3.webp"],
+      ["assets/effects/anim/fire_3/f1.webp", "assets/effects/anim/fire_3/f2.webp", "assets/effects/anim/fire_3/f3.webp"]
+    ],
+    water: [
+      ["assets/effects/anim/water_1/f1.webp", "assets/effects/anim/water_1/f2.webp", "assets/effects/anim/water_1/f3.webp", "assets/effects/anim/water_1/f4.webp"],
+      ["assets/effects/anim/water_2/f1.webp", "assets/effects/anim/water_2/f2.webp", "assets/effects/anim/water_2/f3.webp", "assets/effects/anim/water_2/f4.webp"],
+      ["assets/effects/anim/water_3/f1.webp", "assets/effects/anim/water_3/f2.webp", "assets/effects/anim/water_3/f3.webp", "assets/effects/anim/water_3/f4.webp"]
+    ],
+    wind: [
+      ["assets/effects/anim/wind_1/f1.webp", "assets/effects/anim/wind_1/f2.webp", "assets/effects/anim/wind_1/f3.webp"],
+      ["assets/effects/anim/wind_2/f1.webp", "assets/effects/anim/wind_2/f2.webp", "assets/effects/anim/wind_2/f3.webp"],
+      ["assets/effects/anim/wind_3/f1.webp", "assets/effects/anim/wind_3/f2.webp", "assets/effects/anim/wind_3/f3.webp"]
+    ],
+    thunder: [
+      ["assets/effects/anim/thunder_1/f1.webp", "assets/effects/anim/thunder_1/f2.webp", "assets/effects/anim/thunder_1/f3.webp", "assets/effects/anim/thunder_1/f4.webp", "assets/effects/anim/thunder_1/f5.webp", "assets/effects/anim/thunder_1/f6.webp"],
+      ["assets/effects/anim/thunder_2/f1.webp", "assets/effects/anim/thunder_2/f2.webp", "assets/effects/anim/thunder_2/f3.webp", "assets/effects/anim/thunder_2/f4.webp", "assets/effects/anim/thunder_2/f5.webp", "assets/effects/anim/thunder_2/f6.webp"],
+      ["assets/effects/anim/thunder_3/f1.webp", "assets/effects/anim/thunder_3/f2.webp", "assets/effects/anim/thunder_3/f3.webp", "assets/effects/anim/thunder_3/f4.webp", "assets/effects/anim/thunder_3/f5.webp"]
+    ],
+    grass: [
+      ["assets/effects/anim/grass_1/f1.webp", "assets/effects/anim/grass_1/f2.webp", "assets/effects/anim/grass_1/f3.webp", "assets/effects/anim/grass_1/f4.webp", "assets/effects/anim/grass_1/f5.webp", "assets/effects/anim/grass_1/f6.webp"],
+      ["assets/effects/anim/grass_2/f1.webp", "assets/effects/anim/grass_2/f2.webp", "assets/effects/anim/grass_2/f3.webp", "assets/effects/anim/grass_2/f4.webp", "assets/effects/anim/grass_2/f5.webp", "assets/effects/anim/grass_2/f6.webp"],
+      ["assets/effects/anim/grass_3/f1.webp", "assets/effects/anim/grass_3/f2.webp", "assets/effects/anim/grass_3/f3.webp", "assets/effects/anim/grass_3/f4.webp", "assets/effects/anim/grass_3/f5.webp", "assets/effects/anim/grass_3/f6.webp"]
+    ],
+    heaven: [
+      ["assets/effects/anim/heaven_1/f1.webp", "assets/effects/anim/heaven_1/f2.webp", "assets/effects/anim/heaven_1/f3.webp", "assets/effects/anim/heaven_1/f4.webp", "assets/effects/anim/heaven_1/f5.webp", "assets/effects/anim/heaven_1/f6.webp"]
+    ]
+  };
+  // わざ(スキル)IDごとに使う演出パターンを決める(同じ属性でも技によって見た目が変わる = 「わざを増やす」)。
+  // 同じ技は常に同じパターンになるよう、ID文字列から決定的にハッシュして選ぶ。
+  function pickEffectFrames(element, moveId) {
+    var variants = ELEMENT_EFFECT_ANIM[element];
+    if (!variants || !variants.length || !moveId) return null;
+    var hash = 0;
+    for (var i = 0; i < moveId.length; i++) {
+      hash = (hash * 31 + moveId.charCodeAt(i)) >>> 0;
+    }
+    return variants[hash % variants.length];
+  }
   // 属性アイコン(敵名/わざ一覧/ずかんで属性がひと目で分かるようにするバッジ画像)
   var ELEMENT_ICONS = {
     fire: "assets/icons/elem_fire.webp",
@@ -1146,6 +1189,8 @@
     MAX_PARTY_SIZE: MAX_PARTY_SIZE,
     ELEMENT_LABELS: ELEMENT_LABELS,
     ELEMENT_EFFECTS: ELEMENT_EFFECTS,
+    ELEMENT_EFFECT_ANIM: ELEMENT_EFFECT_ANIM,
+    pickEffectFrames: pickEffectFrames,
     ELEMENT_ICONS: ELEMENT_ICONS,
     BOSS_REWARDS: BOSS_REWARDS,
     BOSS_ORDER: BOSS_ORDER,
