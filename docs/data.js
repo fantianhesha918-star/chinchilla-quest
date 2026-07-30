@@ -504,6 +504,16 @@
     saboten: { id: "saboten", name: "とげサボテン", level: 4, hp: 38, atk: 11, def: 8, spd: 7, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "saboten.webp", element: "grass", evolvesTo: { level: 11, id: "saboten_2" } },
     koyurei: { id: "koyurei", name: "こゆうれい", level: 5, hp: 40, atk: 14, def: 8, spd: 10, exp: 22, money: 16, skillIds: ["tackle", "sandkick"], image: MON_DIR + "koyurei.webp", element: "dark", evolvesTo: { level: 12, id: "koyurei_2" } },
 
+    // ---- フィールド(初級)着ぐるみ系(レア出現、進化なし) ----
+    sai_boya: { id: "sai_boya", name: "サイぼうや", level: 4, hp: 40, atk: 12, def: 10, spd: 4, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "sai_boya.webp", element: "earth" },
+    katatsumuri: { id: "katatsumuri", name: "かたつむり", level: 3, hp: 34, atk: 8, def: 9, spd: 3, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "katatsumuri.webp", element: "earth" },
+    lion_ko: { id: "lion_ko", name: "ライオンのこ", level: 5, hp: 40, atk: 15, def: 7, spd: 9, exp: 22, money: 16, skillIds: ["tackle"], image: MON_DIR + "lion_ko.webp", element: "beast" },
+    fukurou_ko: { id: "fukurou_ko", name: "ふくろうのこ", level: 3, hp: 27, atk: 10, def: 5, spd: 11, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "fukurou_ko.webp", element: "wind" },
+    tengu_ko: { id: "tengu_ko", name: "こてんぐ", level: 5, hp: 36, atk: 13, def: 7, spd: 10, exp: 22, money: 16, skillIds: ["tackle"], image: MON_DIR + "tengu_ko.webp", element: "magic" },
+    mitsubachi: { id: "mitsubachi", name: "みつばち", level: 3, hp: 24, atk: 9, def: 4, spd: 12, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "mitsubachi.webp", element: "thunder" },
+    usagi_ko: { id: "usagi_ko", name: "つきのうさぎ", level: 3, hp: 28, atk: 9, def: 5, spd: 11, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "usagi_ko.webp", element: "heaven" },
+    kujira_ko: { id: "kujira_ko", name: "くじらのこ", level: 4, hp: 45, atk: 11, def: 8, spd: 5, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "kujira_ko.webp", element: "water" },
+
     // ---- フィールド(初級)なかま進化系 ----
     slime_2: { id: "slime_2", name: "スライムプリンス", level: 9, hp: 47, atk: 12, def: 8, spd: 6, exp: 23, money: 17, skillIds: ["tackle"], image: MON_DIR + "slime_2.webp", element: "water", evolvesTo: { level: 20, id: "slime_3" } },
     slime_3: { id: "slime_3", name: "スライムキング", level: 20, hp: 83, atk: 21, def: 14, spd: 8, exp: 46, money: 32, skillIds: ["tackle"], image: MON_DIR + "slime_3.webp", element: "water" },
@@ -621,6 +631,7 @@
     "hinotama", "hinotama_2", "hinotama_3",
     "saboten", "saboten_2", "saboten_3",
     "koyurei", "koyurei_2", "koyurei_3",
+    "sai_boya", "katatsumuri", "lion_ko", "fukurou_ko", "tengu_ko", "mitsubachi", "usagi_ko", "kujira_ko",
     "ankoku_kishi", "ankoku_kishi_2",
     "ankoku_madoushi", "ankoku_madoushi_2",
     "orc", "orc_2",
@@ -738,7 +749,10 @@
         table: [
           { id: "slime", weight: 3 }, { id: "aodori", weight: 3 }, { id: "dokukinoko", weight: 2 },
           { id: "mogura", weight: 3 }, { id: "hone_kenshi", weight: 1 }, { id: "komori", weight: 3 },
-          { id: "hinotama", weight: 2 }, { id: "saboten", weight: 2 }, { id: "koyurei", weight: 1 }
+          { id: "hinotama", weight: 2 }, { id: "saboten", weight: 2 }, { id: "koyurei", weight: 1 },
+          { id: "sai_boya", weight: 1 }, { id: "katatsumuri", weight: 1 }, { id: "lion_ko", weight: 1 },
+          { id: "fukurou_ko", weight: 1 }, { id: "tengu_ko", weight: 1 }, { id: "mitsubachi", weight: 1 },
+          { id: "usagi_ko", weight: 1 }, { id: "kujira_ko", weight: 1 }
         ]
       }
     },
