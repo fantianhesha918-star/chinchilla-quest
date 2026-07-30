@@ -123,21 +123,55 @@
   <!-- ===== メニューモーダル ===== -->
   <div id="menu-modal" class="modal hidden">
     <div class="modal-card">
-      <h2>📖 メニュー</h2>
-      <div id="menu-status" class="menu-status"></div>
-      <p class="modal-sub">わざ</p>
-      <div id="menu-skills" class="menu-skills"></div>
-      <p class="modal-sub">どうぐ</p>
-      <div id="menu-items" class="food-list"></div>
-      <p class="modal-sub">なかま</p>
-      <div id="menu-companions" class="companion-list"></div>
-      <p class="modal-sub">バッジ <span id="badge-progress"></span></p>
-      <div id="menu-badges" class="badge-list"></div>
-      <p class="modal-sub">ずかん</p>
-      <button id="menu-zukan-btn" class="btn btn-secondary btn-small">ずかんを ひらく</button>
-      <p class="modal-sub">その他</p>
-      <button id="menu-title-btn" class="btn btn-secondary btn-small">タイトルへもどる</button>
-      <button class="btn btn-secondary modal-close">とじる</button>
+      <!-- ===== メニュー トップ(カテゴリ選択) ===== -->
+      <div id="menu-page-top" class="menu-page">
+        <h2>📖 メニュー</h2>
+        <div class="menu-category-list">
+          <button class="menu-category-btn" data-page="status">📊 ステータス</button>
+          <button class="menu-category-btn" data-page="skills">⚔️ わざ <span class="menu-cat-count" id="menu-cat-skills-count"></span></button>
+          <button class="menu-category-btn" data-page="items">🎒 どうぐ</button>
+          <button class="menu-category-btn" data-page="companions">🐹 なかま <span class="menu-cat-count" id="menu-cat-companions-count"></span></button>
+          <button class="menu-category-btn" data-page="badges">🎖️ バッジ <span class="menu-cat-count" id="menu-cat-badges-count"></span></button>
+          <button class="menu-category-btn" id="menu-zukan-btn">📚 ずかん</button>
+          <button class="menu-category-btn" id="menu-title-btn">🚪 タイトルへもどる</button>
+        </div>
+        <button class="btn btn-secondary modal-close">とじる</button>
+      </div>
+
+      <!-- ===== ステータス ===== -->
+      <div id="menu-page-status" class="menu-page hidden">
+        <button class="menu-back-btn">← もどる</button>
+        <h2>📊 ステータス</h2>
+        <div id="menu-status" class="menu-status"></div>
+      </div>
+
+      <!-- ===== わざ ===== -->
+      <div id="menu-page-skills" class="menu-page hidden">
+        <button class="menu-back-btn">← もどる</button>
+        <h2>⚔️ わざ</h2>
+        <div id="menu-skills" class="menu-skills"></div>
+      </div>
+
+      <!-- ===== どうぐ ===== -->
+      <div id="menu-page-items" class="menu-page hidden">
+        <button class="menu-back-btn">← もどる</button>
+        <h2>🎒 どうぐ</h2>
+        <div id="menu-items" class="food-list"></div>
+      </div>
+
+      <!-- ===== なかま ===== -->
+      <div id="menu-page-companions" class="menu-page hidden">
+        <button class="menu-back-btn">← もどる</button>
+        <h2>🐹 なかま</h2>
+        <div id="menu-companions" class="companion-list"></div>
+      </div>
+
+      <!-- ===== バッジ ===== -->
+      <div id="menu-page-badges" class="menu-page hidden">
+        <button class="menu-back-btn">← もどる</button>
+        <h2>🎖️ バッジ <span id="badge-progress"></span></h2>
+        <div id="menu-badges" class="badge-list"></div>
+      </div>
     </div>
   </div>
 

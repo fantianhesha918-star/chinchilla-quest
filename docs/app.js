@@ -1397,7 +1397,7 @@
           save(state);
           showToast(state.name + " は " + sk.name + " を おぼえた!");
           updateHud();
-          openMenuModal();
+          refreshMenuData();
           return;
         }
         var stats = getMaxStats(state);
@@ -1408,13 +1408,26 @@
         save(state);
         showToast(item.name + " を つかった!");
         updateHud();
-        openMenuModal();
+        refreshMenuData();
       });
       container.appendChild(div);
     });
   }
 
-  function openMenuModal() {
+  var MENU_PAGES = ["top", "status", "skills", "items", "companions", "badges"];
+  function showMenuPage(page) {
+    MENU_PAGES.forEach(function (p) {
+      document.getElementById("menu-page-" + p).classList.toggle("hidden", p !== page);
+    });
+  }
+  document.querySelectorAll(".menu-category-btn[data-page]").forEach(function (btn) {
+    btn.addEventListener("click", function () { showMenuPage(btn.dataset.page); });
+  });
+  document.querySelectorAll("#menu-modal .menu-back-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () { showMenuPage("top"); });
+  });
+
+  function refreshMenuData() {
     var stats = getMaxStats(state);
     var stageLabel = state.stageIndex > 0 ? G.EVOLUTION_ROUTES[state.route].stages[state.stageIndex - 1].label : "ちんちら";
     menuStatusEl.innerHTML =
@@ -1437,6 +1450,15 @@
     renderInventoryList(menuItemsEl);
     renderCompanionsList(menuCompanionsEl);
     renderBadges();
+
+    document.getElementById("menu-cat-skills-count").textContent = "(" + state.learnedSkills.length + ")";
+    document.getElementById("menu-cat-companions-count").textContent =
+      "(" + state.activeParty.length + "/" + G.MAX_PARTY_SIZE + ")";
+  }
+
+  function openMenuModal() {
+    refreshMenuData();
+    showMenuPage("top");
     openModal("menu-modal");
   }
   document.getElementById("select-btn").addEventListener("click", openMenuModal);
@@ -1550,6 +1572,8 @@
     });
     var progressEl = document.getElementById("badge-progress");
     if (progressEl) progressEl.textContent = got + " / " + G.BOSS_ORDER.length;
+    var catCountEl = document.getElementById("menu-cat-badges-count");
+    if (catCountEl) catCountEl.textContent = "(" + got + "/" + G.BOSS_ORDER.length + ")";
   }
 
   function renderZukan() {

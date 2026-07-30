@@ -791,6 +791,36 @@ body {
 .modal-card h2 { margin: 0 0 6px; font-size: 1.1rem; }
 .modal-sub { color: var(--ink-soft); font-size: 0.8rem; margin: 10px 0 8px; }
 
+.menu-page.hidden { display: none; }
+.menu-category-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.menu-category-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: #fbf3e9;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-category-btn:active { background: #f3e5d3; }
+.menu-cat-count { color: var(--ink-soft); font-size: 0.8rem; }
+.menu-back-btn {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  padding: 4px 0 10px;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .menu-status {
   background: #fbf3e9;
   border-radius: 14px;
@@ -1000,7 +1030,8 @@ body {
     --ink: #f3e6da;
     --ink-soft: #b8a696;
   }
-  .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item, .zukan-cell, .zukan-detail, .badge-cell { background: #2c2420; }
+  .food-item, .menu-status, .menu-skill-row, .route-choice-card, .battle-sub-item, .companion-item, .battle-party-item, .zukan-cell, .zukan-detail, .badge-cell, .menu-category-btn { background: #2c2420; }
+  .menu-category-btn:active { background: #362d27; }
   .zukan-silhouette, .badge-silhouette { background: #241d18; }
   .hud-bar-track { background: #2c2420; }
   .tile { background-color: #241d18; }
