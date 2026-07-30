@@ -157,10 +157,8 @@
   }
 
   function renderFieldPlayerSprite() {
-    if (state.stageIndex > 0) {
-      var stage = G.EVOLUTION_ROUTES[state.route].stages[state.stageIndex - 1];
-      return '<img src="' + stage.file + '" alt="' + stage.label + '" style="width:100%;height:100%;object-fit:contain;">';
-    }
+    // マップ上のトレーナー(チモ)の見た目は進化段階によらず常に同じ歩行アニメーションを使う
+    // (進化後の姿は戦闘画面でのみ表示)
     var src = G.HERO_FIELD_SPRITES[state.facing || "down"];
     return '<img src="' + src + '" alt="' + state.name + '" style="width:100%;height:100%;object-fit:contain;">';
   }
@@ -408,19 +406,15 @@
     var inner = playerEl.querySelector(".tile-player-inner");
     if (midStepTimer) { clearTimeout(midStepTimer); midStepTimer = null; }
     if (inner) {
-      if (state.stageIndex > 0) {
-        inner.classList.toggle("facing-left", state.facing === "left");
-      } else {
-        inner.classList.remove("facing-left");
-        var img = inner.querySelector("img");
-        var frames = G.HERO_WALK_FRAMES[state.facing || "down"];
-        if (img) {
-          img.src = frames[heroWalkFrame % frames.length];
-          if (animateStep !== false) {
-            // マスの移動中(スライド中)に2枚目の歩行フレームへ切り替え、足が動いて見えるようにする
-            var nextFrameSrc = frames[(heroWalkFrame + 1) % frames.length];
-            midStepTimer = setTimeout(function () { img.src = nextFrameSrc; }, WALK_STEP_MS / 2);
-          }
+      // マップ上は進化段階によらず常にチモの歩行アニメーションを表示(進化後の姿は戦闘画面のみ)
+      var img = inner.querySelector("img");
+      var frames = G.HERO_WALK_FRAMES[state.facing || "down"];
+      if (img) {
+        img.src = frames[heroWalkFrame % frames.length];
+        if (animateStep !== false) {
+          // マスの移動中(スライド中)に2枚目の歩行フレームへ切り替え、足が動いて見えるようにする
+          var nextFrameSrc = frames[(heroWalkFrame + 1) % frames.length];
+          midStepTimer = setTimeout(function () { img.src = nextFrameSrc; }, WALK_STEP_MS / 2);
         }
       }
     }
