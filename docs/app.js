@@ -958,7 +958,10 @@
     function finishTurn(lines, skillElement, result) {
       save(state);
       renderBattle();
-      if (skillElement) showElementEffect(skillElement, battleEnemySprite);
+      // 複数コマ演出がある属性は playMoveAnim 側で着弾+消散コマを表示済みなので二重に出さない
+      if (skillElement && !(G.ELEMENT_EFFECT_ANIM && G.ELEMENT_EFFECT_ANIM[skillElement])) {
+        showElementEffect(skillElement, battleEnemySprite);
+      }
       if (result) {
         triggerHitEffect(battleEnemySprite, result.crit);
         showDamagePopup(battleEnemySprite, result.dmg, result.crit);
