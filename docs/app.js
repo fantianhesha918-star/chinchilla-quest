@@ -1452,6 +1452,86 @@
   document.getElementById("battle-sub-back").addEventListener("click", closeSubMenu);
 
   // ---------------- Menu / Shop ----------------
+  function fieldPartyTargets() {
+    var heroStats = getMaxStats(state);
+    var list = [{
+      kind: "hero", id: "hero", name: state.name, level: state.level,
+      hp: state.hp, maxHp: heroStats.maxHp, mp: state.mp, maxMp: heroStats.maxMp, element: null
+    }];
+    state.activeParty.forEach(function (id) {
+      var ld = getCompanionLevelData(id);
+      var speciesId = currentCompanionSpeciesId(id, ld.level);
+      var mon = G.MONSTERS[speciesId];
+      var cstats = getCompanionMaxStats(id, ld.level);
+      list.push({
+        kind: "companion", id: id, name: mon.name, level: ld.level,
+        hp: ld.hp, maxHp: cstats.maxHp, mp: ld.mp, maxMp: cstats.maxMp, element: mon.element
+      });
+    });
+    return list;
+  }
+
+  function applyPotionItem(itemId, item, target) {
+    state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
+    if (target.kind === "hero") {
+      if (item.kind === "hp") state.hp = Math.min(target.maxHp, state.hp + item.amount);
+      else if (item.kind === "mp") state.mp = Math.min(target.maxMp, state.mp + item.amount);
+      else if (item.kind === "full") { state.hp = target.maxHp; state.mp = target.maxMp; }
+    } else {
+      var ld = getCompanionLevelData(target.id);
+      if (item.kind === "hp") ld.hp = Math.min(target.maxHp, ld.hp + item.amount);
+      else if (item.kind === "mp") ld.mp = Math.min(target.maxMp, ld.mp + item.amount);
+      else if (item.kind === "full") { ld.hp = target.maxHp; ld.mp = target.maxMp; }
+    }
+    save(state);
+    showToast(target.name + " は " + item.name + " を つかった!");
+    updateHud();
+    refreshMenuData();
+  }
+
+  function applyPelletItem(itemId, item, target) {
+    var sk = G.SKILLS[item.skillId];
+    if (target.kind === "companion" && target.element !== item.element) {
+      showToast(target.name + " は この ペレットを たべられない…");
+      return;
+    }
+    var known = target.kind === "hero"
+      ? state.learnedSkills.indexOf(item.skillId) !== -1
+      : getCompanionSkills(target.id).indexOf(item.skillId) !== -1;
+    if (known) {
+      showToast(target.name + " は もう " + sk.name + " を おぼえている");
+      return;
+    }
+    state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
+    if (target.kind === "hero") state.learnedSkills.push(item.skillId);
+    else getCompanionSkills(target.id).push(item.skillId);
+    save(state);
+    showToast(target.name + " は " + sk.name + " を おぼえた!");
+    updateHud();
+    refreshMenuData();
+  }
+
+  function openItemTargetPicker(itemId, item) {
+    var targets = fieldPartyTargets();
+    var applyFn = item.kind === "pellet" ? applyPelletItem : applyPotionItem;
+    if (targets.length <= 1) { applyFn(itemId, item, targets[0]); return; }
+    var listEl = document.getElementById("item-target-list");
+    listEl.innerHTML = "";
+    targets.forEach(function (t) {
+      var div = document.createElement("div");
+      div.className = "food-item";
+      div.innerHTML =
+        '<div class="food-info"><div><div class="food-name">' + t.name + " Lv" + t.level + '</div><div class="food-desc">HP ' + t.hp + "/" + t.maxHp + " ・ MP " + t.mp + "/" + t.maxMp + '</div></div></div>' +
+        "<button>" + (item.kind === "pellet" ? "たべさせる" : "つかう") + "</button>";
+      div.querySelector("button").addEventListener("click", function () {
+        closeModal("item-target-modal");
+        applyFn(itemId, item, t);
+      });
+      listEl.appendChild(div);
+    });
+    openModal("item-target-modal");
+  }
+
   function renderInventoryList(container) {
     container.innerHTML = "";
     G.USABLE_ITEM_IDS.forEach(function (id) {
@@ -1465,29 +1545,7 @@
       div.querySelector("button").addEventListener("click", function () {
         if (count <= 0) return;
         if (item.kind === "ball") { showToast("せんとうちゅうに つかってね"); return; }
-        if (item.kind === "pellet") {
-          var sk = G.SKILLS[item.skillId];
-          if (state.learnedSkills.indexOf(item.skillId) !== -1) {
-            showToast(state.name + " は もう " + sk.name + " を おぼえている");
-            return;
-          }
-          state.inventory[id] -= 1;
-          state.learnedSkills.push(item.skillId);
-          save(state);
-          showToast(state.name + " は " + sk.name + " を おぼえた!");
-          updateHud();
-          refreshMenuData();
-          return;
-        }
-        var stats = getMaxStats(state);
-        state.inventory[id] -= 1;
-        if (item.kind === "hp") state.hp = Math.min(stats.maxHp, state.hp + item.amount);
-        else if (item.kind === "mp") state.mp = Math.min(stats.maxMp, state.mp + item.amount);
-        else if (item.kind === "full") { state.hp = stats.maxHp; state.mp = stats.maxMp; }
-        save(state);
-        showToast(item.name + " を つかった!");
-        updateHud();
-        refreshMenuData();
+        openItemTargetPicker(id, item);
       });
       container.appendChild(div);
     });
