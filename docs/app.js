@@ -1143,8 +1143,8 @@
       var oldMax = getMaxStats(state);
       state.level += 1;
       var newMax = getMaxStats(state);
-      state.hp = Math.min(newMax.maxHp, state.hp + (newMax.maxHp - oldMax.maxHp));
-      state.mp = Math.min(newMax.maxMp, state.mp + (newMax.maxMp - oldMax.maxMp));
+      state.hp = newMax.maxHp;
+      state.mp = newMax.maxMp;
       events.push({
         type: "levelup", level: state.level,
         deltas: {
@@ -1240,11 +1240,10 @@
         var need = G.expToNext(ld.level);
         if (ld.exp < need) break;
         ld.exp -= need;
-        var oldMax = getCompanionMaxStats(id, ld.level);
         ld.level += 1;
         var newMax = getCompanionMaxStats(id, ld.level);
-        ld.hp = Math.min(newMax.maxHp, ld.hp + (newMax.maxHp - oldMax.maxHp));
-        ld.mp = Math.min(newMax.maxMp, ld.mp + (newMax.maxMp - oldMax.maxMp));
+        ld.hp = newMax.maxHp;
+        ld.mp = newMax.maxMp;
         leveled = true;
         var afterId = currentCompanionSpeciesId(id, ld.level);
         var afterName = G.MONSTERS[afterId].name;
