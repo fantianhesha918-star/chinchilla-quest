@@ -545,6 +545,46 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
+.battle-sprite.boss-drop-in { animation: boss-drop-in 0.6s cubic-bezier(.25,.85,.35,1.1); }
+@keyframes boss-drop-in {
+  0% { transform: translateY(-170px) scale(0.7); opacity: 0; }
+  55% { transform: translateY(12px) scale(1.1); opacity: 1; }
+  75% { transform: translateY(-6px) scale(0.96); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.battle-field.boss-shake { animation: boss-field-shake 0.65s ease; }
+@keyframes boss-field-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-11px, 6px); }
+  25% { transform: translate(9px, -7px); }
+  40% { transform: translate(-8px, 5px); }
+  55% { transform: translate(6px, -4px); }
+  70% { transform: translate(-4px, 2px); }
+  85% { transform: translate(2px, -1px); }
+}
+.battle-field.boss-flash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(130,20,45,0.65) 0%, rgba(70,10,35,0.35) 55%, rgba(70,10,35,0) 80%);
+  pointer-events: none;
+  z-index: 8;
+  animation: boss-flash 0.75s ease-out;
+}
+@keyframes boss-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.enemy-sprite.attack-lunge.boss-attack { animation: attack-lunge-boss 0.42s cubic-bezier(.3,.6,.3,1.2); }
+@keyframes attack-lunge-boss {
+  0% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(-34px, 24px) scale(1.22); filter: brightness(1.15); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.atk-projectile.boss-attack { width: 64px; height: 64px; filter: drop-shadow(0 0 10px rgba(255,80,40,0.6)); }
+
 .battle-field.field-shake { animation: field-shake 0.5s ease; }
 @keyframes field-shake {
   0%, 100% { transform: translate(0, 0) scale(1); }

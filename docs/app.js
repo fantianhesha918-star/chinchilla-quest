@@ -625,7 +625,7 @@
     setTimeout(function () { el.remove(); }, 900);
   }
 
-  function triggerHitEffect(spriteEl, crit) {
+  function triggerHitEffect(spriteEl, crit, bossHit) {
     if (!spriteEl) return;
     var cls = crit ? "shake-crit" : "shake";
     spriteEl.classList.add(cls);
@@ -633,21 +633,29 @@
     if (crit && battleFieldEl) {
       battleFieldEl.classList.add("field-shake", "crit-flash");
       setTimeout(function () { battleFieldEl.classList.remove("field-shake", "crit-flash"); }, 500);
+    } else if (bossHit && battleFieldEl) {
+      // ボスの通常ヒットも(会心ほどではないが)画面を揺らして重さを出す
+      battleFieldEl.classList.add("field-shake");
+      setTimeout(function () { battleFieldEl.classList.remove("field-shake"); }, 500);
     }
   }
 
   // 無属性(体当たり系)の技は踏み込みモーションのみ。着弾処理(onImpact)は踏み込みのピークで呼ぶ。
-  function playAttackAnim(attackerEl, onImpact) {
+  function playAttackAnim(attackerEl, onImpact, boss) {
     if (!attackerEl) { onImpact(); return; }
     attackerEl.classList.add("attack-lunge");
+    if (boss) attackerEl.classList.add("boss-attack");
     setTimeout(function () {
       onImpact();
-      setTimeout(function () { attackerEl.classList.remove("attack-lunge"); }, 160);
+      setTimeout(function () {
+        attackerEl.classList.remove("attack-lunge");
+        if (boss) attackerEl.classList.remove("boss-attack");
+      }, boss ? 240 : 160);
     }, 180);
   }
 
   // 属性ありの技は、その属性のエフェクト画像を弾として相手に向かって飛ばし、着弾した瞬間に onImpact を呼ぶ。
-  function playProjectileAnim(attackerEl, defenderEl, element, onImpact) {
+  function playProjectileAnim(attackerEl, defenderEl, element, onImpact, boss) {
     var src = element && G.ELEMENT_EFFECTS[element];
     if (!src || !battleFieldEl || !attackerEl || !defenderEl) { onImpact(); return; }
     var fieldRect = battleFieldEl.getBoundingClientRect();
@@ -659,7 +667,7 @@
     var endY = endRect.top + endRect.height / 2 - fieldRect.top;
 
     var proj = document.createElement("img");
-    proj.className = "atk-projectile";
+    proj.className = "atk-projectile" + (boss ? " boss-attack" : "");
     proj.src = src;
     proj.style.left = startX + "px";
     proj.style.top = startY + "px";
@@ -678,11 +686,12 @@
   }
 
   // 技の属性の有無で「踏み込み」か「弾が飛んでいく」かを振り分ける共通入り口。
-  function playMoveAnim(attackerEl, defenderEl, element, onImpact) {
+  // boss=true のときは、こうげき側がボスであることを示す追加の演出クラスを付与する。
+  function playMoveAnim(attackerEl, defenderEl, element, onImpact, boss) {
     if (element && G.ELEMENT_EFFECTS[element]) {
-      playProjectileAnim(attackerEl, defenderEl, element, onImpact);
+      playProjectileAnim(attackerEl, defenderEl, element, onImpact, boss);
     } else {
-      playAttackAnim(attackerEl, onImpact);
+      playAttackAnim(attackerEl, onImpact, boss);
     }
   }
 
@@ -870,6 +879,15 @@
     fieldScreen.classList.add("hidden");
     battleScreen.classList.remove("hidden");
     renderBattle();
+    if (isBoss) {
+      battleEnemySprite.classList.remove("boss-drop-in");
+      void battleEnemySprite.offsetWidth;
+      battleEnemySprite.classList.add("boss-drop-in");
+      battleFieldEl.classList.remove("boss-shake", "boss-flash");
+      void battleFieldEl.offsetWidth;
+      battleFieldEl.classList.add("boss-shake", "boss-flash");
+      setTimeout(function () { battleFieldEl.classList.remove("boss-shake", "boss-flash"); }, 750);
+    }
     showCommandMenu();
     setBattleMessage((isBoss ? "ボスの " : "") + def.name + " が あらわれた!");
   }
@@ -971,7 +989,7 @@
       var newHp = Math.max(0, active.hp - result.dmg);
       setBattlerHp(active.idx, newHp);
       renderBattle();
-      triggerHitEffect(battlePlayerSprite, result.crit);
+      triggerHitEffect(battlePlayerSprite, result.crit, battle.isBoss);
       showElementEffect(sk.element, battlePlayerSprite);
       showDamagePopup(battlePlayerSprite, result.dmg, result.crit);
       if (result.crit) lines.push("会心の一撃!");
@@ -991,7 +1009,7 @@
         showCommandMenu();
         setBattleMessage("つぎの コマンドを えらんでね");
       });
-    });
+    }, battle.isBoss);
   }
 
   function tryRun() {
