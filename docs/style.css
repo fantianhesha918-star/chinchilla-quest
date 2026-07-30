@@ -221,6 +221,12 @@ body {
 .map-iceridge .tile-grass { filter: hue-rotate(150deg) saturate(0.6) brightness(1.15); }
 .map-wasteland .tile-grass { filter: hue-rotate(-35deg) saturate(0.55) brightness(0.92); }
 .map-madoushi_tower .tile-grass { filter: hue-rotate(250deg) saturate(0.75) brightness(0.85); }
+.map-north_path .tile-grass { filter: hue-rotate(-15deg) saturate(0.7) brightness(0.95); }
+.map-west_path .tile-grass { filter: hue-rotate(-60deg) saturate(0.5) brightness(0.9); }
+.map-east_path .tile-grass { filter: hue-rotate(90deg) saturate(0.35) brightness(1.1); }
+.map-ma_corridor .tile-grass { filter: hue-rotate(200deg) saturate(0.8) brightness(0.75); }
+.map-reizon .tile-grass { filter: hue-rotate(30deg) saturate(0.5) brightness(1.2); }
+.map-shitennou_hall .tile-grass { filter: hue-rotate(-90deg) saturate(0.65) brightness(0.85); }
 .tile-water { background: repeating-linear-gradient(135deg, #a9cce3, #a9cce3 6px, #97bfda 6px, #97bfda 12px); }
 .tile-warp { background: #f6e0ea; box-shadow: inset 0 0 0 2px var(--pink-deep); }
 .tile-boss { background: #f3d0cb; box-shadow: inset 0 0 0 2px var(--danger); animation: boss-pulse 1.6s ease-in-out infinite; }
@@ -293,6 +299,12 @@ body {
   object-position: bottom center;
   pointer-events: none;
   filter: drop-shadow(0 3px 2px rgba(93, 61, 30, 0.3));
+}
+
+.tile-tuft-img {
+  inset: 5% 10% 10% 10%;
+  filter: none;
+  opacity: 0.85;
 }
 
 .tile-boss-img {

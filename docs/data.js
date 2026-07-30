@@ -773,16 +773,16 @@
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
-        "#,T,,,,,,R,,#",
+        "#,T,,,,##,R,#",
         "#,,,,,,,,,,,#",
-        "#,,,,,,,,,,,#",
+        "#,,,,,,#,,,,#",
         "#,,,,R,,,,,,#",
-        "#,,,,,,,,,,,#",
+        "#,,,,####,,,#",
         "#,T,,,,,,,,,#",
         "####.########",
         "#,,,...,,,,,#",
-        "#,,#,,,,,#,,#",
-        "#,,#,,Y,,#,,#",
+        "#,#,,,,,#,,,#",
+        "#,#,,,Y,#,,,#",
         "#,,#######,,#"
       ],
       npcs: [
@@ -794,6 +794,10 @@
       ],
       chests: [
         { id: "iceridge_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_potion", amount: 1 } }
+      ],
+      decorations: [
+        { x: 1, y: 1, image: "assets/tiles/deco_stump.webp" },
+        { x: 2, y: 6, image: "assets/tiles/deco_stump.webp" }
       ],
       bossTrigger: { x: 6, y: 11, monsterId: "yeti" },
       encounter: {
@@ -885,16 +889,16 @@
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
-        "#,T,,,,,,R,,#",
+        "#,T##,,,,,R,#",
         "#,,,,,,,,,,,#",
-        "#,,,,,,,,,,,#",
+        "#,,,#,,,,#,,#",
         "#,,,,R,,,,,,#",
-        "#,,,,,,,,,,,#",
+        "#,,,#,,,###,#",
         "#,T,,,,,,,,,#",
         "####.########",
         "#,,,...,,,,,#",
-        "#,,#,,,,,#,,#",
-        "#,,#,,B,,#,,#",
+        "#,#,,,,,#,,,#",
+        "#,#,,,B,#,,,#",
         "#,,#######,,#"
       ],
       npcs: [
@@ -906,6 +910,10 @@
       ],
       chests: [
         { id: "ma_corridor_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_mana", amount: 2 } }
+      ],
+      decorations: [
+        { x: 1, y: 1, image: "assets/tiles/deco_stump.webp" },
+        { x: 11, y: 5, image: "assets/tiles/deco_stump.webp" }
       ],
       bossTrigger: { x: 6, y: 11, monsterId: "akuma" },
       encounter: {
@@ -963,16 +971,16 @@
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
-        "#,T,,,,,,R,,#",
-        "#,,,,,,,,,,,#",
+        "#,T,,,,,,,R,#",
+        "#,#####,,,,,#",
         "#,,,,,,,,,,,#",
         "#,,,,R,,,,,,#",
-        "#,,,,,,,,,,,#",
+        "#,,,,,#####,#",
         "#,T,,,,,,,,,#",
         "####.########",
         "#,,,...,,,,,#",
-        "#,,#,,,,,#,,#",
-        "#,,#,,B,,#,,#",
+        "#,#,,,,,#,,,#",
+        "#,#,,,B,#,,,#",
         "#,,#######,,#"
       ],
       npcs: [
@@ -981,6 +989,11 @@
       warps: [{ x: 6, y: 0, toMap: "village", toX: 7, toY: 1 }],
       chests: [
         { id: "north_path_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "elixir", amount: 1 } }
+      ],
+      decorations: [
+        { x: 1, y: 1, image: "assets/tiles/deco_flowerbush_white.webp" },
+        { x: 7, y: 4, image: "assets/tiles/deco_stump.webp" },
+        { x: 1, y: 6, image: "assets/tiles/deco_flowerbush_orange.webp" }
       ],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "iwa_golem_2" },
@@ -1000,16 +1013,16 @@
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
-        "#,T,,,,,,R,,#",
+        "#,,,,,R,,,,,#",
+        "#,,T,,,,,,,,#",
         "#,,,,,,,,,,,#",
         "#,,,,,,,,,,,#",
-        "#,,,,R,,,,,,#",
+        "#,,,R,,,T,,,#",
         "#,,,,,,,,,,,#",
-        "#,T,,,,,,,,,#",
         "####.########",
         "#,,,...,,,,,#",
-        "#,,#,,,,,#,,#",
-        "#,,#,,B,,#,,#",
+        "#,#,,,,,#,,,#",
+        "#,#,,,B,#,,,#",
         "#,,#######,,#"
       ],
       npcs: [
@@ -1018,6 +1031,10 @@
       warps: [{ x: 6, y: 0, toMap: "village", toX: 1, toY: 6 }],
       chests: [
         { id: "west_path_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "elixir", amount: 1 } }
+      ],
+      decorations: [
+        { x: 1, y: 1, image: "assets/tiles/deco_stump.webp" },
+        { x: 1, y: 6, image: "assets/tiles/deco_stump.webp" }
       ],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "hone_kihei_2" },
@@ -1037,16 +1054,16 @@
       tiles: [
         "######.######",
         "#,,,,,,,,,,,#",
-        "#,T,,,,,,R,,#",
+        "#,TT,T,,,,,,#",
         "#,,,,,,,,,,,#",
+        "#,,,T,,,T,,,#",
         "#,,,,,,,,,,,#",
-        "#,,,,R,,,,,,#",
-        "#,,,,,,,,,,,#",
-        "#,T,,,,,,,,,#",
+        "#,,T,,T,,,,,#",
+        "#,T,,,,,T,,,#",
         "####.########",
         "#,,,...,,,,,#",
-        "#,,#,,,,,#,,#",
-        "#,,#,,B,,#,,#",
+        "#,#,,,,,#,,,#",
+        "#,#,,,B,#,,,#",
         "#,,#######,,#"
       ],
       npcs: [
@@ -1055,6 +1072,11 @@
       warps: [{ x: 6, y: 0, toMap: "village", toX: 13, toY: 6 }],
       chests: [
         { id: "east_path_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "elixir", amount: 1 } }
+      ],
+      decorations: [
+        { x: 9, y: 2, image: "assets/tiles/deco_flowerbush.webp" },
+        { x: 6, y: 4, image: "assets/tiles/deco_stump.webp" },
+        { x: 1, y: 6, image: "assets/tiles/deco_flowerbush_white.webp" }
       ],
       bossTriggers: [
         { x: 4, y: 8, monsterId: "ankoku_kishi_2" },

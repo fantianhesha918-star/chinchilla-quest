@@ -297,6 +297,10 @@
     var variants = ch === "T" ? TREE_IMAGES : ROCK_IMAGES;
     return variants[(x * 3 + y * 7) % variants.length];
   }
+  function hasGrassTuft(x, y) {
+    // 座標ベースの決定的な疑似乱数で、草むらの一部にだけ「grass_tuft」を薄く散らして単調さを減らす
+    return (x * 928371 + y * 654321 + 17) % 97 < 12;
+  }
 
   var playerEl = null;
   var heroWalkFrame = 0;
@@ -361,6 +365,7 @@
         else {
           var deco = decoAtCoord(map, x, y);
           if (deco) inner = '<img class="tile-deco-img" src="' + deco.image + '" alt="">';
+          else if (ch === "," && hasGrassTuft(x, y)) inner = '<img class="tile-deco-img tile-tuft-img" src="assets/tiles/grass_tuft.webp" alt="">';
         }
         html += '<div class="' + cls + '">' + inner + "</div>";
       }
