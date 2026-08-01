@@ -346,7 +346,7 @@
     beast: "assets/effects/effect_beast.webp"
   };
   // 属性ごとの「チャージ→飛翔→着弾+消散」複数コマ演出素材(1属性につき1〜3パターン)。
-  // ここに無い属性(つち・やみ・まほう・けもの)は ELEMENT_EFFECTS の単一静止画にフォールバックする。
+  // ここに無い属性があれば ELEMENT_EFFECTS の単一静止画にフォールバックする。
   var ELEMENT_EFFECT_ANIM = {
     fire: [
       ["assets/effects/anim/fire_1/f1.webp", "assets/effects/anim/fire_1/f2.webp", "assets/effects/anim/fire_1/f3.webp", "assets/effects/anim/fire_1/f4.webp", "assets/effects/anim/fire_1/f5.webp", "assets/effects/anim/fire_1/f6.webp"],
@@ -375,6 +375,18 @@
     ],
     heaven: [
       ["assets/effects/anim/heaven_1/f1.webp", "assets/effects/anim/heaven_1/f2.webp", "assets/effects/anim/heaven_1/f3.webp", "assets/effects/anim/heaven_1/f4.webp", "assets/effects/anim/heaven_1/f5.webp", "assets/effects/anim/heaven_1/f6.webp"]
+    ],
+    earth: [
+      ["assets/effects/anim/earth_1/f1.png", "assets/effects/anim/earth_1/f2.png", "assets/effects/anim/earth_1/f3.png", "assets/effects/anim/earth_1/f4.png"]
+    ],
+    dark: [
+      ["assets/effects/anim/dark_1/f1.png", "assets/effects/anim/dark_1/f2.png", "assets/effects/anim/dark_1/f3.png", "assets/effects/anim/dark_1/f4.png"]
+    ],
+    magic: [
+      ["assets/effects/anim/magic_1/f1.png", "assets/effects/anim/magic_1/f2.png", "assets/effects/anim/magic_1/f3.png", "assets/effects/anim/magic_1/f4.png"]
+    ],
+    beast: [
+      ["assets/effects/anim/beast_1/f1.png", "assets/effects/anim/beast_1/f2.png", "assets/effects/anim/beast_1/f3.png", "assets/effects/anim/beast_1/f4.png"]
     ]
   };
   // わざ(スキル)IDごとに使う演出パターンを決める(同じ属性でも技によって見た目が変わる = 「わざを増やす」)。
