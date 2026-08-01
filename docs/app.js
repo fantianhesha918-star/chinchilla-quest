@@ -1398,6 +1398,7 @@
 
   function winBattle() {
     var def = G.MONSTERS[battle.monsterId];
+    var isFinalBoss = def.id === "kami_kouyoku";
     state.money += def.money;
     var lines = [def.name + " を たおした!", def.exp + " の けいけんちを 手に入れた!", def.money + "まい の コインを 手に入れた!"];
     if (battle.isBoss) {
@@ -1424,14 +1425,29 @@
         lines.push("のうりょくが 上がった!");
       }
     }
+    if (isFinalBoss) {
+      lines.push("よんてんのうを すべて たおした!");
+      lines.push("せかいに へいわが もどった…");
+    }
     var events = gainExp(def.exp);
     var companionLevelUpLines = gainCompanionExp(def.exp);
     save(state);
     renderBattle();
     playSequence(lines, function () {
       handleLevelUpMessages(events, function () {
-        if (companionLevelUpLines.length === 0) { endBattleToField(); return; }
-        playSequence(companionLevelUpLines, endBattleToField);
+        function finish() {
+          if (isFinalBoss) {
+            state.mapId = G.START_MAP;
+            state.x = G.START_X; state.y = G.START_Y;
+            save(state);
+            endBattleToField();
+            showAreaBanner("🎉 よんてんのう とうは! " + G.MAPS[G.START_MAP].label);
+          } else {
+            endBattleToField();
+          }
+        }
+        if (companionLevelUpLines.length === 0) { finish(); return; }
+        playSequence(companionLevelUpLines, finish);
       });
     });
   }

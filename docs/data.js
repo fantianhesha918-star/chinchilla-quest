@@ -97,10 +97,13 @@
     // ---- ボス撃破の専用わざ(BOSS_REWARDSで習得) ----
     yougan_crush: { id: "yougan_crush", name: "ようがんクラッシュ", power: 58, uses: 10, desc: "ようがんの ちからで たたきつぶす", element: "fire" },
     yeti_blizzard: { id: "yeti_blizzard", name: "ブリザードファング", power: 60, uses: 10, desc: "こおりの きばで きりさく", element: "water" },
+    iwa_golem_smash: { id: "iwa_golem_smash", name: "がんせきのちから", power: 61, uses: 10, desc: "がんせきの ちからで たたきつぶす", element: "earth" },
     oni_smash: { id: "oni_smash", name: "おにのだいかいてん", power: 64, uses: 10, desc: "だいちを ゆるがす だいかいてん", element: "earth" },
     madoushi_curse: { id: "madoushi_curse", name: "だいまどうのじゅそ", power: 68, uses: 10, desc: "おそろしい じゅそを かける", element: "magic" },
     akuma_claw: { id: "akuma_claw", name: "あんこくのつめ", power: 72, uses: 10, desc: "やみの つめで ひきさく", element: "dark" },
     dragon_thunder: { id: "dragon_thunder", name: "らいめいのつめ", power: 74, uses: 10, desc: "いなずまを まとった つめで ひきさく", element: "thunder" },
+    desu_rider_lance: { id: "desu_rider_lance", name: "しのランス", power: 62, uses: 10, desc: "しのきしの ランスで つらぬく", element: "dark" },
+    ankoku_kishi_slash: { id: "ankoku_kishi_slash", name: "あんこくのけん", power: 61, uses: 10, desc: "あんこくの けんで きりさく", element: "dark" },
     mahitotsu_smash: { id: "mahitotsu_smash", name: "だいちのてっけん", power: 78, uses: 5, desc: "だいちを ふるわせる てっけん", element: "beast" },
     yurei_ou_curse: { id: "yurei_ou_curse", name: "しのちょうふく", power: 82, uses: 5, desc: "たましいを こおりつかせる のろい", element: "dark" },
     shitennou_yougan_blast: { id: "shitennou_yougan_blast", name: "だいばくはつ", power: 84, uses: 5, desc: "ようがんが だいばくはつする", element: "fire" },
@@ -437,21 +440,22 @@
   var BOSS_REWARDS = {
     yougan_golem: { skillId: "yougan_crush", badgeLabel: "ようがんのバッジ", statBonus: { maxHp: 10 }, itemId: "high_potion", itemAmount: 2 },
     yeti: { skillId: "yeti_blizzard", badgeLabel: "こおりのバッジ", statBonus: { usesBonus: 1, def: 3 }, itemId: "high_mana", itemAmount: 2 },
-    oni_ou: { skillId: "oni_smash", badgeLabel: "だいちのバッジ", statBonus: { atk: 5 }, itemId: "high_potion", itemAmount: 2 },
-    majin_madoushi: { skillId: "madoushi_curse", badgeLabel: "まほうのバッジ", statBonus: { usesBonus: 2, spd: 3 }, itemId: "high_mana", itemAmount: 2 },
-    akuma: { skillId: "akuma_claw", badgeLabel: "あくまのバッジ", statBonus: { maxHp: 15, def: 5 }, itemId: "high_potion", itemAmount: 2 },
+    iwa_golem_2: { skillId: "iwa_golem_smash", badgeLabel: "こだいゴーレムのバッジ", statBonus: { maxHp: 8 }, itemId: "high_potion", itemAmount: 2 },
     dragon: { skillId: "dragon_thunder", badgeLabel: "りゅうのバッジ", statBonus: { atk: 6 }, itemId: "high_mana", itemAmount: 2 },
+    hone_kihei_2: { skillId: "desu_rider_lance", badgeLabel: "デスライダーのバッジ", statBonus: { atk: 4 }, itemId: "high_mana", itemAmount: 2 },
     mahitotsu_ou: { skillId: "mahitotsu_smash", badgeLabel: "まひとつめのバッジ", statBonus: { maxHp: 12, def: 4 }, itemId: "high_potion", itemAmount: 2 },
+    ankoku_kishi_2: { skillId: "ankoku_kishi_slash", badgeLabel: "あんこくきしおうのバッジ", statBonus: { def: 4 }, itemId: "high_potion", itemAmount: 2 },
     yurei_ou: { skillId: "yurei_ou_curse", badgeLabel: "ゆうれいおうのバッジ", statBonus: { spd: 6, atk: 4 }, itemId: "high_mana", itemAmount: 2 },
-    shitennou_yougan: { skillId: "shitennou_yougan_blast", badgeLabel: "してんのう・えんのバッジ", statBonus: { maxHp: 15 }, itemId: "elixir", itemAmount: 1 },
-    shitennou_yeti: { skillId: "shitennou_yeti_zero", badgeLabel: "してんのう・ひょうのバッジ", statBonus: { usesBonus: 3, def: 4 }, itemId: "elixir", itemAmount: 1 },
-    shitennou_oni: { skillId: "shitennou_oni_split", badgeLabel: "してんのう・ちのバッジ", statBonus: { atk: 8 }, itemId: "elixir", itemAmount: 1 },
-    shitennou_madoushi: { skillId: "shitennou_madoushi_ultima", badgeLabel: "してんのう・まのバッジ", statBonus: { usesBonus: 4, spd: 5 }, itemId: "elixir", itemAmount: 1 }
+    kami_seikuu: { skillId: "shitennou_yougan_blast", badgeLabel: "星空の大司教のバッジ", statBonus: { maxHp: 15 }, itemId: "elixir", itemAmount: 1 },
+    kami_datenken: { skillId: "shitennou_yeti_zero", badgeLabel: "堕天の剣皇のバッジ", statBonus: { usesBonus: 3, def: 4 }, itemId: "elixir", itemAmount: 1 },
+    kami_ryokuya: { skillId: "shitennou_oni_split", badgeLabel: "緑野の女神のバッジ", statBonus: { atk: 8 }, itemId: "elixir", itemAmount: 1 },
+    kami_kouyoku: { skillId: "shitennou_madoushi_ultima", badgeLabel: "光翼の大天使のバッジ", statBonus: { usesBonus: 4, spd: 5 }, itemId: "elixir", itemAmount: 1 }
   };
+  // 保留中(南ダンジョンの残りボス。今後の追加ストーリーで再登場予定): oni_ou, majin_madoushi, akuma
   var BOSS_ORDER = [
-    "yougan_golem", "yeti", "oni_ou", "majin_madoushi", "akuma",
-    "dragon", "mahitotsu_ou", "yurei_ou",
-    "shitennou_yougan", "shitennou_yeti", "shitennou_oni", "shitennou_madoushi"
+    "yougan_golem", "yeti", "iwa_golem_2", "dragon",
+    "hone_kihei_2", "mahitotsu_ou", "ankoku_kishi_2", "yurei_ou",
+    "kami_seikuu", "kami_datenken", "kami_ryokuya", "kami_kouyoku"
   ];
 
   // ---------------- Items ----------------
@@ -693,7 +697,7 @@
         { x: 11, y: 0, requiresItem: "furui_kagi", toMap: "himitsu_beya", toX: 2, toY: 1 },
         { x: 7, y: 0, requiresBadges: 2, toMap: "north_path", toX: 6, toY: 1 },
         { x: 0, y: 6, requiresBadges: 4, toMap: "west_path", toX: 6, toY: 1 },
-        { x: 14, y: 6, requiresBadges: 4, toMap: "east_path", toX: 6, toY: 1 }
+        { x: 14, y: 6, requiresBadges: 6, toMap: "east_path", toX: 6, toY: 1 }
       ],
       decorations: [{ x: 3, y: 1, image: "assets/tiles/deco_well.webp" }],
       encounter: null
@@ -857,7 +861,7 @@
       ],
       warps: [
         { x: 6, y: 0, toMap: "dungeon", toX: 6, toY: 17 },
-        { x: 6, y: 11, toMap: "wasteland", toX: 6, toY: 1 }
+        { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
       ],
       chests: [
         { id: "iceridge_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_potion", amount: 1 } }
@@ -1010,9 +1014,9 @@
         "#############"
       ],
       npcs: [],
-      warps: [{ x: 6, y: 11, toMap: "ma_corridor", toX: 6, toY: 10 }],
+      warps: [],
       gatedExits: [
-        { x: 6, y: 0, requires: "yurei_ou", toMap: "shitennou_hall", toX: 6, toY: 1 }
+        { x: 6, y: 0, requiresBadges: 8, toMap: "shitennou_hall", toX: 6, toY: 1 }
       ],
       encounter: {
         rate: 0.2,
@@ -1178,10 +1182,10 @@
       npcs: [],
       warps: [{ x: 6, y: 0, toMap: "reizon", toX: 6, toY: 1 }],
       bossTriggers: [
-        { x: 6, y: 2, monsterId: "shitennou_yougan" },
-        { x: 6, y: 5, monsterId: "shitennou_yeti" },
-        { x: 6, y: 8, monsterId: "shitennou_oni" },
-        { x: 6, y: 11, monsterId: "shitennou_madoushi" }
+        { x: 6, y: 2, monsterId: "kami_seikuu" },
+        { x: 6, y: 5, monsterId: "kami_datenken" },
+        { x: 6, y: 8, monsterId: "kami_ryokuya" },
+        { x: 6, y: 11, monsterId: "kami_kouyoku" }
       ],
       chests: [
         { id: "shitennou_chest_1", x: 6, y: 12, reward: { type: "money", amount: 500 } }
