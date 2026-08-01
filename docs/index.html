@@ -31,15 +31,15 @@
   <div id="starter-screen" class="screen hidden">
     <h2 class="screen-heading">どのコと ぼうけんする?</h2>
     <div class="starter-cards">
-      <div id="starter-gray" class="starter-card selectable">
+      <button type="button" id="starter-gray" class="starter-card selectable">
         <div class="starter-avatar"></div>
         <div class="starter-name">グレーちんちら</div>
-      </div>
-      <div class="starter-card locked">
+      </button>
+      <button type="button" class="starter-card locked" disabled>
         <div class="starter-avatar starter-avatar-locked">🔒</div>
         <div class="starter-name">しろちんちら</div>
         <div class="starter-soon">近日公開</div>
-      </div>
+      </button>
     </div>
     <input id="starter-name-input" class="name-input" type="text" maxlength="6" placeholder="なまえ(6文字まで)">
     <button id="starter-start-btn" class="btn btn-primary" disabled>ぼうけんに でる</button>
@@ -178,7 +178,10 @@
   <!-- ===== ずかんモーダル ===== -->
   <div id="zukan-modal" class="modal hidden">
     <div class="modal-card">
-      <h2>📚 モンスターずかん</h2>
+      <div class="modal-topbar">
+        <h2>📚 モンスターずかん</h2>
+        <button class="modal-close modal-topclose" aria-label="とじる">✕</button>
+      </div>
       <p class="modal-sub"><span id="zukan-progress"></span> みつけた</p>
       <div id="zukan-detail" class="zukan-detail hidden"></div>
       <div id="zukan-grid" class="zukan-grid"></div>

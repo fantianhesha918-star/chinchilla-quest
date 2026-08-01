@@ -407,7 +407,7 @@
     water: { strong: "fire", weak: "thunder" },
     grass: { strong: "water", weak: "fire" },
     wind: { strong: "grass", weak: "earth" },
-    earth: { strong: "thunder", weak: "water" },
+    earth: { strong: "thunder", weak: "grass" },
     thunder: { strong: "water", weak: "earth" },
     heaven: { strong: "dark", weak: "magic" },
     dark: { strong: "magic", weak: "heaven" },

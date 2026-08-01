@@ -260,6 +260,10 @@
   document.querySelectorAll(".modal-close").forEach(function (btn) {
     btn.addEventListener("click", function (e) { e.target.closest(".modal").classList.add("hidden"); });
   });
+  document.querySelectorAll(".modal").forEach(function (overlay) {
+    if (overlay.id === "route-modal") return;
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.classList.add("hidden"); });
+  });
 
   // ---------------- Map helpers ----------------
   function currentMap() { return G.MAPS[state.mapId]; }
@@ -974,6 +978,14 @@
 
     if (action.type === "item") {
       var item = G.ITEMS[action.itemId];
+      var hpFull = active.hp >= active.maxHp;
+      var mpFull = active.mp >= active.maxMp;
+      if ((item.kind === "hp" && hpFull) || (item.kind === "mp" && mpFull) || (item.kind === "full" && hpFull && mpFull)) {
+        battle.locked = false;
+        setCommandButtonsEnabled(true);
+        showToast(active.name + " は もう まんたんだ");
+        return;
+      }
       state.inventory[action.itemId] = Math.max(0, (state.inventory[action.itemId] || 0) - 1);
       if (item.kind === "hp") setBattlerHp(active.idx, Math.min(active.maxHp, active.hp + item.amount));
       else if (item.kind === "mp") setBattlerMp(active.idx, Math.min(active.maxMp, active.mp + item.amount));
@@ -1475,6 +1487,11 @@
   }
 
   function applyPotionItem(itemId, item, target) {
+    var hpFull = target.hp >= target.maxHp;
+    var mpFull = target.mp >= target.maxMp;
+    if (item.kind === "hp" && hpFull) { showToast(target.name + " は もう HPが まんたんだ"); return; }
+    if (item.kind === "mp" && mpFull) { showToast(target.name + " は もう MPが まんたんだ"); return; }
+    if (item.kind === "full" && hpFull && mpFull) { showToast(target.name + " は もう まんたんだ"); return; }
     state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
     if (target.kind === "hero") {
       if (item.kind === "hp") state.hp = Math.min(target.maxHp, state.hp + item.amount);
@@ -1815,7 +1832,8 @@
     for (var i = 1; i <= SLOT_COUNT; i++) {
       (function (slot) {
         var summary = slotSummary(slot);
-        var card = document.createElement("div");
+        var card = document.createElement("button");
+        card.type = "button";
         card.className = "slot-card" + (summary ? "" : " empty");
         card.innerHTML = summary
           ? '<div class="slot-card-title">スロット' + slot + " : " + summary.name + " (Lv" + summary.level + ')</div>' +
