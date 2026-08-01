@@ -310,6 +310,7 @@
   function gatedExitAtCoord(map, x, y) { return (map.gatedExits || []).filter(function (g) { return g.x === x && g.y === y; })[0] || null; }
   function isGateLocked(gate) {
     if (gate.requiresItem) return !((state.inventory[gate.requiresItem] || 0) > 0);
+    if (gate.requiresBadges !== undefined) return Object.keys(state.badges || {}).length < gate.requiresBadges;
     return !state.defeatedBosses[gate.requires];
   }
   function activeBossTriggerAt(map, x, y) {

@@ -691,9 +691,9 @@
       warps: [{ x: 7, y: 12, toMap: "field", toX: 6, toY: 1 }],
       gatedExits: [
         { x: 11, y: 0, requiresItem: "furui_kagi", toMap: "himitsu_beya", toX: 2, toY: 1 },
-        { x: 7, y: 0, requires: "akuma", toMap: "north_path", toX: 6, toY: 1 },
-        { x: 0, y: 6, requires: "dragon", toMap: "west_path", toX: 6, toY: 1 },
-        { x: 14, y: 6, requires: "mahitotsu_ou", toMap: "east_path", toX: 6, toY: 1 }
+        { x: 7, y: 0, requiresBadges: 2, toMap: "north_path", toX: 6, toY: 1 },
+        { x: 0, y: 6, requiresBadges: 4, toMap: "west_path", toX: 6, toY: 1 },
+        { x: 14, y: 6, requiresBadges: 4, toMap: "east_path", toX: 6, toY: 1 }
       ],
       decorations: [{ x: 3, y: 1, image: "assets/tiles/deco_well.webp" }],
       encounter: null
