@@ -857,11 +857,11 @@
         "#,,#######,,#"
       ],
       npcs: [
-        { id: "iceridge_hunter", x: 9, y: 3, name: "こおりの狩人", image: "assets/npc/npc_boy.webp", dialogue: ["この先の たそがれの荒野には、つち属性の ボスが いるらしい。", "みず属性の わざが 弱点だと きいたよ。", "けがの手当てに 使うといい。よければ もらってくれ。"], givesItem: { itemId: "high_potion", amount: 1 } }
+        { id: "iceridge_hunter", x: 9, y: 3, name: "こおりの狩人", image: "assets/npc/npc_boy.webp", dialogue: ["この先には、四天王に いどむ前の やすらぎの里が あるらしいよ。", "けがの手当てに 使うといい。よければ もらってくれ。"], givesItem: { itemId: "high_potion", amount: 1 } }
       ],
       warps: [
         { x: 6, y: 0, toMap: "dungeon", toX: 6, toY: 17 },
-        { x: 6, y: 11, toMap: "reizon", toX: 6, toY: 1 }
+        { x: 6, y: 11, toMap: "yasuragi_sato", toX: 6, toY: 1 }
       ],
       chests: [
         { id: "iceridge_chest_1", x: 2, y: 4, reward: { type: "item", itemId: "high_potion", amount: 1 } }
@@ -878,6 +878,29 @@
           { id: "orc_2", weight: 2 }, { id: "mira_otoko_2", weight: 2 }
         ]
       }
+    },
+    yasuragi_sato: {
+      id: "yasuragi_sato",
+      label: "やすらぎの里",
+      tiles: [
+        "######.######",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,H,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "#,,,,,,,,,,,#",
+        "######.######"
+      ],
+      npcs: [
+        { x: 9, y: 4, name: "里のみせばん", shop: true, image: "assets/npc/shop_building.webp", dialogue: ["ここは 四天王に いどむ前の やすらぎの里。", "きずぐすりや たまなど、そなえは ここで ととのえてね。"] }
+      ],
+      warps: [
+        { x: 6, y: 0, toMap: "iceridge", toX: 6, toY: 10 },
+        { x: 6, y: 8, toMap: "reizon", toX: 6, toY: 1 }
+      ],
+      encounter: null
     },
     wasteland: {
       id: "wasteland",
