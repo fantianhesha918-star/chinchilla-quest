@@ -42,15 +42,17 @@
     if (!s.defeatedBosses) s.defeatedBosses = {};
     if (s.flags && s.flags.bossDefeated && !s.defeatedBosses.yougan_golem) s.defeatedBosses.yougan_golem = true;
     if (!s.badges) s.badges = {};
-    if (!s.bossBonus) s.bossBonus = { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 };
+    if (!s.bossBonus) s.bossBonus = { maxHp: 0, usesBonus: 0, atk: 0, def: 0, spd: 0 };
+    if (s.bossBonus.usesBonus === undefined) s.bossBonus.usesBonus = 0;
+    if (!s.skillUses) s.skillUses = {};
     if (!s.activeBattlerId) s.activeBattlerId = "hero";
     Object.keys(s.companionLevels).forEach(function (id) {
       var ld = s.companionLevels[id];
-      if (ld.hp === undefined || ld.mp === undefined) {
+      if (ld.hp === undefined) {
         var stats = getCompanionMaxStats(id, ld.level);
-        if (ld.hp === undefined) ld.hp = stats.maxHp;
-        if (ld.mp === undefined) ld.mp = stats.maxMp;
+        ld.hp = stats.maxHp;
       }
+      if (!ld.skillUses) ld.skillUses = {};
     });
     return s;
   }
@@ -71,8 +73,8 @@
       level: 1,
       exp: 0,
       hp: stats.maxHp,
-      mp: stats.maxMp,
       learnedSkills: ["tackle"],
+      skillUses: {},
       inventory: Object.assign({}, G.STARTING_INVENTORY),
       money: 0,
       companions: {},
@@ -82,7 +84,7 @@
       dex: {},
       defeatedBosses: {},
       badges: {},
-      bossBonus: { maxHp: 0, maxMp: 0, atk: 0, def: 0, spd: 0 },
+      bossBonus: { maxHp: 0, usesBonus: 0, atk: 0, def: 0, spd: 0 },
       activeBattlerId: "hero",
       mapId: G.START_MAP,
       x: G.START_X,
@@ -97,7 +99,6 @@
     var bonus = s.bossBonus || {};
     return {
       maxHp: base.maxHp + (bonus.maxHp || 0),
-      maxMp: base.maxMp + (bonus.maxMp || 0),
       atk: base.atk + (bonus.atk || 0),
       def: base.def + (bonus.def || 0),
       spd: base.spd + (bonus.spd || 0)
@@ -113,9 +114,44 @@
     if (!state.companionLevels[id]) {
       var lvl = G.MONSTERS[id].level;
       var stats = getCompanionMaxStats(id, lvl);
-      state.companionLevels[id] = { level: lvl, exp: 0, hp: stats.maxHp, mp: stats.maxMp };
+      state.companionLevels[id] = { level: lvl, exp: 0, hp: stats.maxHp, skillUses: {} };
     }
     return state.companionLevels[id];
+  }
+
+  // ---------------- わざの使用回数(PP制) ----------------
+  function skillMaxUses(skillId, isHero) {
+    var base = G.SKILLS[skillId].uses;
+    return isHero ? base + ((state.bossBonus && state.bossBonus.usesBonus) || 0) : base;
+  }
+  function skillUsesStore(isHero, companionId) {
+    if (isHero) {
+      if (!state.skillUses) state.skillUses = {};
+      return state.skillUses;
+    }
+    var ld = getCompanionLevelData(companionId);
+    if (!ld.skillUses) ld.skillUses = {};
+    return ld.skillUses;
+  }
+  function getSkillRemaining(isHero, companionId, skillId) {
+    var store = skillUsesStore(isHero, companionId);
+    var max = skillMaxUses(skillId, isHero);
+    return store[skillId] === undefined ? max : store[skillId];
+  }
+  function setSkillRemaining(isHero, companionId, skillId, value) {
+    var store = skillUsesStore(isHero, companionId);
+    var max = skillMaxUses(skillId, isHero);
+    store[skillId] = Math.max(0, Math.min(max, value));
+  }
+  function isAllSkillsFull(isHero, companionId, skillIds) {
+    return skillIds.every(function (id) {
+      return getSkillRemaining(isHero, companionId, id) >= skillMaxUses(id, isHero);
+    });
+  }
+  function restoreAllSkillsFull(isHero, companionId, skillIds) {
+    skillIds.forEach(function (id) {
+      setSkillRemaining(isHero, companionId, id, skillMaxUses(id, isHero));
+    });
   }
 
   function markDiscovered(id) {
@@ -198,8 +234,6 @@
   var battlePlayerLv = document.getElementById("battle-player-lv");
   var battlePlayerHpBar = document.getElementById("battle-player-hp-bar");
   var battlePlayerHpText = document.getElementById("battle-player-hp-text");
-  var battlePlayerMpBar = document.getElementById("battle-player-mp-bar");
-  var battlePlayerMpText = document.getElementById("battle-player-mp-text");
   var battlePlayerExpBar = document.getElementById("battle-player-exp-bar");
   var battlePlayerSprite = document.getElementById("battle-player-sprite");
   var battlePartyRowEl = document.getElementById("battle-party-row");
@@ -492,20 +526,20 @@
 
     if (ch === "H") {
       var healStats = getMaxStats(state);
-      var needsHeal = state.hp < healStats.maxHp || state.mp < healStats.maxMp;
+      var needsHeal = state.hp < healStats.maxHp || !isAllSkillsFull(true, null, state.learnedSkills);
       Object.keys(state.companions || {}).forEach(function (id) {
         var ld = getCompanionLevelData(id);
         var cstats = getCompanionMaxStats(id, ld.level);
-        if (ld.hp < cstats.maxHp || ld.mp < cstats.maxMp) needsHeal = true;
+        if (ld.hp < cstats.maxHp || !isAllSkillsFull(false, id, getCompanionSkills(id))) needsHeal = true;
       });
       if (needsHeal) {
         state.hp = healStats.maxHp;
-        state.mp = healStats.maxMp;
+        restoreAllSkillsFull(true, null, state.learnedSkills);
         Object.keys(state.companions || {}).forEach(function (id) {
           var ld = getCompanionLevelData(id);
           var cstats = getCompanionMaxStats(id, ld.level);
           ld.hp = cstats.maxHp;
-          ld.mp = cstats.maxMp;
+          restoreAllSkillsFull(false, id, getCompanionSkills(id));
         });
         save(state);
         updateHud();
@@ -799,8 +833,8 @@
     if (idx === 0) {
       var stats = getMaxStats(state);
       return {
-        idx: 0, kind: "hero", name: state.name, level: state.level,
-        hp: state.hp, maxHp: stats.maxHp, mp: state.mp, maxMp: stats.maxMp,
+        idx: 0, kind: "hero", name: state.name, level: state.level, companionId: null,
+        hp: state.hp, maxHp: stats.maxHp,
         atk: stats.atk, def: stats.def, spd: stats.spd, element: null,
         fainted: state.hp <= 0, skillIds: state.learnedSkills, image: null
       };
@@ -808,8 +842,8 @@
     var comp = battle.party[idx - 1];
     var mon = G.MONSTERS[comp.speciesId];
     return {
-      idx: idx, kind: "companion", name: mon.name, level: comp.level,
-      hp: comp.hp, maxHp: comp.maxHp, mp: comp.mp, maxMp: comp.maxMp,
+      idx: idx, kind: "companion", name: mon.name, level: comp.level, companionId: comp.id,
+      hp: comp.hp, maxHp: comp.maxHp,
       atk: comp.atk, def: comp.def, spd: comp.spd, element: mon.element,
       fainted: comp.hp <= 0, skillIds: getCompanionSkills(comp.id), image: mon.image
     };
@@ -829,12 +863,6 @@
     var comp = battle.party[idx - 1];
     comp.hp = Math.max(0, hp);
     getCompanionLevelData(comp.id).hp = comp.hp;
-  }
-  function setBattlerMp(idx, mp) {
-    if (idx === 0) { state.mp = Math.max(0, mp); return; }
-    var comp = battle.party[idx - 1];
-    comp.mp = Math.max(0, mp);
-    getCompanionLevelData(comp.id).mp = comp.mp;
   }
 
   function setElemIcon(imgEl, element) {
@@ -862,8 +890,6 @@
     battlePlayerLv.textContent = "Lv" + active.level;
     battlePlayerHpBar.style.width = Math.max(0, active.hp / active.maxHp * 100) + "%";
     battlePlayerHpText.textContent = active.hp + " / " + active.maxHp;
-    battlePlayerMpBar.style.width = Math.max(0, active.mp / active.maxMp * 100) + "%";
-    battlePlayerMpText.textContent = active.mp + " / " + active.maxMp;
     var expNeed, expCur;
     if (active.kind === "hero") { expNeed = G.expToNext(state.level); expCur = state.exp; }
     else { var ld = getCompanionLevelData(battle.party[active.idx - 1].id); expNeed = G.expToNext(ld.level); expCur = ld.exp; }
@@ -907,7 +933,7 @@
       var speciesId = currentCompanionSpeciesId(id, ld.level);
       var mon = G.MONSTERS[speciesId];
       var cstats = G.getCompanionStats(mon, ld.level);
-      return { id: id, speciesId: speciesId, level: ld.level, hp: Math.min(ld.hp, cstats.maxHp), maxHp: cstats.maxHp, mp: Math.min(ld.mp, cstats.maxMp), maxMp: cstats.maxMp, atk: cstats.atk, def: cstats.def, spd: cstats.spd };
+      return { id: id, speciesId: speciesId, level: ld.level, hp: Math.min(ld.hp, cstats.maxHp), maxHp: cstats.maxHp, atk: cstats.atk, def: cstats.def, spd: cstats.spd };
     });
     var anyAlive = state.hp > 0 || party.some(function (p) { return p.hp > 0; });
     if (!anyAlive) {
@@ -976,26 +1002,36 @@
       });
     }
 
+    var isHero = active.kind === "hero";
+
     if (action.type === "item") {
       var item = G.ITEMS[action.itemId];
       var hpFull = active.hp >= active.maxHp;
-      var mpFull = active.mp >= active.maxMp;
-      if ((item.kind === "hp" && hpFull) || (item.kind === "mp" && mpFull) || (item.kind === "full" && hpFull && mpFull)) {
-        battle.locked = false;
-        setCommandButtonsEnabled(true);
+      if (item.kind === "hp" && hpFull) {
+        battle.locked = false; setCommandButtonsEnabled(true);
+        showToast(active.name + " は もう HPが まんたんだ");
+        return;
+      }
+      if (item.kind === "pp" && getSkillRemaining(isHero, active.companionId, action.skillId) >= skillMaxUses(action.skillId, isHero)) {
+        battle.locked = false; setCommandButtonsEnabled(true);
+        showToast(active.name + " は もう まんたんだ");
+        return;
+      }
+      if (item.kind === "full" && hpFull && isAllSkillsFull(isHero, active.companionId, active.skillIds)) {
+        battle.locked = false; setCommandButtonsEnabled(true);
         showToast(active.name + " は もう まんたんだ");
         return;
       }
       state.inventory[action.itemId] = Math.max(0, (state.inventory[action.itemId] || 0) - 1);
       if (item.kind === "hp") setBattlerHp(active.idx, Math.min(active.maxHp, active.hp + item.amount));
-      else if (item.kind === "mp") setBattlerMp(active.idx, Math.min(active.maxMp, active.mp + item.amount));
-      else if (item.kind === "full") { setBattlerHp(active.idx, active.maxHp); setBattlerMp(active.idx, active.maxMp); }
+      else if (item.kind === "pp") setSkillRemaining(isHero, active.companionId, action.skillId, getSkillRemaining(isHero, active.companionId, action.skillId) + item.amount);
+      else if (item.kind === "full") { setBattlerHp(active.idx, active.maxHp); restoreAllSkillsFull(isHero, active.companionId, active.skillIds); }
       finishTurn([active.name + " は " + item.name + " を つかった!"], null, null);
       return;
     }
 
     var sk = G.SKILLS[action.skillId];
-    setBattlerMp(active.idx, active.mp - sk.mp);
+    setSkillRemaining(isHero, active.companionId, sk.id, getSkillRemaining(isHero, active.companionId, sk.id) - 1);
     var lines = [active.name + " の " + sk.name + "!"];
     playMoveAnim(battlePlayerSprite, battleEnemySprite, sk.element, sk.id, function () {
       var result = calcDamage(active.atk, sk.power, def.def, sk.element, def.element);
@@ -1239,11 +1275,10 @@
       state.level += 1;
       var newMax = getMaxStats(state);
       state.hp = newMax.maxHp;
-      state.mp = newMax.maxMp;
       events.push({
         type: "levelup", level: state.level,
         deltas: {
-          hp: newMax.maxHp - oldMax.maxHp, mp: newMax.maxMp - oldMax.maxMp,
+          hp: newMax.maxHp - oldMax.maxHp,
           atk: newMax.atk - oldMax.atk, def: newMax.def - oldMax.def, spd: newMax.spd - oldMax.spd
         }
       });
@@ -1311,7 +1346,7 @@
       if (ev.type === "levelup") {
         lines.push({ text: "レベルアップ! Lv" + ev.level + " に なった!", effect: triggerLevelUpEffect });
         var d = ev.deltas;
-        lines.push("HP+" + d.hp + " MP+" + d.mp + " こうげき+" + d.atk + " ぼうぎょ+" + d.def + " すばやさ+" + d.spd);
+        lines.push("HP+" + d.hp + " こうげき+" + d.atk + " ぼうぎょ+" + d.def + " すばやさ+" + d.spd);
       }
       else if (ev.type === "skill") lines.push(G.SKILLS[ev.skillId].name + " を おぼえた!");
       else if (ev.type === "evolve") lines.push(state.name + " は " + ev.stage.label + " に しんかした!");
@@ -1338,7 +1373,6 @@
         ld.level += 1;
         var newMax = getCompanionMaxStats(id, ld.level);
         ld.hp = newMax.maxHp;
-        ld.mp = newMax.maxMp;
         leveled = true;
         var afterId = currentCompanionSpeciesId(id, ld.level);
         var afterName = G.MONSTERS[afterId].name;
@@ -1414,17 +1448,44 @@
   // ---------------- Battle sub menus ----------------
   function openMoveSubMenu() {
     var active = getBattler(battle.activeIdx);
+    var isHero = active.kind === "hero";
     battleSubList.innerHTML = "";
     active.skillIds.forEach(function (id) {
       var sk = G.SKILLS[id];
-      var disabled = active.mp < sk.mp;
+      var remaining = getSkillRemaining(isHero, active.companionId, id);
+      var max = skillMaxUses(id, isHero);
+      var disabled = remaining <= 0;
       var icon = sk.element ? '<img class="elem-icon" src="' + G.ELEMENT_ICONS[sk.element] + '" alt="' + G.ELEMENT_LABELS[sk.element] + '">' : "";
       var row = document.createElement("div");
       row.className = "battle-sub-item";
       row.innerHTML =
-        '<div><div class="sub-item-name">' + icon + sk.name + '</div><div class="sub-item-desc">MP' + sk.mp + " ・ " + sk.desc + "</div></div>" +
+        '<div><div class="sub-item-name">' + icon + sk.name + '</div><div class="sub-item-desc">のこり' + remaining + "/" + max + "かい ・ " + sk.desc + "</div></div>" +
         "<button" + (disabled ? " disabled" : "") + ">えらぶ</button>";
       row.querySelector("button").addEventListener("click", function () { doActiveBattlerAction({ type: "skill", skillId: id }); });
+      battleSubList.appendChild(row);
+    });
+    showSubMenu();
+  }
+
+  function openPpMoveSubMenu(itemId, item) {
+    var active = getBattler(battle.activeIdx);
+    var isHero = active.kind === "hero";
+    if (isAllSkillsFull(isHero, active.companionId, active.skillIds)) {
+      showToast("もう みんな まんたんだ");
+      return;
+    }
+    battleSubList.innerHTML = "";
+    active.skillIds.forEach(function (id) {
+      var sk = G.SKILLS[id];
+      var remaining = getSkillRemaining(isHero, active.companionId, id);
+      var max = skillMaxUses(id, isHero);
+      var disabled = remaining >= max;
+      var row = document.createElement("div");
+      row.className = "battle-sub-item";
+      row.innerHTML =
+        '<div><div class="sub-item-name">' + sk.name + '</div><div class="sub-item-desc">のこり' + remaining + "/" + max + "かい</div></div>" +
+        "<button" + (disabled ? " disabled" : "") + ">えらぶ</button>";
+      row.querySelector("button").addEventListener("click", function () { doActiveBattlerAction({ type: "item", itemId: itemId, skillId: id }); });
       battleSubList.appendChild(row);
     });
     showSubMenu();
@@ -1446,6 +1507,7 @@
       row.querySelector("button").addEventListener("click", function () {
         if (item.kind === "ball") tryCapture(id);
         else if (item.kind === "pellet") tryFeedPellet(id);
+        else if (item.kind === "pp") openPpMoveSubMenu(id, item);
         else doActiveBattlerAction({ type: "item", itemId: id });
       });
       battleSubList.appendChild(row);
@@ -1471,7 +1533,7 @@
     var heroStats = getMaxStats(state);
     var list = [{
       kind: "hero", id: "hero", name: state.name, level: state.level,
-      hp: state.hp, maxHp: heroStats.maxHp, mp: state.mp, maxMp: heroStats.maxMp, element: null
+      hp: state.hp, maxHp: heroStats.maxHp, element: null, skillIds: state.learnedSkills
     }];
     state.activeParty.forEach(function (id) {
       var ld = getCompanionLevelData(id);
@@ -1480,29 +1542,43 @@
       var cstats = getCompanionMaxStats(id, ld.level);
       list.push({
         kind: "companion", id: id, name: mon.name, level: ld.level,
-        hp: ld.hp, maxHp: cstats.maxHp, mp: ld.mp, maxMp: cstats.maxMp, element: mon.element
+        hp: ld.hp, maxHp: cstats.maxHp, element: mon.element, skillIds: getCompanionSkills(id)
       });
     });
     return list;
   }
 
   function applyPotionItem(itemId, item, target) {
+    var isHero = target.kind === "hero";
+    var companionId = isHero ? null : target.id;
     var hpFull = target.hp >= target.maxHp;
-    var mpFull = target.mp >= target.maxMp;
+    var skillsFull = isAllSkillsFull(isHero, companionId, target.skillIds);
     if (item.kind === "hp" && hpFull) { showToast(target.name + " は もう HPが まんたんだ"); return; }
-    if (item.kind === "mp" && mpFull) { showToast(target.name + " は もう MPが まんたんだ"); return; }
-    if (item.kind === "full" && hpFull && mpFull) { showToast(target.name + " は もう まんたんだ"); return; }
+    if (item.kind === "full" && hpFull && skillsFull) { showToast(target.name + " は もう まんたんだ"); return; }
     state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
-    if (target.kind === "hero") {
+    if (isHero) {
       if (item.kind === "hp") state.hp = Math.min(target.maxHp, state.hp + item.amount);
-      else if (item.kind === "mp") state.mp = Math.min(target.maxMp, state.mp + item.amount);
-      else if (item.kind === "full") { state.hp = target.maxHp; state.mp = target.maxMp; }
+      else if (item.kind === "full") state.hp = target.maxHp;
     } else {
       var ld = getCompanionLevelData(target.id);
       if (item.kind === "hp") ld.hp = Math.min(target.maxHp, ld.hp + item.amount);
-      else if (item.kind === "mp") ld.mp = Math.min(target.maxMp, ld.mp + item.amount);
-      else if (item.kind === "full") { ld.hp = target.maxHp; ld.mp = target.maxMp; }
+      else if (item.kind === "full") ld.hp = target.maxHp;
     }
+    if (item.kind === "full") restoreAllSkillsFull(isHero, companionId, target.skillIds);
+    save(state);
+    showToast(target.name + " は " + item.name + " を つかった!");
+    updateHud();
+    refreshMenuData();
+  }
+
+  function applyPpItem(itemId, item, target, skillId) {
+    var isHero = target.kind === "hero";
+    var companionId = isHero ? null : target.id;
+    var remaining = getSkillRemaining(isHero, companionId, skillId);
+    var max = skillMaxUses(skillId, isHero);
+    if (remaining >= max) { showToast(target.name + " は もう まんたんだ"); return; }
+    state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
+    setSkillRemaining(isHero, companionId, skillId, remaining + item.amount);
     save(state);
     showToast(target.name + " は " + item.name + " を つかった!");
     updateHud();
@@ -1531,8 +1607,56 @@
     refreshMenuData();
   }
 
+  function openPpMoveList(itemId, item, target) {
+    var isHero = target.kind === "hero";
+    var companionId = isHero ? null : target.id;
+    if (isAllSkillsFull(isHero, companionId, target.skillIds)) {
+      showToast(target.name + " は もう まんたんだ");
+      return;
+    }
+    var titleEl = document.querySelector("#item-target-modal h2");
+    if (titleEl) titleEl.textContent = "🎒 どの わざを かいふくする?";
+    var listEl = document.getElementById("item-target-list");
+    listEl.innerHTML = "";
+    target.skillIds.forEach(function (id) {
+      var sk = G.SKILLS[id];
+      var remaining = getSkillRemaining(isHero, companionId, id);
+      var max = skillMaxUses(id, isHero);
+      var disabled = remaining >= max;
+      var div = document.createElement("div");
+      div.className = "food-item";
+      div.innerHTML =
+        '<div class="food-info"><div><div class="food-name">' + sk.name + '</div><div class="food-desc">のこり ' + remaining + "/" + max + ' かい</div></div></div>' +
+        "<button" + (disabled ? " disabled" : "") + ">えらぶ</button>";
+      div.querySelector("button").addEventListener("click", function () {
+        closeModal("item-target-modal");
+        applyPpItem(itemId, item, target, id);
+      });
+      listEl.appendChild(div);
+    });
+    openModal("item-target-modal");
+  }
+
   function openItemTargetPicker(itemId, item) {
     var targets = fieldPartyTargets();
+    var titleEl = document.querySelector("#item-target-modal h2");
+    if (titleEl) titleEl.textContent = "🎒 だれに つかう?";
+    if (item.kind === "pp") {
+      if (targets.length <= 1) { openPpMoveList(itemId, item, targets[0]); return; }
+      var ppListEl = document.getElementById("item-target-list");
+      ppListEl.innerHTML = "";
+      targets.forEach(function (t) {
+        var div = document.createElement("div");
+        div.className = "food-item";
+        div.innerHTML =
+          '<div class="food-info"><div><div class="food-name">' + t.name + " Lv" + t.level + '</div><div class="food-desc">HP ' + t.hp + "/" + t.maxHp + '</div></div></div>' +
+          "<button>つかう</button>";
+        div.querySelector("button").addEventListener("click", function () { openPpMoveList(itemId, item, t); });
+        ppListEl.appendChild(div);
+      });
+      openModal("item-target-modal");
+      return;
+    }
     var applyFn = item.kind === "pellet" ? applyPelletItem : applyPotionItem;
     if (targets.length <= 1) { applyFn(itemId, item, targets[0]); return; }
     var listEl = document.getElementById("item-target-list");
@@ -1541,7 +1665,7 @@
       var div = document.createElement("div");
       div.className = "food-item";
       div.innerHTML =
-        '<div class="food-info"><div><div class="food-name">' + t.name + " Lv" + t.level + '</div><div class="food-desc">HP ' + t.hp + "/" + t.maxHp + " ・ MP " + t.mp + "/" + t.maxMp + '</div></div></div>' +
+        '<div class="food-info"><div><div class="food-name">' + t.name + " Lv" + t.level + '</div><div class="food-desc">HP ' + t.hp + "/" + t.maxHp + '</div></div></div>' +
         "<button>" + (item.kind === "pellet" ? "たべさせる" : "つかう") + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         closeModal("item-target-modal");
@@ -1590,7 +1714,6 @@
     menuStatusEl.innerHTML =
       "<div><b>" + state.name + "</b>(" + stageLabel + ") Lv" + state.level + "</div>" +
       "<div>HP " + state.hp + " / " + stats.maxHp + "</div>" +
-      "<div>MP " + state.mp + " / " + stats.maxMp + "</div>" +
       "<div>こうげき " + stats.atk + " ・ ぼうぎょ " + stats.def + " ・ すばやさ " + stats.spd + "</div>" +
       "<div>けいけんち " + state.exp + " / " + G.expToNext(state.level) + "</div>" +
       '<div><img class="item-icon" src="' + G.MONEY_ICON + '" alt=""> ' + state.money + "</div>";
@@ -1598,9 +1721,11 @@
     menuSkillsEl.innerHTML = "";
     state.learnedSkills.forEach(function (id) {
       var sk = G.SKILLS[id];
+      var remaining = getSkillRemaining(true, null, id);
+      var max = skillMaxUses(id, true);
       var row = document.createElement("div");
       row.className = "menu-skill-row";
-      row.innerHTML = "<span>" + sk.name + "</span><span>MP" + sk.mp + "</span>";
+      row.innerHTML = "<span>" + sk.name + "</span><span>のこり" + remaining + "/" + max + "かい</span>";
       menuSkillsEl.appendChild(row);
     });
 
@@ -1737,15 +1862,22 @@
     zukanGridEl.innerHTML = "";
     zukanDetailEl.classList.add("hidden");
     var found = 0;
+    var ownedIds = {};
+    Object.keys(state.companions || {}).forEach(function (id) {
+      var ld = getCompanionLevelData(id);
+      ownedIds[currentCompanionSpeciesId(id, ld.level)] = true;
+    });
     G.DEX_ORDER.forEach(function (id) {
       var mon = G.MONSTERS[id];
       if (!mon) return;
       var discovered = !!state.dex[id];
       if (discovered) found++;
+      var owned = discovered && !!ownedIds[id];
       var cell = document.createElement("button");
       cell.className = "zukan-cell" + (discovered ? "" : " undiscovered");
       cell.innerHTML = discovered
-        ? '<img src="' + mon.image + '" alt="' + mon.name + '"><div class="zukan-cell-name">' + mon.name + "</div>"
+        ? '<img src="' + mon.image + '" alt="' + mon.name + '"><div class="zukan-cell-name">' + mon.name +
+          (owned ? '<img class="zukan-owned-icon" src="' + G.ITEMS.nakama_ball.icon + '" alt="所持ずみ">' : "") + "</div>"
         : '<div class="zukan-silhouette">?</div><div class="zukan-cell-name">？？？</div>';
       if (discovered) cell.addEventListener("click", function () { showZukanDetail(mon); });
       zukanGridEl.appendChild(cell);

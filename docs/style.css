@@ -160,7 +160,6 @@ body {
   overflow: hidden;
 }
 .hud-bar-fill { height: 100%; background: var(--hp); width: 100%; transition: width 0.3s ease; }
-.hud-bar-fill.mp { background: var(--mp); }
 .hud-bar-fill.exp { background: var(--exp); }
 .hud-money { font-size: 0.8rem; font-weight: 700; flex: 0 0 auto; }
 .item-icon { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 3px; }
@@ -478,17 +477,19 @@ body {
 .battle-field.bg-cave { background-image: url("assets/battlefields/battle_cave.webp"); }
 .battle-field.bg-snow { background-image: url("assets/battlefields/battle_snow.webp"); }
 
-.battle-enemy-area, .battle-player-area {
+.battle-enemy-area, .battle-player-area, .battle-enemy-status, .battle-player-status {
   position: absolute;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.battle-enemy-area { top: 14px; right: 14px; align-items: flex-end; text-align: right; }
-.battle-player-area { bottom: 14px; left: 14px; align-items: flex-start; text-align: left; }
+.battle-enemy-area { top: 14px; right: 14px; align-items: flex-end; }
+.battle-player-area { bottom: 14px; left: 14px; align-items: flex-start; }
+.battle-enemy-status { top: 14px; left: 14px; align-items: flex-start; text-align: left; }
+.battle-player-status { bottom: 14px; right: 14px; align-items: flex-end; text-align: right; }
 
 .battle-name-tag { font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 3px rgba(255,255,255,0.85), 0 0 6px rgba(255,255,255,0.6); }
-.battle-hpbar, .battle-mpbar { width: 140px; height: 16px; }
+.battle-hpbar { width: 140px; height: 16px; }
 .battle-expbar { width: 140px; height: 6px; }
 .battle-exp-caption { font-size: 0.6rem; color: var(--ink-soft); margin-top: 1px; }
 
@@ -1024,6 +1025,7 @@ body {
 }
 .zukan-cell img { width: 40px; height: 40px; object-fit: contain; }
 .zukan-cell-name { font-size: 0.6rem; font-weight: 700; text-align: center; color: var(--ink); }
+.zukan-cell-name img.zukan-owned-icon { width: 12px; height: 12px; object-fit: contain; vertical-align: -1px; margin-left: 2px; }
 .zukan-cell.undiscovered { opacity: 0.7; }
 .zukan-cell.undiscovered .zukan-cell-name { color: var(--ink-soft); }
 .zukan-silhouette {
