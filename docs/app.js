@@ -1840,6 +1840,12 @@
             '<div class="slot-card-sub">さいごに あそんだ日時 ' + formatSlotDate(summary.updatedAt) + "</div>"
           : '<div class="slot-card-title">スロット' + slot + '</div><div class="slot-card-sub">からっぽ</div>';
         card.addEventListener("click", function () { onSlotCardClick(slot, summary); });
+        card.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            onSlotCardClick(slot, summary);
+          }
+        });
         slotListEl.appendChild(card);
       })(i);
     }
@@ -1909,10 +1915,17 @@
     document.getElementById("title-continue-btn").disabled = false;
   });
 
-  starterGrayCard.addEventListener("click", function () {
+  function selectGrayStarter() {
     starterGrayCard.classList.add("selected");
     selectedStarter = true;
     updateStarterStartBtn();
+  }
+  starterGrayCard.addEventListener("click", selectGrayStarter);
+  starterGrayCard.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      selectGrayStarter();
+    }
   });
   function updateStarterStartBtn() {
     starterStartBtn.disabled = !(selectedStarter && starterNameInput.value.trim().length > 0);
