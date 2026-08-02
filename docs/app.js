@@ -2025,7 +2025,20 @@
 
   // ---------------- Field controls ----------------
   document.querySelectorAll(".dpad-btn[data-dir]").forEach(function (btn) {
-    btn.addEventListener("click", function () { tryMove(btn.dataset.dir); });
+    var dir = btn.dataset.dir;
+    var repeatTimer = null;
+    function stopRepeat() {
+      if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; }
+    }
+    btn.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      tryMove(dir);
+      stopRepeat();
+      repeatTimer = setInterval(function () { tryMove(dir); }, WALK_STEP_MS);
+    });
+    btn.addEventListener("pointerup", stopRepeat);
+    btn.addEventListener("pointercancel", stopRepeat);
+    btn.addEventListener("pointerleave", stopRepeat);
   });
   document.getElementById("a-btn").addEventListener("click", handleAButton);
   document.getElementById("b-btn").addEventListener("click", handleBButton);
