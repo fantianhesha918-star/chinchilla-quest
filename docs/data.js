@@ -110,6 +110,7 @@
     shitennou_yeti_zero: { id: "shitennou_yeti_zero", name: "ぜったいれいど", power: 86, uses: 5, desc: "すべてを こおりつかせる", element: "water" },
     shitennou_oni_split: { id: "shitennou_oni_split", name: "だいちわり", power: 89, uses: 5, desc: "だいちを まっぷたつに わる", element: "earth" },
     shitennou_madoushi_ultima: { id: "shitennou_madoushi_ultima", name: "げんかいじゅもん", power: 92, uses: 5, desc: "げんかいを こえた だいじゅもん", element: "magic" },
+    kami_judgement: { id: "kami_judgement", name: "しんいのさばき", power: 116, uses: 5, desc: "かみの ちからで すべてを さばく", element: "kami" },
 
     // ---- なかま用 汎用属性わざ(旧: ほのお/こおり。こおりはみず属性に統合) ----
     flame_burst: { id: "flame_burst", name: "ほのおのつぶて", power: 22, uses: 20, learnLevel: 5, desc: "ほのおの たまを なげつける", element: "fire" },
@@ -326,13 +327,14 @@
     heaven: ["tackle", "heaven1_1", "heaven1_2", "heaven1_3", "heaven1_4", "heaven1_5", "heaven2_1", "heaven2_2", "heaven2_3", "heaven2_4", "heaven2_5", "heaven3_1", "heaven3_2", "heaven3_3", "heaven3_4", "heaven3_5", "heaven4_1", "heaven4_2", "heaven4_3", "heaven4_4", "heaven4_5"],
     dark: ["tackle", "dark1_1", "dark1_2", "dark1_3", "dark1_4", "dark1_5", "dark2_1", "dark2_2", "dark2_3", "dark2_4", "dark2_5", "dark3_1", "dark3_2", "dark3_3", "dark3_4", "dark3_5", "dark4_1", "dark4_2", "dark4_3", "dark4_4", "dark4_5"],
     magic: ["tackle", "magic1_1", "magic1_2", "magic1_3", "magic1_4", "magic1_5", "magic2_1", "magic2_2", "magic2_3", "magic2_4", "magic2_5", "magic3_1", "magic3_2", "magic3_3", "magic3_4", "magic3_5", "magic4_1", "magic4_2", "magic4_3", "magic4_4", "magic4_5"],
-    beast: ["tackle", "beast1_1", "beast1_2", "beast1_3", "beast1_4", "beast1_5", "beast2_1", "beast2_2", "beast2_3", "beast2_4", "beast2_5", "beast3_1", "beast3_2", "beast3_3", "beast3_4", "beast3_5", "beast4_1", "beast4_2", "beast4_3", "beast4_4", "beast4_5"]
+    beast: ["tackle", "beast1_1", "beast1_2", "beast1_3", "beast1_4", "beast1_5", "beast2_1", "beast2_2", "beast2_3", "beast2_4", "beast2_5", "beast3_1", "beast3_2", "beast3_3", "beast3_4", "beast3_5", "beast4_1", "beast4_2", "beast4_3", "beast4_4", "beast4_5"],
+    kami: ["tackle", "kami_judgement"]
   };
 
   // ---------------- Elements (10属性、攻撃側ごとに強い/弱い属性が1つずつ) ----------------
   var ELEMENT_LABELS = {
     fire: "ほのお", water: "みず", grass: "くさ", wind: "かぜ", earth: "つち",
-    thunder: "でんき", heaven: "てん", dark: "やみ", magic: "まほう", beast: "けもの"
+    thunder: "でんき", heaven: "てん", dark: "やみ", magic: "まほう", beast: "けもの", kami: "しん"
   };
   var ELEMENT_EFFECTS = {
     fire: "assets/effects/effect_fire.webp",
@@ -344,7 +346,8 @@
     heaven: "assets/effects/effect_heaven.webp",
     dark: "assets/effects/effect_dark.webp",
     magic: "assets/effects/effect_magic.webp",
-    beast: "assets/effects/effect_beast.webp"
+    beast: "assets/effects/effect_beast.webp",
+    kami: "assets/effects/effect_kami.webp"
   };
   // 属性ごとの「チャージ→飛翔→着弾+消散」複数コマ演出素材(1属性につき1〜3パターン)。
   // ここに無い属性があれば ELEMENT_EFFECTS の単一静止画にフォールバックする。
@@ -412,7 +415,8 @@
     heaven: "assets/icons/elem_heaven.webp",
     dark: "assets/icons/elem_dark.webp",
     magic: "assets/icons/elem_magic.webp",
-    beast: "assets/icons/elem_beast.webp"
+    beast: "assets/icons/elem_beast.webp",
+    kami: "assets/icons/elem_kami.webp"
   };
   // 攻撃側の属性ごとに「強い(2倍)」「弱い(0.5倍)」相手を1つずつ持つ(それ以外は等倍)
   var ELEMENT_MATCHUP = {
@@ -425,7 +429,8 @@
     heaven: { strong: "dark", weak: "magic" },
     dark: { strong: "magic", weak: "heaven" },
     magic: { strong: "heaven", weak: "dark" },
-    beast: { strong: "magic", weak: "wind" }
+    beast: { strong: "magic", weak: "wind" },
+    kami: { strong: "beast", weak: "dark" }
   };
   function getElementMatchup(atkElem, defElem) {
     if (!atkElem || atkElem === "none" || !defElem || defElem === "none") return { mult: 1, tier: "neutral" };
@@ -490,15 +495,29 @@
     magic_pellet: { id: "magic_pellet", name: "まほうのペレット", desc: "たべると まほう属性の わざを おぼえる(なかまは まほう属性のみ)", kind: "pellet", element: "magic", skillId: "magic3_1", price: 150, icon: "assets/icons/elem_magic.webp" },
     beast_pellet: { id: "beast_pellet", name: "けもののペレット", desc: "たべると けもの属性の わざを おぼえる(なかまは けもの属性のみ)", kind: "pellet", element: "beast", skillId: "beast3_1", price: 150, icon: "assets/icons/elem_beast.webp" },
     furui_kagi: { id: "furui_kagi", name: "ふるいカギ", desc: "村のどこかで 使えそうな、古びたカギ。", kind: "key" },
-    chika_kagi: { id: "chika_kagi", name: "ちかみちのカギ", desc: "ほらあなの おくで 使えそうな、ひんやりした カギ。", kind: "key" }
+    chika_kagi: { id: "chika_kagi", name: "ちかみちのカギ", desc: "ほらあなの おくで 使えそうな、ひんやりした カギ。", kind: "key" },
+
+    // ---- まめちんちらの進化アイテム(9属性はショップ購入、神は四天王撃破報酬) ----
+    fire_evostone: { id: "fire_evostone", name: "ほのおのしんかいし", desc: "まめちんちらに つかうと ほのお属性に しんかする", kind: "evostone", element: "fire", baseId: "mame_chin", evolveId: "mame_chin_fire", price: 150, icon: "assets/icons/elem_fire.webp" },
+    water_evostone: { id: "water_evostone", name: "みずのしんかいし", desc: "まめちんちらに つかうと みず属性に しんかする", kind: "evostone", element: "water", baseId: "mame_chin", evolveId: "mame_chin_water", price: 150, icon: "assets/icons/elem_water.webp" },
+    grass_evostone: { id: "grass_evostone", name: "くさのしんかいし", desc: "まめちんちらに つかうと くさ属性に しんかする", kind: "evostone", element: "grass", baseId: "mame_chin", evolveId: "mame_chin_grass", price: 150, icon: "assets/icons/elem_grass.webp" },
+    wind_evostone: { id: "wind_evostone", name: "かぜのしんかいし", desc: "まめちんちらに つかうと かぜ属性に しんかする", kind: "evostone", element: "wind", baseId: "mame_chin", evolveId: "mame_chin_wind", price: 150, icon: "assets/icons/elem_wind.webp" },
+    earth_evostone: { id: "earth_evostone", name: "つちのしんかいし", desc: "まめちんちらに つかうと つち属性に しんかする", kind: "evostone", element: "earth", baseId: "mame_chin", evolveId: "mame_chin_earth", price: 150, icon: "assets/icons/elem_earth.webp" },
+    thunder_evostone: { id: "thunder_evostone", name: "でんきのしんかいし", desc: "まめちんちらに つかうと でんき属性に しんかする", kind: "evostone", element: "thunder", baseId: "mame_chin", evolveId: "mame_chin_thunder", price: 150, icon: "assets/icons/elem_thunder.webp" },
+    heaven_evostone: { id: "heaven_evostone", name: "てんのしんかいし", desc: "まめちんちらに つかうと てん属性に しんかする", kind: "evostone", element: "heaven", baseId: "mame_chin", evolveId: "mame_chin_heaven", price: 150, icon: "assets/icons/elem_heaven.webp" },
+    dark_evostone: { id: "dark_evostone", name: "やみのしんかいし", desc: "まめちんちらに つかうと やみ属性に しんかする", kind: "evostone", element: "dark", baseId: "mame_chin", evolveId: "mame_chin_dark", price: 150, icon: "assets/icons/elem_dark.webp" },
+    magic_evostone: { id: "magic_evostone", name: "まほうのしんかいし", desc: "まめちんちらに つかうと まほう属性に しんかする", kind: "evostone", element: "magic", baseId: "mame_chin", evolveId: "mame_chin_magic", price: 150, icon: "assets/icons/elem_magic.webp" },
+    kami_evostone: { id: "kami_evostone", name: "しんいのしんかいし", desc: "まめちんちらに つかうと 神(かみ)属性に しんかする。よんてんのうを すべて たおすと 手に入る。", kind: "evostone", element: "kami", baseId: "mame_chin", evolveId: "mame_chin_kami", skillId: "kami_judgement", icon: "assets/icons/elem_kami.webp" }
   };
   var MONEY_ICON = "assets/items/icon_coin.webp";
   var SHOP_ITEM_IDS = [
     "kizugusuri", "manashizuku", "high_potion", "high_mana", "nakama_ball", "super_ball", "hyper_ball", "master_ball",
     "fire_pellet", "water_pellet", "grass_pellet", "wind_pellet", "earth_pellet",
-    "thunder_pellet", "heaven_pellet", "dark_pellet", "magic_pellet", "beast_pellet"
+    "thunder_pellet", "heaven_pellet", "dark_pellet", "magic_pellet", "beast_pellet",
+    "fire_evostone", "water_evostone", "grass_evostone", "wind_evostone", "earth_evostone",
+    "thunder_evostone", "heaven_evostone", "dark_evostone", "magic_evostone"
   ];
-  var USABLE_ITEM_IDS = SHOP_ITEM_IDS.concat(["elixir"]);
+  var USABLE_ITEM_IDS = SHOP_ITEM_IDS.concat(["elixir", "kami_evostone"]);
   var STARTING_INVENTORY = { kizugusuri: 2, manashizuku: 1, nakama_ball: 1 };
   var CRIT_CHANCE = 0.08;
   var CRIT_MULT = 1.8;
@@ -527,6 +546,20 @@
     mitsubachi: { id: "mitsubachi", name: "みつばち", level: 3, hp: 24, atk: 9, def: 4, spd: 12, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "mitsubachi.webp", element: "thunder" },
     usagi_ko: { id: "usagi_ko", name: "つきのうさぎ", level: 3, hp: 28, atk: 9, def: 5, spd: 11, exp: 16, money: 11, skillIds: ["tackle"], image: MON_DIR + "usagi_ko.webp", element: "heaven" },
     kujira_ko: { id: "kujira_ko", name: "くじらのこ", level: 4, hp: 45, atk: 11, def: 8, spd: 5, exp: 19, money: 14, skillIds: ["tackle"], image: MON_DIR + "kujira_ko.webp", element: "water" },
+    mame_chin: { id: "mame_chin", name: "まめちんちら", level: 4, hp: 27, atk: 9, def: 5, spd: 14, exp: 18, money: 13, skillIds: ["tackle"], image: MON_DIR + "mame_chin.webp", element: "beast",
+      evolveItems: { fire: "fire_evostone", water: "water_evostone", grass: "grass_evostone", wind: "wind_evostone", earth: "earth_evostone", thunder: "thunder_evostone", heaven: "heaven_evostone", dark: "dark_evostone", magic: "magic_evostone", kami: "kami_evostone" } },
+
+    // ---- まめちんちらの進化先(アイテムで属性が分岐、いずれも最終形態) ----
+    mame_chin_fire: { id: "mame_chin_fire", name: "ほのおちんちら", level: 22, hp: 138, atk: 37, def: 20, spd: 24, exp: 82, money: 60, skillIds: ["tackle"], image: MON_DIR + "mame_chin_fire.webp", element: "fire" },
+    mame_chin_water: { id: "mame_chin_water", name: "しずくちんちら", level: 22, hp: 150, atk: 33, def: 24, spd: 20, exp: 82, money: 60, skillIds: ["tackle"], image: MON_DIR + "mame_chin_water.webp", element: "water" },
+    mame_chin_grass: { id: "mame_chin_grass", name: "はっぱちんちら", level: 22, hp: 156, atk: 32, def: 25, spd: 18, exp: 82, money: 60, skillIds: ["tackle"], image: MON_DIR + "mame_chin_grass.webp", element: "grass" },
+    mame_chin_wind: { id: "mame_chin_wind", name: "かぜのちんちら", level: 22, hp: 128, atk: 34, def: 18, spd: 30, exp: 82, money: 60, skillIds: ["tackle"], image: MON_DIR + "mame_chin_wind.webp", element: "wind" },
+    mame_chin_earth: { id: "mame_chin_earth", name: "だいちのちんちら", level: 23, hp: 168, atk: 34, def: 28, spd: 15, exp: 86, money: 63, skillIds: ["tackle"], image: MON_DIR + "mame_chin_earth.webp", element: "earth" },
+    mame_chin_thunder: { id: "mame_chin_thunder", name: "いなずまちんちら", level: 22, hp: 126, atk: 36, def: 17, spd: 32, exp: 82, money: 60, skillIds: ["tackle"], image: MON_DIR + "mame_chin_thunder.webp", element: "thunder" },
+    mame_chin_heaven: { id: "mame_chin_heaven", name: "てんにょちんちら", level: 23, hp: 145, atk: 35, def: 23, spd: 24, exp: 86, money: 63, skillIds: ["tackle"], image: MON_DIR + "mame_chin_heaven.webp", element: "heaven" },
+    mame_chin_dark: { id: "mame_chin_dark", name: "やみよちんちら", level: 23, hp: 148, atk: 38, def: 22, spd: 23, exp: 86, money: 63, skillIds: ["tackle"], image: MON_DIR + "mame_chin_dark.webp", element: "dark" },
+    mame_chin_magic: { id: "mame_chin_magic", name: "まほうちんちら", level: 22, hp: 140, atk: 36, def: 20, spd: 25, exp: 82, money: 60, skillIds: ["tackle"], image: MON_DIR + "mame_chin_magic.webp", element: "magic" },
+    mame_chin_kami: { id: "mame_chin_kami", name: "神威ちんちら", level: 55, hp: 460, atk: 142, def: 116, spd: 86, exp: 250, money: 185, skillIds: ["tackle", "kami_judgement"], image: MON_DIR + "mame_chin_kami.webp", element: "kami" },
 
     // ---- フィールド(初級)なかま進化系 ----
     slime_2: { id: "slime_2", name: "スライムプリンス", level: 9, hp: 47, atk: 12, def: 8, spd: 6, exp: 23, money: 17, skillIds: ["tackle"], image: MON_DIR + "slime_2.webp", element: "water", evolvesTo: { level: 20, id: "slime_3" } },
@@ -645,7 +678,9 @@
     "hinotama", "hinotama_2", "hinotama_3",
     "saboten", "saboten_2", "saboten_3",
     "koyurei", "koyurei_2", "koyurei_3",
-    "sai_boya", "katatsumuri", "lion_ko", "fukurou_ko", "tengu_ko", "mitsubachi", "usagi_ko", "kujira_ko",
+    "sai_boya", "katatsumuri", "lion_ko", "fukurou_ko", "tengu_ko", "mitsubachi", "usagi_ko", "kujira_ko", "mame_chin",
+    "mame_chin_fire", "mame_chin_water", "mame_chin_grass", "mame_chin_wind", "mame_chin_earth",
+    "mame_chin_thunder", "mame_chin_heaven", "mame_chin_dark", "mame_chin_magic", "mame_chin_kami",
     "ankoku_kishi", "ankoku_kishi_2",
     "ankoku_madoushi", "ankoku_madoushi_2",
     "orc", "orc_2",
@@ -766,7 +801,7 @@
           { id: "hinotama", weight: 2 }, { id: "saboten", weight: 2 }, { id: "koyurei", weight: 1 },
           { id: "sai_boya", weight: 1 }, { id: "katatsumuri", weight: 1 }, { id: "lion_ko", weight: 1 },
           { id: "fukurou_ko", weight: 1 }, { id: "tengu_ko", weight: 1 }, { id: "mitsubachi", weight: 1 },
-          { id: "usagi_ko", weight: 1 }, { id: "kujira_ko", weight: 1 }
+          { id: "usagi_ko", weight: 1 }, { id: "kujira_ko", weight: 1 }, { id: "mame_chin", weight: 1 }
         ]
       }
     },

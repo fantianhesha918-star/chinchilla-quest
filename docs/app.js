@@ -159,8 +159,9 @@
   }
 
   function currentCompanionSpeciesId(baseId, level) {
-    var cur = G.MONSTERS[baseId];
-    var curId = baseId;
+    var ld = state.companionLevels && state.companionLevels[baseId];
+    var curId = (ld && ld.evolvedId) || baseId;
+    var cur = G.MONSTERS[curId];
     while (cur.evolvesTo && level >= cur.evolvesTo.level) {
       curId = cur.evolvesTo.id;
       cur = G.MONSTERS[curId];
@@ -182,6 +183,20 @@
       });
     }
     return state.companionSkills[baseId];
+  }
+
+  // アイテムでの分岐進化はレベルを飛び越えることがあるため、本来レベル到達で覚えているはずの
+  // わざを一括で追いつかせる(通常のレベルアップでは gainCompanionExp が1レベルずつ処理する)
+  function catchUpCompanionSkills(baseId) {
+    var ld = getCompanionLevelData(baseId);
+    var track = companionSkillTrack(baseId, ld.level);
+    var known = getCompanionSkills(baseId);
+    track.forEach(function (skillId) {
+      var sk = G.SKILLS[skillId];
+      if (sk.learnLevel <= ld.level && known.indexOf(skillId) === -1) {
+        known.push(skillId);
+      }
+    });
   }
 
   function renderPlayerSprite() {
@@ -261,6 +276,11 @@
   var areaBannerTextEl = document.getElementById("area-banner-text");
   var areaBannerTimer = null;
 
+  var evolveOverlayEl = document.getElementById("evolve-overlay");
+  var evolveSpriteEl = document.getElementById("evolve-sprite");
+  var evolveFlashEl = document.getElementById("evolve-flash");
+  var evolveTextEl = document.getElementById("evolve-text");
+
   var currentSlot = null;
   var state = null;
   var selectedStarter = false;
@@ -289,6 +309,34 @@
       areaBannerEl.classList.remove("show");
     }, 2200);
   }
+  function playEvolutionPresentation(beforeImg, beforeName, afterImg, afterName, onDone) {
+    var finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      evolveOverlayEl.removeEventListener("click", finish);
+      evolveOverlayEl.classList.add("hidden");
+      evolveSpriteEl.classList.remove("evolve-pulse");
+      evolveFlashEl.classList.remove("evolve-flash-pop");
+      onDone();
+    }
+    evolveSpriteEl.src = beforeImg;
+    evolveSpriteEl.classList.remove("evolve-flash-pop");
+    evolveSpriteEl.classList.add("evolve-pulse");
+    evolveFlashEl.classList.remove("evolve-flash-pop");
+    evolveTextEl.textContent = beforeName + " の ようすが…!?";
+    evolveOverlayEl.classList.remove("hidden");
+    evolveOverlayEl.addEventListener("click", finish);
+    setTimeout(function () {
+      if (finished) return;
+      evolveSpriteEl.classList.remove("evolve-pulse");
+      evolveFlashEl.classList.add("evolve-flash-pop");
+      evolveSpriteEl.src = afterImg;
+      evolveTextEl.textContent = beforeName + " は " + afterName + " に しんかした!";
+      setTimeout(finish, 2200);
+    }, 1300);
+  }
+
   function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
   function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
   document.querySelectorAll(".modal-close").forEach(function (btn) {
@@ -805,6 +853,10 @@
     function step() {
       if (i >= lines.length) { done(); return; }
       var line = lines[i]; i++;
+      if (line && typeof line === "object" && line.type === "evolve") {
+        playEvolutionPresentation(line.beforeImg, line.beforeName, line.afterImg, line.afterName, step);
+        return;
+      }
       if (line && typeof line === "object") {
         setBattleMessage(line.text);
         if (line.effect) line.effect();
@@ -1298,8 +1350,13 @@
         var stages = G.EVOLUTION_ROUTES[state.route].stages;
         var nextIdx = state.stageIndex;
         if (nextIdx < stages.length && stages[nextIdx].level <= state.level) {
+          var prevStage = nextIdx >= 1 ? stages[nextIdx - 1] : null;
           state.stageIndex += 1;
-          events.push({ type: "evolve", stage: stages[nextIdx] });
+          events.push({
+            type: "evolve", stage: stages[nextIdx],
+            beforeImg: prevStage ? prevStage.file : G.HERO_IMAGE,
+            beforeName: prevStage ? prevStage.label : state.name
+          });
           if (stages[nextIdx].skillId && state.learnedSkills.indexOf(stages[nextIdx].skillId) === -1) {
             state.learnedSkills.push(stages[nextIdx].skillId);
             events.push({ type: "skill", skillId: stages[nextIdx].skillId });
@@ -1331,8 +1388,10 @@
         }
         save(state);
         closeModal("route-modal");
-        showToast(state.name + " は " + firstStage.label + " に しんかした!" + skillMsg);
-        onDone();
+        playEvolutionPresentation(G.HERO_IMAGE, state.name, firstStage.file, firstStage.label, function () {
+          if (skillMsg) showToast(firstStage.label + skillMsg);
+          onDone();
+        });
       });
       routeChoicesEl.appendChild(card);
     });
@@ -1350,7 +1409,7 @@
         lines.push("HP+" + d.hp + " こうげき+" + d.atk + " ぼうぎょ+" + d.def + " すばやさ+" + d.spd);
       }
       else if (ev.type === "skill") lines.push(G.SKILLS[ev.skillId].name + " を おぼえた!");
-      else if (ev.type === "evolve") lines.push(state.name + " は " + ev.stage.label + " に しんかした!");
+      else if (ev.type === "evolve") lines.push({ type: "evolve", beforeImg: ev.beforeImg, beforeName: ev.beforeName, afterImg: ev.stage.file, afterName: ev.stage.label });
       else if (ev.type === "routechoice") routeChoiceNeeded = true;
     });
     playSequence(lines, function () {
@@ -1379,7 +1438,7 @@
         var afterName = G.MONSTERS[afterId].name;
         if (afterId !== beforeId) {
           markDiscovered(afterId);
-          levelUps.push(beforeName + " は " + afterName + " に しんかした!");
+          levelUps.push({ type: "evolve", beforeImg: G.MONSTERS[beforeId].image, beforeName: beforeName, afterImg: G.MONSTERS[afterId].image, afterName: afterName });
           beforeId = afterId;
           beforeName = afterName;
         }
@@ -1426,7 +1485,9 @@
       }
     }
     if (isFinalBoss) {
+      state.inventory.kami_evostone = (state.inventory.kami_evostone || 0) + 1;
       lines.push("よんてんのうを すべて たおした!");
+      lines.push(G.ITEMS.kami_evostone.name + " を 手に入れた!");
       lines.push("せかいに へいわが もどった…");
     }
     var events = gainExp(def.exp);
@@ -1514,8 +1575,9 @@
     G.USABLE_ITEM_IDS.forEach(function (id) {
       var count = state.inventory[id] || 0;
       if (count <= 0) return;
-      any = true;
       var item = G.ITEMS[id];
+      if (item.kind === "evostone") return;
+      any = true;
       var row = document.createElement("div");
       row.className = "battle-sub-item";
       row.innerHTML =
@@ -1624,6 +1686,33 @@
     refreshMenuData();
   }
 
+  function applyEvoStoneItem(itemId, item, target) {
+    if (target.kind !== "companion" || target.id !== item.baseId) {
+      showToast(target.name + " には つかえない…");
+      return;
+    }
+    var ld = getCompanionLevelData(target.id);
+    if (ld.evolvedId) {
+      showToast(target.name + " は もう しんかしている");
+      return;
+    }
+    state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
+    var beforeImg = G.MONSTERS[item.baseId].image;
+    var beforeName = target.name;
+    ld.evolvedId = item.evolveId;
+    catchUpCompanionSkills(target.id);
+    if (item.skillId && getCompanionSkills(target.id).indexOf(item.skillId) === -1) {
+      getCompanionSkills(target.id).push(item.skillId);
+    }
+    markDiscovered(item.evolveId);
+    save(state);
+    var afterMon = G.MONSTERS[item.evolveId];
+    playEvolutionPresentation(beforeImg, beforeName, afterMon.image, afterMon.name, function () {
+      updateHud();
+      refreshMenuData();
+    });
+  }
+
   function openPpMoveList(itemId, item, target) {
     var isHero = target.kind === "hero";
     var companionId = isHero ? null : target.id;
@@ -1674,7 +1763,9 @@
       openModal("item-target-modal");
       return;
     }
-    var applyFn = item.kind === "pellet" ? applyPelletItem : applyPotionItem;
+    var applyFn = item.kind === "pellet" ? applyPelletItem
+      : item.kind === "evostone" ? applyEvoStoneItem
+      : applyPotionItem;
     if (targets.length <= 1) { applyFn(itemId, item, targets[0]); return; }
     var listEl = document.getElementById("item-target-list");
     listEl.innerHTML = "";
@@ -1683,7 +1774,7 @@
       div.className = "food-item";
       div.innerHTML =
         '<div class="food-info"><div><div class="food-name">' + t.name + " Lv" + t.level + '</div><div class="food-desc">HP ' + t.hp + "/" + t.maxHp + '</div></div></div>' +
-        "<button>" + (item.kind === "pellet" ? "たべさせる" : "つかう") + "</button>";
+        "<button>" + (item.kind === "pellet" ? "たべさせる" : item.kind === "evostone" ? "しんかさせる" : "つかう") + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         closeModal("item-target-modal");
         applyFn(itemId, item, t);
@@ -1702,7 +1793,7 @@
       div.className = "food-item";
       div.innerHTML =
         '<div class="food-info"><img class="item-icon" src="' + item.icon + '" alt=""><div><div class="food-name">' + item.name + " ×" + count + '</div><div class="food-desc">' + item.desc + "</div></div></div>" +
-        "<button" + (count <= 0 ? " disabled" : "") + ">" + (item.kind === "ball" ? "なげる" : item.kind === "pellet" ? "たべる" : "つかう") + "</button>";
+        "<button" + (count <= 0 ? " disabled" : "") + ">" + (item.kind === "ball" ? "なげる" : item.kind === "pellet" ? "たべる" : item.kind === "evostone" ? "しんかさせる" : "つかう") + "</button>";
       div.querySelector("button").addEventListener("click", function () {
         if (count <= 0) return;
         if (item.kind === "ball") { showToast("せんとうちゅうに つかってね"); return; }
