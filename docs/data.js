@@ -429,11 +429,12 @@
     heaven: { strong: "dark", weak: "magic" },
     dark: { strong: "magic", weak: "heaven" },
     magic: { strong: "heaven", weak: "dark" },
-    beast: { strong: "magic", weak: "wind" },
-    kami: { strong: "beast", weak: "dark" }
+    beast: { strong: "magic", weak: "wind" }
+    // kami(神)は唯一の例外属性: 下のgetElementMatchupで全属性に対して常に「強い」を返す(弱点なし)
   };
   function getElementMatchup(atkElem, defElem) {
     if (!atkElem || atkElem === "none" || !defElem || defElem === "none") return { mult: 1, tier: "neutral" };
+    if (atkElem === "kami") return { mult: 2, tier: "strong" };
     var m = ELEMENT_MATCHUP[atkElem];
     if (!m) return { mult: 1, tier: "neutral" };
     if (m.strong === defElem) return { mult: 2, tier: "strong" };
