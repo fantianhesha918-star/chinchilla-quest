@@ -1276,8 +1276,8 @@
         setBattleMessage(def.name + " を なかまに した!");
         setTimeout(function () {
           state.companions[def.id] = (state.companions[def.id] || 0) + 1;
-          save(state);
-          endBattleToField();
+          var expGain = expGainWithBadgeBonus(def.exp);
+          grantExpAndLevelUps(expGain, [expGain + " の けいけんちを 手に入れた!"], endBattleToField);
         }, 900);
       } else {
         setBattleMessage(def.name + " は とびだして しまった…");
@@ -1455,11 +1455,30 @@
     return levelUps;
   }
 
+  function expGainWithBadgeBonus(baseExp) {
+    var badgeCount = Object.keys(state.badges || {}).length;
+    return Math.round(baseExp * (1 + badgeCount * 0.1));
+  }
+
+  function grantExpAndLevelUps(expGain, introLines, onDone) {
+    var events = gainExp(expGain);
+    var companionLevelUpLines = gainCompanionExp(expGain);
+    save(state);
+    renderBattle();
+    playSequence(introLines, function () {
+      handleLevelUpMessages(events, function () {
+        if (companionLevelUpLines.length === 0) { onDone(); return; }
+        playSequence(companionLevelUpLines, onDone);
+      });
+    });
+  }
+
   function winBattle() {
     var def = G.MONSTERS[battle.monsterId];
     var isFinalBoss = def.id === "kami_kouyoku";
+    var expGain = expGainWithBadgeBonus(def.exp);
     state.money += def.money;
-    var lines = [def.name + " を たおした!", def.exp + " の けいけんちを 手に入れた!", def.money + "まい の コインを 手に入れた!"];
+    var lines = [def.name + " を たおした!", expGain + " の けいけんちを 手に入れた!", def.money + "まい の コインを 手に入れた!"];
     if (battle.isBoss) {
       state.defeatedBosses[def.id] = true;
       lines.push("つよい モンスターを たおした! これからも ぼうけんは つづく…");
@@ -1490,26 +1509,16 @@
       lines.push(G.ITEMS.kami_evostone.name + " を 手に入れた!");
       lines.push("せかいに へいわが もどった…");
     }
-    var events = gainExp(def.exp);
-    var companionLevelUpLines = gainCompanionExp(def.exp);
-    save(state);
-    renderBattle();
-    playSequence(lines, function () {
-      handleLevelUpMessages(events, function () {
-        function finish() {
-          if (isFinalBoss) {
-            state.mapId = G.START_MAP;
-            state.x = G.START_X; state.y = G.START_Y;
-            save(state);
-            endBattleToField();
-            showAreaBanner("🎉 よんてんのう とうは! " + G.MAPS[G.START_MAP].label);
-          } else {
-            endBattleToField();
-          }
-        }
-        if (companionLevelUpLines.length === 0) { finish(); return; }
-        playSequence(companionLevelUpLines, finish);
-      });
+    grantExpAndLevelUps(expGain, lines, function () {
+      if (isFinalBoss) {
+        state.mapId = G.START_MAP;
+        state.x = G.START_X; state.y = G.START_Y;
+        save(state);
+        endBattleToField();
+        showAreaBanner("🎉 よんてんのう とうは! " + G.MAPS[G.START_MAP].label);
+      } else {
+        endBattleToField();
+      }
     });
   }
 
