@@ -523,6 +523,7 @@
   var CRIT_CHANCE = 0.08;
   var CRIT_MULT = 1.8;
   var MAX_PARTY_SIZE = 3;
+  var COMPANION_SKILL_CAP = 5;
 
   // ---------------- Monsters (illustrated art) ----------------
   var MON_DIR = "assets/monsters/";
@@ -1274,6 +1275,7 @@
     CRIT_CHANCE: CRIT_CHANCE,
     CRIT_MULT: CRIT_MULT,
     MAX_PARTY_SIZE: MAX_PARTY_SIZE,
+    COMPANION_SKILL_CAP: COMPANION_SKILL_CAP,
     ELEMENT_LABELS: ELEMENT_LABELS,
     ELEMENT_EFFECTS: ELEMENT_EFFECTS,
     ELEMENT_EFFECT_ANIM: ELEMENT_EFFECT_ANIM,

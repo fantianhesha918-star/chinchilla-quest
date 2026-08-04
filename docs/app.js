@@ -185,18 +185,80 @@
     return state.companionSkills[baseId];
   }
 
+  // なかまのわざは COMPANION_SKILL_CAP 件までしか同時に持てない。上限に達した状態で
+  // 新しいわざを覚えようとした場合は「わすれるわざ」選択モーダルを挟んでから確定する。
+  // onDone(message) — message は表示用テキスト、既に習得済み/おぼえさせない を選んだ場合は null。
+  function learnCompanionSkillCapped(baseId, skillId, companionName, onDone) {
+    var skills = getCompanionSkills(baseId);
+    if (skills.indexOf(skillId) !== -1) { onDone(null); return; }
+    var newSkillName = G.SKILLS[skillId].name;
+    if (skills.length < G.COMPANION_SKILL_CAP) {
+      skills.push(skillId);
+      save(state);
+      onDone(companionName + " は " + newSkillName + " を おぼえた!");
+      return;
+    }
+    openForgetMoveModal(baseId, skillId, companionName, function (forgottenSkillId) {
+      if (forgottenSkillId) {
+        var idx = skills.indexOf(forgottenSkillId);
+        if (idx !== -1) skills.splice(idx, 1);
+        skills.push(skillId);
+        save(state);
+        onDone(companionName + " は " + G.SKILLS[forgottenSkillId].name + " を わすれた! そして " + newSkillName + " を おぼえた!");
+      } else {
+        onDone(null);
+      }
+    });
+  }
+
+  function openForgetMoveModal(baseId, newSkillId, companionName, onChoice) {
+    var skills = getCompanionSkills(baseId).slice();
+    var newSk = G.SKILLS[newSkillId];
+    document.getElementById("forget-move-intro").textContent =
+      companionName + " は " + newSk.name + " を おぼえたい! どの わざを わすれる?";
+    var listEl = document.getElementById("forget-move-list");
+    listEl.innerHTML = "";
+    skills.forEach(function (id) {
+      var sk = G.SKILLS[id];
+      var icon = sk.element ? '<img class="elem-icon" src="' + G.ELEMENT_ICONS[sk.element] + '" alt="' + G.ELEMENT_LABELS[sk.element] + '">' : "";
+      var row = document.createElement("div");
+      row.className = "food-item";
+      row.innerHTML =
+        '<div class="food-info"><div><div class="food-name">' + icon + sk.name + '</div><div class="food-desc">' + sk.desc + '</div></div></div>' +
+        "<button>わすれる</button>";
+      row.querySelector("button").addEventListener("click", function () {
+        closeModal("forget-move-modal");
+        onChoice(id);
+      });
+      listEl.appendChild(row);
+    });
+    document.getElementById("forget-move-skip").onclick = function () {
+      closeModal("forget-move-modal");
+      onChoice(null);
+    };
+    openModal("forget-move-modal");
+  }
+
   // アイテムでの分岐進化はレベルを飛び越えることがあるため、本来レベル到達で覚えているはずの
-  // わざを一括で追いつかせる(通常のレベルアップでは gainCompanionExp が1レベルずつ処理する)
-  function catchUpCompanionSkills(baseId) {
+  // わざを一括で追いつかせる(通常のレベルアップでは gainCompanionExp が1レベルずつ処理する)。
+  // 上限に達している場合は1件ずつ「わすれるわざ」選択を挟みながら順番に処理する。
+  function catchUpCompanionSkillsCapped(baseId, onDone) {
     var ld = getCompanionLevelData(baseId);
     var track = companionSkillTrack(baseId, ld.level);
     var known = getCompanionSkills(baseId);
-    track.forEach(function (skillId) {
+    var pending = track.filter(function (skillId) {
       var sk = G.SKILLS[skillId];
-      if (sk.learnLevel <= ld.level && known.indexOf(skillId) === -1) {
-        known.push(skillId);
-      }
+      return sk.learnLevel <= ld.level && known.indexOf(skillId) === -1;
     });
+    var companionName = G.MONSTERS[currentCompanionSpeciesId(baseId, ld.level)].name;
+    function next(i) {
+      if (i >= pending.length) { onDone(); return; }
+      learnCompanionSkillCapped(baseId, pending[i], companionName, function (msg) {
+        if (msg) showToast(msg);
+        next(i + 1);
+      });
+    }
+    next(0);
   }
 
   function renderPlayerSprite() {
@@ -343,7 +405,7 @@
     btn.addEventListener("click", function (e) { e.target.closest(".modal").classList.add("hidden"); });
   });
   document.querySelectorAll(".modal").forEach(function (overlay) {
-    if (overlay.id === "route-modal") return;
+    if (overlay.id === "route-modal" || overlay.id === "forget-move-modal") return;
     overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.classList.add("hidden"); });
   });
 
@@ -646,7 +708,7 @@
   function handleBButton() {
     if (dialogueActive) { closeDialogue(); return; }
     var openModalEl = document.querySelector(".modal:not(.hidden)");
-    if (openModalEl && openModalEl.id !== "route-modal") { openModalEl.classList.add("hidden"); }
+    if (openModalEl && openModalEl.id !== "route-modal" && openModalEl.id !== "forget-move-modal") { openModalEl.classList.add("hidden"); }
   }
 
   // ---------------- Dialogue ----------------
@@ -855,6 +917,12 @@
       var line = lines[i]; i++;
       if (line && typeof line === "object" && line.type === "evolve") {
         playEvolutionPresentation(line.beforeImg, line.beforeName, line.afterImg, line.afterName, step);
+        return;
+      }
+      if (line && typeof line === "object" && line.type === "learnskill") {
+        learnCompanionSkillCapped(line.companionId, line.skillId, line.companionName, function (msg) {
+          if (msg) { setBattleMessage(msg); setTimeout(step, 850); } else { step(); }
+        });
         return;
       }
       if (line && typeof line === "object") {
@@ -1306,15 +1374,31 @@
     setCommandButtonsEnabled(false);
     closeSubMenu();
     state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
-    if (active.kind === "hero") state.learnedSkills.push(item.skillId);
-    else active.skillIds.push(item.skillId);
-    save(state);
-    renderBattle();
-    setBattleMessage(active.name + " は " + item.name + " を たべた!");
-    setTimeout(function () {
-      setBattleMessage(active.name + " は " + sk.name + " を おぼえた!");
-      setTimeout(function () { battle.locked = false; enemyTurn(); }, 900);
-    }, 900);
+    if (active.kind === "hero") {
+      state.learnedSkills.push(item.skillId);
+      save(state);
+      renderBattle();
+      setBattleMessage(active.name + " は " + item.name + " を たべた!");
+      setTimeout(function () {
+        setBattleMessage(active.name + " は " + sk.name + " を おぼえた!");
+        setTimeout(function () { battle.locked = false; enemyTurn(); }, 900);
+      }, 900);
+    } else {
+      save(state);
+      renderBattle();
+      setBattleMessage(active.name + " は " + item.name + " を たべた!");
+      setTimeout(function () {
+        learnCompanionSkillCapped(active.companionId, item.skillId, active.name, function (msg) {
+          renderBattle();
+          if (msg) {
+            setBattleMessage(msg);
+            setTimeout(function () { battle.locked = false; enemyTurn(); }, 900);
+          } else {
+            battle.locked = false; enemyTurn();
+          }
+        });
+      }, 900);
+    }
   }
 
   function gainExp(expGain) {
@@ -1445,8 +1529,7 @@
         companionSkillTrack(id, ld.level).forEach(function (skillId) {
           var sk = G.SKILLS[skillId];
           if (sk.learnLevel === ld.level && skills.indexOf(skillId) === -1) {
-            skills.push(skillId);
-            levelUps.push(beforeName + " は " + sk.name + " を おぼえた!");
+            levelUps.push({ type: "learnskill", companionId: id, companionName: beforeName, skillId: skillId });
           }
         });
       }
@@ -1687,12 +1770,19 @@
       return;
     }
     state.inventory[itemId] = Math.max(0, (state.inventory[itemId] || 0) - 1);
-    if (target.kind === "hero") state.learnedSkills.push(item.skillId);
-    else getCompanionSkills(target.id).push(item.skillId);
-    save(state);
-    showToast(target.name + " は " + sk.name + " を おぼえた!");
-    updateHud();
-    refreshMenuData();
+    if (target.kind === "hero") {
+      state.learnedSkills.push(item.skillId);
+      save(state);
+      showToast(target.name + " は " + sk.name + " を おぼえた!");
+      updateHud();
+      refreshMenuData();
+    } else {
+      learnCompanionSkillCapped(target.id, item.skillId, target.name, function (msg) {
+        if (msg) showToast(msg);
+        updateHud();
+        refreshMenuData();
+      });
+    }
   }
 
   function applyEvoStoneItem(itemId, item, target) {
@@ -1709,16 +1799,21 @@
     var beforeImg = G.MONSTERS[item.baseId].image;
     var beforeName = target.name;
     ld.evolvedId = item.evolveId;
-    catchUpCompanionSkills(target.id);
-    if (item.skillId && getCompanionSkills(target.id).indexOf(item.skillId) === -1) {
-      getCompanionSkills(target.id).push(item.skillId);
-    }
     markDiscovered(item.evolveId);
     save(state);
     var afterMon = G.MONSTERS[item.evolveId];
     playEvolutionPresentation(beforeImg, beforeName, afterMon.image, afterMon.name, function () {
-      updateHud();
-      refreshMenuData();
+      catchUpCompanionSkillsCapped(target.id, function () {
+        function finish() { updateHud(); refreshMenuData(); }
+        if (item.skillId) {
+          learnCompanionSkillCapped(target.id, item.skillId, afterMon.name, function (msg) {
+            if (msg) showToast(msg);
+            finish();
+          });
+        } else {
+          finish();
+        }
+      });
     });
   }
 
